@@ -55248,6 +55248,220 @@
         },
         "type": "object"
       },
+      "FileCoverageLines": {
+        "description": "Per-file line coverage data including executable, covered, and added lines.",
+        "properties": {
+          "added_lines": {
+            "description": "Line numbers that were added in the specified scope (for example, in a PR diff).",
+            "example": [
+              11,
+              12
+            ],
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "covered_lines": {
+            "description": "Line numbers that were covered by tests.",
+            "example": [
+              10,
+              11,
+              15
+            ],
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "executable_lines": {
+            "description": "Line numbers that are executable (can be covered).",
+            "example": [
+              10,
+              11,
+              12,
+              15,
+              20
+            ],
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "FilesCoverageAttributes": {
+        "description": "Attributes of the per-file code coverage response.",
+        "properties": {
+          "base_commit_sha": {
+            "description": "The SHA of the base commit used for comparison (for example, the merge base for a PR).",
+            "example": "abc1234567890abcdef1234567890abcdef12345",
+            "type": "string"
+          },
+          "event_timestamp": {
+            "description": "Unix timestamp (milliseconds) of the coverage event.",
+            "example": 1709564000000,
+            "format": "int64",
+            "type": "integer"
+          },
+          "files": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FileCoverageLines"
+            },
+            "description": "Map of file paths to per-file coverage line data.",
+            "type": "object"
+          },
+          "head_commit_sha": {
+            "description": "The SHA of the head commit for which coverage was evaluated.",
+            "example": "66adc9350f2cc9b250b69abddab733dd55e1a588",
+            "type": "string"
+          },
+          "report_count": {
+            "description": "Number of coverage reports evaluated.",
+            "example": 3,
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "FilesCoverageData": {
+        "description": "Data object for files coverage response.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/FilesCoverageAttributes"
+          },
+          "id": {
+            "description": "Unique identifier for the files coverage response.",
+            "example": "ZGQxMjM0NV9tYWluXzE3MDk1NjQwMDA=",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/FilesCoverageResponseType"
+          }
+        },
+        "type": "object"
+      },
+      "FilesCoverageRequest": {
+        "description": "Request object for getting per-file code coverage data.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FilesCoverageRequestData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "FilesCoverageRequestAttributes": {
+        "description": "Attributes for requesting per-file code coverage data. Exactly one of `commit_sha`, `branch`, or `pr_number` must be provided. At most one of `service`, `codeowner`, or `flag` may be provided.",
+        "properties": {
+          "branch": {
+            "description": "The branch name.",
+            "example": "main",
+            "type": "string"
+          },
+          "changed_only": {
+            "description": "When true, return coverage data only for files that were changed in the specified scope.",
+            "example": true,
+            "type": "boolean"
+          },
+          "codeowner": {
+            "description": "Filter coverage by code owner. At most one of `service`, `codeowner`, or `flag` may be provided.",
+            "example": "@my-team",
+            "type": "string"
+          },
+          "commit_sha": {
+            "description": "The commit SHA (40-character hexadecimal string).",
+            "example": "66adc9350f2cc9b250b69abddab733dd55e1a588",
+            "pattern": "^[a-fA-F0-9]{40}$",
+            "type": "string"
+          },
+          "flag": {
+            "description": "Filter coverage by coverage flag. At most one of `service`, `codeowner`, or `flag` may be provided.",
+            "example": "unit-tests",
+            "type": "string"
+          },
+          "pr_number": {
+            "description": "The pull request number. Must be a positive integer.",
+            "example": 42,
+            "format": "int64",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "repository_id": {
+            "deprecated": true,
+            "description": "Deprecated: use `repository_url` instead. The repository URL.",
+            "example": "github.com/datadog/shopist",
+            "minLength": 1,
+            "type": "string"
+          },
+          "repository_url": {
+            "description": "The repository URL. Accepts a full URL with or without a scheme (for example, `https://github.com/org/repo` or `github.com/org/repo`).",
+            "example": "https://github.com/datadog/shopist",
+            "minLength": 1,
+            "type": "string"
+          },
+          "service": {
+            "description": "Filter coverage by service name. At most one of `service`, `codeowner`, or `flag` may be provided.",
+            "example": "my-service",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "FilesCoverageRequestData": {
+        "description": "Data object for files coverage request.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/FilesCoverageRequestAttributes"
+          },
+          "type": {
+            "$ref": "#/components/schemas/FilesCoverageRequestType"
+          }
+        },
+        "required": [
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "FilesCoverageRequestType": {
+        "description": "JSON:API type for files coverage request. The value must always be `ci_app_coverage_files_request`.",
+        "enum": [
+          "ci_app_coverage_files_request"
+        ],
+        "example": "ci_app_coverage_files_request",
+        "type": "string",
+        "x-enum-varnames": [
+          "CI_APP_COVERAGE_FILES_REQUEST"
+        ]
+      },
+      "FilesCoverageResponse": {
+        "description": "Response object containing per-file code coverage data.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FilesCoverageData"
+          }
+        },
+        "type": "object"
+      },
+      "FilesCoverageResponseType": {
+        "description": "JSON:API type for files coverage response. The value must always be `ci_app_coverage_files`.",
+        "enum": [
+          "ci_app_coverage_files"
+        ],
+        "example": "ci_app_coverage_files",
+        "type": "string",
+        "x-enum-varnames": [
+          "CI_APP_COVERAGE_FILES"
+        ]
+      },
       "FiltersPerProduct": {
         "description": "Product-specific filters for the dataset.",
         "properties": {
@@ -112736,6 +112950,68 @@
           "OWNERSHIP_UNTAGGED_FINDINGS"
         ]
       },
+      "PRCoverageSummaryRequest": {
+        "description": "Request object for getting code coverage summary for a pull request.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PRCoverageSummaryRequestData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "PRCoverageSummaryRequestAttributes": {
+        "description": "Attributes for requesting code coverage summary for a pull request.",
+        "properties": {
+          "pr_number": {
+            "description": "The pull request number. Must be a positive integer.",
+            "example": 42,
+            "format": "int64",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "repository_url": {
+            "description": "The repository URL. Accepts a full URL with or without a scheme (for example, `https://github.com/org/repo` or `github.com/org/repo`).",
+            "example": "https://github.com/datadog/shopist",
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "repository_url",
+          "pr_number"
+        ],
+        "type": "object"
+      },
+      "PRCoverageSummaryRequestData": {
+        "description": "Data object for PR summary request.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/PRCoverageSummaryRequestAttributes"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PRCoverageSummaryRequestType"
+          }
+        },
+        "required": [
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "PRCoverageSummaryRequestType": {
+        "description": "JSON:API type for PR coverage summary request. The value must always be `ci_app_coverage_pr_summary_request`.",
+        "enum": [
+          "ci_app_coverage_pr_summary_request"
+        ],
+        "example": "ci_app_coverage_pr_summary_request",
+        "type": "string",
+        "x-enum-varnames": [
+          "CI_APP_COVERAGE_PR_SUMMARY_REQUEST"
+        ]
+      },
       "PageAnnotationsAttributes": {
         "description": "Attributes of the annotations on a page.",
         "properties": {
@@ -133780,6 +134056,39 @@
           "SCHEDULES"
         ]
       },
+      "ScheduleListItem": {
+        "description": "Represents a summary of a schedule, linking its core attributes and team relationships.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/ScheduleDataAttributes"
+          },
+          "id": {
+            "description": "The schedule's unique identifier.",
+            "example": "3653d3c6-0c75-11ea-ad28-fb5701eabc7d",
+            "type": "string"
+          },
+          "relationships": {
+            "$ref": "#/components/schemas/ScheduleListItemRelationships"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ScheduleDataType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "ScheduleListItemRelationships": {
+        "description": "Groups the relationships for a schedule summary, referencing its teams.",
+        "properties": {
+          "teams": {
+            "$ref": "#/components/schemas/DataRelationshipsTeams"
+          }
+        },
+        "type": "object"
+      },
       "ScheduleMember": {
         "description": "Represents a single member entry in a schedule, referencing a specific user.",
         "properties": {
@@ -134553,6 +134862,121 @@
         "x-enum-varnames": [
           "USERS"
         ]
+      },
+      "Schedules": {
+        "description": "A list of schedules with pagination metadata and any related included resources (such as teams).",
+        "example": {
+          "data": [
+            {
+              "attributes": {
+                "name": "Primary On-Call",
+                "tags": [],
+                "time_zone": "America/New_York"
+              },
+              "id": "3653d3c6-0c75-11ea-ad28-fb5701eabc7d",
+              "relationships": {
+                "teams": {
+                  "data": [
+                    {
+                      "id": "00000000-da3a-0000-0000-000000000000",
+                      "type": "teams"
+                    }
+                  ]
+                }
+              },
+              "type": "schedules"
+            }
+          ],
+          "meta": {
+            "page": {
+              "first_number": 0,
+              "last_number": 0,
+              "next_number": null,
+              "number": 0,
+              "prev_number": null,
+              "size": 10,
+              "total": 1,
+              "type": "number_size"
+            }
+          }
+        },
+        "properties": {
+          "data": {
+            "description": "A list of schedules.",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleListItem"
+            },
+            "type": "array"
+          },
+          "included": {
+            "description": "Any additional resources related to the schedules, such as teams.",
+            "items": {
+              "$ref": "#/components/schemas/TeamReference"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/SchedulesResponseMeta"
+          }
+        },
+        "type": "object"
+      },
+      "SchedulesResponseMeta": {
+        "description": "Metadata that is included in the response when listing schedules.",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/SchedulesResponseMetaPage"
+          }
+        },
+        "type": "object"
+      },
+      "SchedulesResponseMetaPage": {
+        "description": "Metadata related to paging information that is included in the response when listing schedules.",
+        "properties": {
+          "first_number": {
+            "description": "First page number.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_number": {
+            "description": "Last page number.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "next_number": {
+            "description": "Next page number.",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "number": {
+            "description": "Page number.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "prev_number": {
+            "description": "Previous page number.",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "size": {
+            "description": "Page size.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "total": {
+            "description": "Total number of results.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "type": {
+            "description": "Pagination type.",
+            "example": "number_size",
+            "type": "string"
+          }
+        },
+        "type": "object"
       },
       "ScorecardListResponseAttributes": {
         "description": "Scorecard attributes.",
@@ -140789,9 +141213,25 @@
         "additionalProperties": {},
         "description": "The object containing all signal attributes and their\nassociated values.",
         "properties": {
+          "attributes": {
+            "additionalProperties": {},
+            "description": "A JSON object of attributes in the security signal, returned when listing or searching signals.",
+            "example": {
+              "workflow": {
+                "first_seen": "2020-06-23T14:46:01.000Z",
+                "last_seen": "2020-06-23T14:46:49.000Z",
+                "rule": {
+                  "id": "0f5-e0c-805",
+                  "name": "Brute Force Attack Grouped By User",
+                  "version": 12
+                }
+              }
+            },
+            "type": "object"
+          },
           "custom": {
             "additionalProperties": {},
-            "description": "A JSON object of attributes in the security signal.",
+            "description": "A JSON object of attributes in the security signal, returned when retrieving a single signal.",
             "example": {
               "workflow": {
                 "first_seen": "2020-06-23T14:46:01.000Z",
@@ -141938,8 +142378,24 @@
       "SecurityMonitoringSignalsListResponseMeta": {
         "description": "Meta attributes.",
         "properties": {
+          "elapsed": {
+            "description": "The time elapsed in milliseconds.",
+            "example": 132,
+            "format": "int64",
+            "type": "integer"
+          },
           "page": {
             "$ref": "#/components/schemas/SecurityMonitoringSignalsListResponseMetaPage"
+          },
+          "request_id": {
+            "description": "The unique identifier of the request.",
+            "example": "example-request-id",
+            "type": "string"
+          },
+          "status": {
+            "description": "The status of the response.",
+            "example": "done",
+            "type": "string"
           }
         },
         "type": "object"
@@ -163878,7 +164334,7 @@
             "type": "string"
           },
           "fields": {
-            "description": "Custom fields of the Jira issue to create. For the list of available fields, see [Jira documentation](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issues/#api-rest-api-2-issue-createmeta-projectidorkey-issuetypes-issuetypeid-get).",
+            "description": "Target-specific fields of the ticket to create.\n\nFor `target: jira`, the custom fields of the Jira issue. For the list of available fields, see [Jira documentation](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issues/#api-rest-api-2-issue-createmeta-projectidorkey-issuetypes-issuetypeid-get).\n\nFor `target: linear`, the optional keys `linear_project_id` (string, the identifier of the Linear project the issue is created in) and `linear_label_ids` (array of strings, the identifiers of the Linear labels applied to the issue).",
             "example": {
               "labels": [
                 "security"
@@ -163926,7 +164382,7 @@
             "type": "string"
           },
           "fields": {
-            "description": "Custom fields of the Jira issue to create. For the list of available fields, see [Jira documentation](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issues/#api-rest-api-2-issue-createmeta-projectidorkey-issuetypes-issuetypeid-get).",
+            "description": "Target-specific fields of the ticket to create.\n\nFor `target: jira`, the custom fields of the Jira issue. For the list of available fields, see [Jira documentation](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issues/#api-rest-api-2-issue-createmeta-projectidorkey-issuetypes-issuetypeid-get).\n\nFor `target: linear`, the optional keys `linear_project_id` (string, the identifier of the Linear project the issue is created in) and `linear_label_ids` (array of strings, the identifiers of the Linear labels applied to the issue).",
             "example": {
               "labels": [
                 "security"
@@ -164195,13 +164651,15 @@
         "description": "The ticketing system to create tickets in.",
         "enum": [
           "jira",
-          "case_management"
+          "case_management",
+          "linear"
         ],
         "example": "jira",
         "type": "string",
         "x-enum-varnames": [
           "JIRA",
-          "CASE_MANAGEMENT"
+          "CASE_MANAGEMENT",
+          "LINEAR"
         ]
       },
       "TimeAggregation": {
@@ -194550,8 +195008,7 @@
           "permissions": [
             "code_coverage_read"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/code-coverage/commit/summary": {
@@ -194652,8 +195109,230 @@
           "permissions": [
             "code_coverage_read"
           ]
+        }
+      }
+    },
+    "/api/v2/code-coverage/files": {
+      "post": {
+        "description": "Retrieve per-file code coverage data for a specific commit, branch, or pull request.\nExactly one of `commit_sha`, `branch`, or `pr_number` must be provided.\nOptionally filter by `service`, `codeowner`, or `flag` (at most one).",
+        "operationId": "GetCodeCoverageFiles",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "changed_only": true,
+                        "commit_sha": "66adc9350f2cc9b250b69abddab733dd55e1a588",
+                        "repository_url": "https://github.com/datadog/test-service"
+                      },
+                      "type": "ci_app_coverage_files_request"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/FilesCoverageRequest"
+              }
+            }
+          },
+          "required": true
         },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "base_commit_sha": "abc1234567890abcdef1234567890abcdef12345",
+                          "event_timestamp": 1709564000000,
+                          "files": {
+                            "src/main.go": {
+                              "added_lines": [
+                                11,
+                                12
+                              ],
+                              "covered_lines": [
+                                10,
+                                11,
+                                15
+                              ],
+                              "executable_lines": [
+                                10,
+                                11,
+                                12,
+                                15,
+                                20
+                              ]
+                            }
+                          },
+                          "head_commit_sha": "66adc9350f2cc9b250b69abddab733dd55e1a588",
+                          "report_count": 3
+                        },
+                        "id": "ZGQxMjM0NV9tYWluXzE3MDk1NjQwMDA=",
+                        "type": "ci_app_coverage_files"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/FilesCoverageResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestResponse"
+          },
+          "403": {
+            "$ref": "#/components/responses/NotAuthorizedResponse"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "code_coverage_read"
+            ]
+          }
+        ],
+        "summary": "Get per-file code coverage data",
+        "tags": [
+          "Code Coverage"
+        ],
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "code_coverage_read"
+          ]
+        }
+      }
+    },
+    "/api/v2/code-coverage/pr/summary": {
+      "post": {
+        "description": "Retrieve aggregated code coverage statistics for a specific pull request in a repository.\nThis endpoint provides overall coverage metrics as well as breakdowns by service\nand code owner.",
+        "operationId": "GetCodeCoveragePRSummary",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "pr_number": 42,
+                        "repository_url": "https://github.com/datadog/test-service"
+                      },
+                      "type": "ci_app_coverage_pr_summary_request"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/PRCoverageSummaryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "evaluated_flags_count": 3,
+                          "evaluated_reports_count": 5,
+                          "patch_coverage": 65.2,
+                          "total_coverage": 78.6
+                        },
+                        "id": "ZGQxMjM0NV9wcl80Ml8xNzA5NTY0MDAw",
+                        "type": "ci_app_coverage_summary"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/CoverageSummaryResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestResponse"
+          },
+          "403": {
+            "$ref": "#/components/responses/NotAuthorizedResponse"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "code_coverage_read"
+            ]
+          }
+        ],
+        "summary": "Get code coverage summary for a pull request",
+        "tags": [
+          "Code Coverage"
+        ],
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "code_coverage_read"
+          ]
+        }
       }
     },
     "/api/v2/compliance_findings/rule_based_view": {
@@ -260139,6 +260818,123 @@
       }
     },
     "/api/v2/on-call/schedules": {
+      "get": {
+        "description": "Retrieve a list of On-Call schedules.",
+        "operationId": "ListOnCallSchedules",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageSize"
+          },
+          {
+            "$ref": "#/components/parameters/PageNumber"
+          },
+          {
+            "description": "Search query to filter schedules. Supports free-text search on schedule name (case-insensitive, `*` wildcards), and structured filters such as `team.id:<uuid>` and `user.id:<uuid>` (multiple values can be combined with `OR`, e.g. `user.id:(<uuid> OR <uuid>)`).",
+            "in": "query",
+            "name": "filter[query]",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated list of included relationships to be returned. Allowed value: `teams`.",
+            "in": "query",
+            "name": "include",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "name": "Primary On-Call",
+                            "tags": [],
+                            "time_zone": "America/New_York"
+                          },
+                          "id": "3653d3c6-0c75-11ea-ad28-fb5701eabc7d",
+                          "relationships": {
+                            "teams": {
+                              "data": [
+                                {
+                                  "id": "00000000-da3a-0000-0000-000000000000",
+                                  "type": "teams"
+                                }
+                              ]
+                            }
+                          },
+                          "type": "schedules"
+                        }
+                      ],
+                      "meta": {
+                        "page": {
+                          "first_number": 0,
+                          "last_number": 0,
+                          "next_number": null,
+                          "number": 0,
+                          "prev_number": null,
+                          "size": 10,
+                          "total": 1,
+                          "type": "number_size"
+                        }
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Schedules"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedResponse"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
+          }
+        ],
+        "summary": "List On-Call schedules",
+        "tags": [
+          "On-Call"
+        ],
+        "x-pagination": {
+          "limitParam": "page[size]",
+          "pageParam": "page[number]",
+          "resultsPath": "data"
+        },
+        "x-permission": {
+          "operator": "AND",
+          "permissions": [
+            "on_call_read"
+          ]
+        }
+      },
       "post": {
         "description": "Create a new On-Call schedule",
         "operationId": "CreateOnCallSchedule",
@@ -298397,6 +299193,15 @@
                       "data": [
                         {
                           "attributes": {
+                            "attributes": {
+                              "workflow": {
+                                "rule": {
+                                  "id": "0f5-e0c-805",
+                                  "name": "Brute Force Attack Grouped By User",
+                                  "version": 12
+                                }
+                              }
+                            },
                             "tags": [
                               "source:cloudtrail"
                             ]
@@ -298409,9 +299214,12 @@
                         "next": ""
                       },
                       "meta": {
+                        "elapsed": 132,
                         "page": {
                           "after": "eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ=="
-                        }
+                        },
+                        "request_id": "example-request-id",
+                        "status": "done"
                       }
                     }
                   }
