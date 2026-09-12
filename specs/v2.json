@@ -44023,6 +44023,122 @@
         },
         "type": "array"
       },
+      "DefaultInboxRuleAttributesResponse": {
+        "description": "Attributes of a default inbox rule returned by the API.",
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/InboxRuleAction"
+          },
+          "created_at": {
+            "description": "The Unix timestamp in milliseconds when the rule definition was created. The definition is authored by Datadog.",
+            "example": 1722439510282,
+            "format": "int64",
+            "type": "integer"
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/AutomationRuleCreatedBy"
+          },
+          "enabled": {
+            "description": "Whether the default inbox rule is enabled for the organization.",
+            "example": true,
+            "type": "boolean"
+          },
+          "modified_at": {
+            "description": "The Unix timestamp in milliseconds when the rule was last modified.",
+            "example": 1722439510282,
+            "format": "int64",
+            "type": "integer"
+          },
+          "modified_by": {
+            "$ref": "#/components/schemas/AutomationRuleModifiedBy"
+          },
+          "name": {
+            "description": "The name of the default inbox rule.",
+            "example": "Secrets",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "rule": {
+            "$ref": "#/components/schemas/AutomationRuleScope"
+          }
+        },
+        "required": [
+          "name",
+          "enabled",
+          "rule",
+          "action",
+          "created_at",
+          "created_by",
+          "modified_at",
+          "modified_by"
+        ],
+        "type": "object"
+      },
+      "DefaultInboxRuleDataResponse": {
+        "description": "The data object for a default inbox rule returned by the API.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/DefaultInboxRuleAttributesResponse"
+          },
+          "id": {
+            "description": "The ID of the default inbox rule.\nKnown default rule IDs include: `identity_risk_default_rule`,\n`secret_default_rule`, `library_vulnerability_default_rule`,\n`attack_path_default_rule`, `host_and_container_vulnerability_default_rule`,\n`runtime_code_vulnerability_default_rule`, `iac_misconfiguration_default_rule`,\nand `misconfiguration_default_rule`. Datadog can add new default rules\nover time.",
+            "example": "secret_default_rule",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DefaultInboxRuleType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "DefaultInboxRuleResponse": {
+        "description": "A single default inbox rule response.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DefaultInboxRuleDataResponse"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "DefaultInboxRuleType": {
+        "description": "The JSON:API type for default inbox rules.",
+        "enum": [
+          "default_inbox_rules"
+        ],
+        "example": "default_inbox_rules",
+        "type": "string",
+        "x-enum-varnames": [
+          "DEFAULT_INBOX_RULES"
+        ]
+      },
+      "DefaultInboxRulesDataList": {
+        "description": "A list of default inbox rule data objects.",
+        "items": {
+          "$ref": "#/components/schemas/DefaultInboxRuleDataResponse"
+        },
+        "type": "array"
+      },
+      "DefaultInboxRulesResponse": {
+        "description": "A list of default inbox rules.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DefaultInboxRulesDataList"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "DefaultRulesetsPerLanguageData": {
         "description": "The primary data object in the default rulesets per language response.",
         "properties": {
@@ -48945,7 +49061,7 @@
         "type": "object"
       },
       "DueDateRuleReorderData": {
-        "description": "The ordered list of all due date rules; every rule must be included.",
+        "description": "The ordered list of all due date rules. Every rule must be included.",
         "items": {
           "$ref": "#/components/schemas/DueDateRuleReorderItem"
         },
@@ -48955,7 +49071,7 @@
         "description": "A reference to a due date rule used for reordering.",
         "properties": {
           "id": {
-            "description": "The ID of the automation rule.",
+            "description": "The ID of the due date rule.",
             "example": "00000000-0000-0000-0000-000000000000",
             "format": "uuid",
             "type": "string"
@@ -66878,6 +66994,285 @@
         },
         "required": [
           "data"
+        ],
+        "type": "object"
+      },
+      "InboxRuleAction": {
+        "description": "The action to take when the inbox rule matches a finding.",
+        "properties": {
+          "description": {
+            "description": "An optional description providing more context for the rule.",
+            "example": "Needs triage",
+            "maxLength": 20000,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "InboxRuleAttributesCreate": {
+        "description": "Attributes for creating or updating an inbox rule.",
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/InboxRuleAction"
+          },
+          "enabled": {
+            "description": "Whether the inbox rule is enabled.",
+            "example": true,
+            "type": "boolean"
+          },
+          "name": {
+            "description": "The name of the inbox rule.",
+            "example": "Triage production misconfigurations",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "rule": {
+            "$ref": "#/components/schemas/AutomationRuleScope"
+          }
+        },
+        "required": [
+          "name",
+          "rule",
+          "action"
+        ],
+        "type": "object"
+      },
+      "InboxRuleAttributesResponse": {
+        "description": "Attributes of an inbox rule returned by the API.",
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/InboxRuleAction"
+          },
+          "created_at": {
+            "description": "The Unix timestamp in milliseconds when the rule was created.",
+            "example": 1722439510282,
+            "format": "int64",
+            "type": "integer"
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/AutomationRuleCreatedBy"
+          },
+          "enabled": {
+            "description": "Whether the inbox rule is enabled.",
+            "example": true,
+            "type": "boolean"
+          },
+          "modified_at": {
+            "description": "The Unix timestamp in milliseconds when the rule was last modified.",
+            "example": 1722439510282,
+            "format": "int64",
+            "type": "integer"
+          },
+          "modified_by": {
+            "$ref": "#/components/schemas/AutomationRuleModifiedBy"
+          },
+          "name": {
+            "description": "The name of the inbox rule.",
+            "example": "Triage production misconfigurations",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "rule": {
+            "$ref": "#/components/schemas/AutomationRuleScope"
+          }
+        },
+        "required": [
+          "name",
+          "enabled",
+          "rule",
+          "action",
+          "created_at",
+          "created_by",
+          "modified_at",
+          "modified_by"
+        ],
+        "type": "object"
+      },
+      "InboxRuleCreateRequest": {
+        "description": "The body of an inbox rule create request.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/InboxRuleDataCreate"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "InboxRuleDataCreate": {
+        "description": "The data object for an inbox rule create request.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/InboxRuleAttributesCreate"
+          },
+          "type": {
+            "$ref": "#/components/schemas/InboxRuleType"
+          }
+        },
+        "required": [
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "InboxRuleDataResponse": {
+        "description": "The data object for an inbox rule returned by the API.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/InboxRuleAttributesResponse"
+          },
+          "id": {
+            "description": "The ID of the inbox rule.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/InboxRuleType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "InboxRuleDataUpdate": {
+        "description": "The data object for an inbox rule update request. The `id` must match the `rule_id` path parameter.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/InboxRuleAttributesCreate"
+          },
+          "id": {
+            "description": "The ID of the inbox rule to update.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/InboxRuleType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "InboxRuleReorderData": {
+        "description": "The ordered list of all inbox rules. Every rule must be included.",
+        "items": {
+          "$ref": "#/components/schemas/InboxRuleReorderItem"
+        },
+        "type": "array"
+      },
+      "InboxRuleReorderItem": {
+        "description": "A reference to an inbox rule used for reordering.",
+        "properties": {
+          "id": {
+            "description": "The ID of the inbox rule.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/InboxRuleType"
+          }
+        },
+        "required": [
+          "type",
+          "id"
+        ],
+        "type": "object"
+      },
+      "InboxRuleReorderRequest": {
+        "description": "The body of an inbox rule reorder request.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/InboxRuleReorderData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "InboxRuleReorderResponse": {
+        "description": "The response of an inbox rule reorder request.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/InboxRuleReorderData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "InboxRuleResponse": {
+        "description": "A single inbox rule response.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/InboxRuleDataResponse"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "InboxRuleType": {
+        "description": "The JSON:API type for inbox rules.",
+        "enum": [
+          "inbox_rules"
+        ],
+        "example": "inbox_rules",
+        "type": "string",
+        "x-enum-varnames": [
+          "INBOX_RULES"
+        ]
+      },
+      "InboxRuleUpdateRequest": {
+        "description": "The body of an inbox rule update request.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/InboxRuleDataUpdate"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "InboxRulesDataList": {
+        "description": "A list of inbox rule data objects.",
+        "items": {
+          "$ref": "#/components/schemas/InboxRuleDataResponse"
+        },
+        "type": "array"
+      },
+      "InboxRulesResponse": {
+        "description": "A list of inbox rules with pagination metadata.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/InboxRulesDataList"
+          },
+          "links": {
+            "$ref": "#/components/schemas/SecurityAutomationRulesLinks"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/SecurityAutomationRulesMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta",
+          "links"
         ],
         "type": "object"
       },
@@ -97735,7 +98130,7 @@
         "type": "object"
       },
       "MuteRuleReorderData": {
-        "description": "The ordered list of all mute rules; every rule must be included.",
+        "description": "The ordered list of all mute rules. Every rule must be included.",
         "items": {
           "$ref": "#/components/schemas/MuteRuleReorderItem"
         },
@@ -97745,7 +98140,7 @@
         "description": "A reference to a mute rule used for reordering.",
         "properties": {
           "id": {
-            "description": "The ID of the automation rule.",
+            "description": "The ID of the mute rule.",
             "example": "00000000-0000-0000-0000-000000000000",
             "format": "uuid",
             "type": "string"
@@ -102784,7 +103179,8 @@
         "type": "object"
       },
       "ObservabilityPipelineGenerateMetricsProcessor": {
-        "description": "The `generate_datadog_metrics` processor creates custom metrics from logs and sends them to Datadog.\nMetrics can be counters, gauges, or distributions and optionally grouped by log fields.\n\n**Supported pipeline types:** logs",
+        "deprecated": true,
+        "description": "The `generate_datadog_metrics` processor creates custom metrics from logs and sends them to Datadog.\nMetrics can be counters, gauges, or distributions and optionally grouped by log fields.\n\n**Supported pipeline types:** logs\n\n**Deprecated:** This processor is deprecated. Use the `generate_metrics` processor instead.",
         "properties": {
           "display_name": {
             "$ref": "#/components/schemas/ObservabilityPipelineComponentDisplayName"
@@ -102838,7 +103234,7 @@
         ]
       },
       "ObservabilityPipelineGenerateMetricsV2Processor": {
-        "description": "The `generate_metrics` processor creates custom metrics from logs.\nMetrics can be counters, gauges, or distributions and optionally grouped by log fields.\nThe generated metrics must be routed to a metrics destination using the input `<processor-id>.metrics`.\n\n**Supported pipeline types:** logs",
+        "description": "The `generate_metrics` processor creates custom metrics from logs.\nMetrics can be counters, gauges, or distributions and optionally grouped by log fields.\n\nThere must be a destination whose `inputs` reference this processor with the `<processor-id>.metrics` suffix to route the generated metrics. All destination types normally supported for `metrics` pipelines are also supported as metrics destinations in `logs` pipelines.\n\n**Supported pipeline types:** logs",
         "properties": {
           "display_name": {
             "$ref": "#/components/schemas/ObservabilityPipelineComponentDisplayName"
@@ -103497,14 +103893,16 @@
         "enum": [
           "none",
           "basic",
-          "bearer"
+          "bearer",
+          "custom"
         ],
         "example": "basic",
         "type": "string",
         "x-enum-varnames": [
           "NONE",
           "BASIC",
-          "BEARER"
+          "BEARER",
+          "CUSTOM"
         ]
       },
       "ObservabilityPipelineHttpClientDestinationCompression": {
@@ -105317,7 +105715,7 @@
         ]
       },
       "ObservabilityPipelineQuotaProcessorOverflowAction": {
-        "description": "The action to take when the quota or bucket limit is exceeded. Options:\n- `drop`: Drop the event.\n- `no_action`: Let the event pass through.\n- `overflow_routing`: Route to an overflow destination.",
+        "description": "The action to take when the quota or bucket limit is exceeded. Options:\n- `drop`: Drop the event.\n- `no_action`: Let the event pass through.\n- `overflow_routing`: Route to an overflow destination.\n\nWhen `overflow_routing` is used, there must be a destination whose `inputs` reference this processor with the `<processor-id>.overflow_events` suffix to route the overflowing events. Only the following destination types support overflow inputs: `amazon_s3_generic`, `amazon_s3`, `google_cloud_storage`, and `azure_storage`.",
         "enum": [
           "drop",
           "no_action",
@@ -147717,7 +148115,7 @@
         "type": "object"
       },
       "SeverityModifierRuleReorderData": {
-        "description": "The ordered list of severity modifier rules; every rule must be included.",
+        "description": "The ordered list of all severity modifier rules. Every rule must be included.",
         "items": {
           "$ref": "#/components/schemas/SeverityModifierRuleReorderItem"
         },
@@ -147727,7 +148125,7 @@
         "description": "A reference to a severity modifier rule used for reordering.",
         "properties": {
           "id": {
-            "description": "The ID of the automation rule.",
+            "description": "The ID of the severity modifier rule.",
             "example": "00000000-0000-0000-0000-000000000000",
             "format": "uuid",
             "type": "string"
@@ -164548,7 +164946,7 @@
         "type": "object"
       },
       "TicketCreationRuleReorderData": {
-        "description": "The ordered list of all ticket creation rules; every rule must be included.",
+        "description": "The ordered list of all ticket creation rules. Every rule must be included.",
         "items": {
           "$ref": "#/components/schemas/TicketCreationRuleReorderItem"
         },
@@ -164558,7 +164956,7 @@
         "description": "A reference to a ticket creation rule used for reordering.",
         "properties": {
           "id": {
-            "description": "The ID of the automation rule.",
+            "description": "The ID of the ticket creation rule.",
             "example": "00000000-0000-0000-0000-000000000000",
             "format": "uuid",
             "type": "string"
@@ -164873,7 +165271,7 @@
         "type": "object"
       },
       "TimeseriesAnomalyInvestigationAnomaly": {
-        "description": "Most significant anomaly detected in the request.",
+        "description": "One of the most significant anomalies detected in the request.",
         "properties": {
           "anomaly_detection": {
             "$ref": "#/components/schemas/TimeseriesAnomalyInvestigationDetection"
@@ -165111,8 +165509,8 @@
         "description": "Formula evaluated by the timeseries request.",
         "properties": {
           "formula": {
-            "description": "Formula expression referencing one or more named queries.",
-            "example": "anomalies(query1, 'agile', 3)",
+            "description": "Formula expression referencing one or more named queries.\nWhen the expression does not contain an explicit `anomalies()` call,\nthe endpoint applies the default Watchdog Explains anomaly detection configuration.",
+            "example": "query1",
             "minLength": 1,
             "type": "string"
           },
@@ -165366,7 +165764,7 @@
               {
                 "formulas": [
                   {
-                    "formula": "anomalies(query1, 'agile', 3)"
+                    "formula": "query1"
                   }
                 ],
                 "from": 1754406000000,
@@ -165541,12 +165939,12 @@
         "description": "Completed result for one timeseries request. The anomalies array is empty when no qualifying anomaly is found.",
         "properties": {
           "anomalies": {
-            "description": "Detected anomalies. This API version returns at most one anomaly.",
+            "description": "Detected anomalies, ordered by significance. This API version returns at most\nthree anomalies across the submitted request.",
             "example": [],
             "items": {
               "$ref": "#/components/schemas/TimeseriesAnomalyInvestigationAnomaly"
             },
-            "maxItems": 1,
+            "maxItems": 3,
             "type": "array"
           },
           "status": {
@@ -165675,7 +166073,7 @@
             "description": "Formulas to evaluate. Each formula may contain an explicit `anomalies()` call or a supported metrics expression.",
             "example": [
               {
-                "formula": "anomalies(query1, 'agile', 3)"
+                "formula": "query1"
               }
             ],
             "items": {
@@ -286013,6 +286411,385 @@
         "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
+    "/api/v2/security/findings/automation/default_inbox_rules": {
+      "get": {
+        "description": "Get all default inbox rules for the current organization.\nDatadog manages default inbox rules. Their name, rule, and action are\nread-only, and each organization can change only whether they are enabled.",
+        "operationId": "ListSecurityFindingsAutomationDefaultInboxRules",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "action": {
+                              "description": "Maintained by Datadog Security Research. Customize your inbox by adding your own rules, cloning this rule, or disabling it."
+                            },
+                            "created_at": 1787064734329,
+                            "created_by": {
+                              "id": "datadog.security_research",
+                              "name": "Datadog Security Research",
+                              "type": "system"
+                            },
+                            "enabled": true,
+                            "modified_at": 1787064734329,
+                            "modified_by": {
+                              "id": "datadog.security_research",
+                              "name": "Datadog Security Research",
+                              "type": "system"
+                            },
+                            "name": "Secrets",
+                            "rule": {
+                              "finding_types": [
+                                "secret"
+                              ],
+                              "query": "@git.repository_visibility:public OR @secret.validation_status:valid"
+                            }
+                          },
+                          "id": "secret_default_rule",
+                          "type": "default_inbox_rules"
+                        },
+                        {
+                          "attributes": {
+                            "action": {
+                              "description": "Detects misconfigurations in your environment."
+                            },
+                            "created_at": 1722439510282,
+                            "created_by": {
+                              "id": "datadog.security_research",
+                              "name": "Datadog Security Research",
+                              "type": "system"
+                            },
+                            "enabled": false,
+                            "modified_at": 1722439510282,
+                            "modified_by": {
+                              "id": "datadog.security_research",
+                              "name": "Datadog Security Research",
+                              "type": "system"
+                            },
+                            "name": "Misconfigurations",
+                            "rule": {
+                              "finding_types": [
+                                "misconfiguration"
+                              ]
+                            }
+                          },
+                          "id": "misconfiguration_default_rule",
+                          "type": "default_inbox_rules"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultInboxRulesResponse"
+                }
+              }
+            },
+            "description": "Successfully retrieved the list of default inbox rules"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          }
+        ],
+        "summary": "Get all default inbox rules",
+        "tags": [
+          "Security Monitoring"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_pipelines_read"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/security/findings/automation/default_inbox_rules/{rule_id}": {
+      "get": {
+        "description": "Get the details of a default inbox rule by ID.\nDatadog manages default inbox rules. Their name, rule, and action are\nread-only, and each organization can change only whether they are enabled.",
+        "operationId": "GetSecurityFindingsAutomationDefaultInboxRule",
+        "parameters": [
+          {
+            "description": "The ID of the default inbox rule.\nKnown default rule IDs include: `identity_risk_default_rule`,\n`secret_default_rule`, `library_vulnerability_default_rule`,\n`attack_path_default_rule`, `host_and_container_vulnerability_default_rule`,\n`runtime_code_vulnerability_default_rule`, `iac_misconfiguration_default_rule`,\nand `misconfiguration_default_rule`. Datadog can add new default rules\nover time.",
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "example": "secret_default_rule",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "action": {
+                            "description": "Maintained by Datadog Security Research. Customize your inbox by adding your own rules, cloning this rule, or disabling it."
+                          },
+                          "created_at": 1787064734329,
+                          "created_by": {
+                            "id": "datadog.security_research",
+                            "name": "Datadog Security Research",
+                            "type": "system"
+                          },
+                          "enabled": true,
+                          "modified_at": 1787064734329,
+                          "modified_by": {
+                            "id": "datadog.security_research",
+                            "name": "Datadog Security Research",
+                            "type": "system"
+                          },
+                          "name": "Secrets",
+                          "rule": {
+                            "finding_types": [
+                              "secret"
+                            ],
+                            "query": "@git.repository_visibility:public OR @secret.validation_status:valid"
+                          }
+                        },
+                        "id": "secret_default_rule",
+                        "type": "default_inbox_rules"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultInboxRuleResponse"
+                }
+              }
+            },
+            "description": "Successfully retrieved the default inbox rule"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          }
+        ],
+        "summary": "Get a default inbox rule",
+        "tags": [
+          "Security Monitoring"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_pipelines_read"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/security/findings/automation/default_inbox_rules/{rule_id}/disable": {
+      "post": {
+        "description": "Disable a default inbox rule for the current organization.",
+        "operationId": "DisableSecurityFindingsAutomationDefaultInboxRule",
+        "parameters": [
+          {
+            "description": "The ID of the default inbox rule.\nKnown default rule IDs include: `identity_risk_default_rule`,\n`secret_default_rule`, `library_vulnerability_default_rule`,\n`attack_path_default_rule`, `host_and_container_vulnerability_default_rule`,\n`runtime_code_vulnerability_default_rule`, `iac_misconfiguration_default_rule`,\nand `misconfiguration_default_rule`. Datadog can add new default rules\nover time.",
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "example": "secret_default_rule",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "action": {
+                            "description": "Maintained by Datadog Security Research. Customize your inbox by adding your own rules, cloning this rule, or disabling it."
+                          },
+                          "created_at": 1787064734329,
+                          "created_by": {
+                            "id": "datadog.security_research",
+                            "name": "Datadog Security Research",
+                            "type": "system"
+                          },
+                          "enabled": false,
+                          "modified_at": 1788255000000,
+                          "modified_by": {
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "name": "Jane Doe",
+                            "type": "user"
+                          },
+                          "name": "Secrets",
+                          "rule": {
+                            "finding_types": [
+                              "secret"
+                            ],
+                            "query": "@git.repository_visibility:public OR @secret.validation_status:valid"
+                          }
+                        },
+                        "id": "secret_default_rule",
+                        "type": "default_inbox_rules"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultInboxRuleResponse"
+                }
+              }
+            },
+            "description": "Successfully disabled the default inbox rule"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          }
+        ],
+        "summary": "Disable a default inbox rule",
+        "tags": [
+          "Security Monitoring"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_pipelines_write"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/security/findings/automation/default_inbox_rules/{rule_id}/enable": {
+      "post": {
+        "description": "Enable a default inbox rule for the current organization.",
+        "operationId": "EnableSecurityFindingsAutomationDefaultInboxRule",
+        "parameters": [
+          {
+            "description": "The ID of the default inbox rule.\nKnown default rule IDs include: `identity_risk_default_rule`,\n`secret_default_rule`, `library_vulnerability_default_rule`,\n`attack_path_default_rule`, `host_and_container_vulnerability_default_rule`,\n`runtime_code_vulnerability_default_rule`, `iac_misconfiguration_default_rule`,\nand `misconfiguration_default_rule`. Datadog can add new default rules\nover time.",
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "example": "secret_default_rule",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "action": {
+                            "description": "Maintained by Datadog Security Research. Customize your inbox by adding your own rules, cloning this rule, or disabling it."
+                          },
+                          "created_at": 1787064734329,
+                          "created_by": {
+                            "id": "datadog.security_research",
+                            "name": "Datadog Security Research",
+                            "type": "system"
+                          },
+                          "enabled": true,
+                          "modified_at": 1788255000000,
+                          "modified_by": {
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "name": "Jane Doe",
+                            "type": "user"
+                          },
+                          "name": "Secrets",
+                          "rule": {
+                            "finding_types": [
+                              "secret"
+                            ],
+                            "query": "@git.repository_visibility:public OR @secret.validation_status:valid"
+                          }
+                        },
+                        "id": "secret_default_rule",
+                        "type": "default_inbox_rules"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultInboxRuleResponse"
+                }
+              }
+            },
+            "description": "Successfully enabled the default inbox rule"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          }
+        ],
+        "summary": "Enable a default inbox rule",
+        "tags": [
+          "Security Monitoring"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_pipelines_write"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
     "/api/v2/security/findings/automation/due_date_rules": {
       "get": {
         "description": "Get all due date rules for the current organization.",
@@ -286139,7 +286916,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Create a new due date rule for the current organization.",
+        "description": "Create a due date rule for the current organization.",
         "operationId": "CreateSecurityFindingsAutomationDueDateRule",
         "requestBody": {
           "content": {
@@ -286392,7 +287169,7 @@
     },
     "/api/v2/security/findings/automation/due_date_rules/{rule_id}": {
       "delete": {
-        "description": "Delete an existing due date rule by ID.",
+        "description": "Delete a due date rule by ID.",
         "operationId": "DeleteSecurityFindingsAutomationDueDateRule",
         "parameters": [
           {
@@ -286409,7 +287186,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Rule successfully deleted."
+            "description": "Successfully deleted the due date rule"
           },
           "403": {
             "$ref": "#/components/responses/ForbiddenResponse"
@@ -286540,7 +287317,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "put": {
-        "description": "Update an existing due date rule by ID.",
+        "description": "Update a due date rule by ID.",
         "operationId": "UpdateSecurityFindingsAutomationDueDateRule",
         "parameters": [
           {
@@ -286711,6 +287488,637 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
+    "/api/v2/security/findings/automation/inbox_rules": {
+      "get": {
+        "description": "Get all inbox rules for the current organization.",
+        "operationId": "ListSecurityFindingsAutomationInboxRules",
+        "parameters": [
+          {
+            "description": "The number of rules per page. Maximum is 1000.",
+            "in": "query",
+            "name": "page[size]",
+            "required": false,
+            "schema": {
+              "default": 1000,
+              "example": 10,
+              "format": "int64",
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The page number to return.",
+            "in": "query",
+            "name": "page[number]",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "action": {
+                              "description": "Needs triage"
+                            },
+                            "created_at": 1722439510282,
+                            "created_by": {
+                              "id": "00000000-0000-0000-0000-000000000000",
+                              "name": "Jane Doe",
+                              "type": "user"
+                            },
+                            "enabled": true,
+                            "modified_at": 1722439510282,
+                            "modified_by": {
+                              "id": "00000000-0000-0000-0000-000000000000",
+                              "name": "Jane Doe",
+                              "type": "user"
+                            },
+                            "name": "Triage production misconfigurations",
+                            "rule": {
+                              "finding_types": [
+                                "misconfiguration"
+                              ],
+                              "query": "env:prod"
+                            }
+                          },
+                          "id": "00000000-0000-0000-0000-000000000000",
+                          "type": "inbox_rules"
+                        }
+                      ],
+                      "links": {
+                        "first": "/api/v2/security/findings/automation/inbox_rules?page[size]=1000&page[number]=0",
+                        "last": "/api/v2/security/findings/automation/inbox_rules?page[size]=1000&page[number]=0"
+                      },
+                      "meta": {
+                        "page": {
+                          "total_filtered_count": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/InboxRulesResponse"
+                }
+              }
+            },
+            "description": "Successfully retrieved the list of inbox rules"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          }
+        ],
+        "summary": "Get all inbox rules",
+        "tags": [
+          "Security Monitoring"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_pipelines_read"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
+      "post": {
+        "description": "Create an inbox rule for the current organization.",
+        "operationId": "CreateSecurityFindingsAutomationInboxRule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "action": {
+                          "description": "Needs triage"
+                        },
+                        "enabled": true,
+                        "name": "Triage production misconfigurations",
+                        "rule": {
+                          "finding_types": [
+                            "misconfiguration"
+                          ],
+                          "query": "env:prod"
+                        }
+                      },
+                      "type": "inbox_rules"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/InboxRuleCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "action": {
+                            "description": "Needs triage"
+                          },
+                          "created_at": 1722439510282,
+                          "created_by": {
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "name": "Jane Doe",
+                            "type": "user"
+                          },
+                          "enabled": true,
+                          "modified_at": 1722439510282,
+                          "modified_by": {
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "name": "Jane Doe",
+                            "type": "user"
+                          },
+                          "name": "Triage production misconfigurations",
+                          "rule": {
+                            "finding_types": [
+                              "misconfiguration"
+                            ],
+                            "query": "env:prod"
+                          }
+                        },
+                        "id": "00000000-0000-0000-0000-000000000000",
+                        "type": "inbox_rules"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/InboxRuleResponse"
+                }
+              }
+            },
+            "description": "Successfully created the inbox rule"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          }
+        ],
+        "summary": "Create an inbox rule",
+        "tags": [
+          "Security Monitoring"
+        ],
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_pipelines_write"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/security/findings/automation/inbox_rules/reorder": {
+      "post": {
+        "description": "Reorder the list of inbox rules for the current organization.",
+        "operationId": "ReorderSecurityFindingsAutomationInboxRules",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": [
+                      {
+                        "id": "00000000-0000-0000-0000-000000000000",
+                        "type": "inbox_rules"
+                      },
+                      {
+                        "id": "11111111-1111-1111-1111-111111111111",
+                        "type": "inbox_rules"
+                      }
+                    ]
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/InboxRuleReorderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "id": "00000000-0000-0000-0000-000000000000",
+                          "type": "inbox_rules"
+                        },
+                        {
+                          "id": "11111111-1111-1111-1111-111111111111",
+                          "type": "inbox_rules"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/InboxRuleReorderResponse"
+                }
+              }
+            },
+            "description": "Successfully reordered the inbox rules"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          }
+        ],
+        "summary": "Reorder inbox rules",
+        "tags": [
+          "Security Monitoring"
+        ],
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_pipelines_write"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/security/findings/automation/inbox_rules/{rule_id}": {
+      "delete": {
+        "description": "Delete an inbox rule by ID.",
+        "operationId": "DeleteSecurityFindingsAutomationInboxRule",
+        "parameters": [
+          {
+            "description": "The ID of the inbox rule.",
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "example": "00000000-0000-0000-0000-000000000000",
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted the inbox rule"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          }
+        ],
+        "summary": "Delete an inbox rule",
+        "tags": [
+          "Security Monitoring"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_pipelines_write"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
+      "get": {
+        "description": "Get the details of an inbox rule by ID.",
+        "operationId": "GetSecurityFindingsAutomationInboxRule",
+        "parameters": [
+          {
+            "description": "The ID of the inbox rule.",
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "example": "00000000-0000-0000-0000-000000000000",
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "action": {
+                            "description": "Needs triage"
+                          },
+                          "created_at": 1722439510282,
+                          "created_by": {
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "name": "Jane Doe",
+                            "type": "user"
+                          },
+                          "enabled": true,
+                          "modified_at": 1722439510282,
+                          "modified_by": {
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "name": "Jane Doe",
+                            "type": "user"
+                          },
+                          "name": "Triage production misconfigurations",
+                          "rule": {
+                            "finding_types": [
+                              "misconfiguration"
+                            ],
+                            "query": "env:prod"
+                          }
+                        },
+                        "id": "00000000-0000-0000-0000-000000000000",
+                        "type": "inbox_rules"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/InboxRuleResponse"
+                }
+              }
+            },
+            "description": "Successfully retrieved the inbox rule"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          }
+        ],
+        "summary": "Get an inbox rule",
+        "tags": [
+          "Security Monitoring"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_pipelines_read"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
+      "put": {
+        "description": "Update an inbox rule by ID.",
+        "operationId": "UpdateSecurityFindingsAutomationInboxRule",
+        "parameters": [
+          {
+            "description": "The ID of the inbox rule.",
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "example": "00000000-0000-0000-0000-000000000000",
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "action": {
+                          "description": "Needs triage"
+                        },
+                        "enabled": false,
+                        "name": "Triage production misconfigurations",
+                        "rule": {
+                          "finding_types": [
+                            "misconfiguration"
+                          ],
+                          "query": "env:prod"
+                        }
+                      },
+                      "id": "00000000-0000-0000-0000-000000000000",
+                      "type": "inbox_rules"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/InboxRuleUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "action": {
+                            "description": "Needs triage"
+                          },
+                          "created_at": 1722439510282,
+                          "created_by": {
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "name": "Jane Doe",
+                            "type": "user"
+                          },
+                          "enabled": false,
+                          "modified_at": 1722439510999,
+                          "modified_by": {
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "name": "Jane Doe",
+                            "type": "user"
+                          },
+                          "name": "Triage production misconfigurations",
+                          "rule": {
+                            "finding_types": [
+                              "misconfiguration"
+                            ],
+                            "query": "env:prod"
+                          }
+                        },
+                        "id": "00000000-0000-0000-0000-000000000000",
+                        "type": "inbox_rules"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/InboxRuleResponse"
+                }
+              }
+            },
+            "description": "Successfully updated the inbox rule"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundResponse"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          }
+        ],
+        "summary": "Update an inbox rule",
+        "tags": [
+          "Security Monitoring"
+        ],
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_pipelines_write"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
     "/api/v2/security/findings/automation/mute_rules": {
       "get": {
         "description": "Get all mute rules for the current organization.",
@@ -286829,7 +288237,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Create a new mute rule for the current organization.",
+        "description": "Create a mute rule for the current organization.",
         "operationId": "CreateSecurityFindingsAutomationMuteRule",
         "requestBody": {
           "content": {
@@ -287066,7 +288474,7 @@
     },
     "/api/v2/security/findings/automation/mute_rules/{rule_id}": {
       "delete": {
-        "description": "Delete an existing mute rule by ID.",
+        "description": "Delete a mute rule by ID.",
         "operationId": "DeleteSecurityFindingsAutomationMuteRule",
         "parameters": [
           {
@@ -287083,7 +288491,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Rule successfully deleted."
+            "description": "Successfully deleted the mute rule"
           },
           "403": {
             "$ref": "#/components/responses/ForbiddenResponse"
@@ -287206,7 +288614,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "put": {
-        "description": "Update an existing mute rule by ID.",
+        "description": "Update a mute rule by ID.",
         "operationId": "UpdateSecurityFindingsAutomationMuteRule",
         "parameters": [
           {
@@ -287470,7 +288878,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Create a new severity modifier rule for the current organization.",
+        "description": "Create a severity modifier rule for the current organization.",
         "operationId": "CreateSecurityFindingsAutomationSeverityModifierRule",
         "requestBody": {
           "content": {
@@ -287707,7 +289115,7 @@
     },
     "/api/v2/security/findings/automation/severity_modifier_rules/{rule_id}": {
       "delete": {
-        "description": "Delete an existing severity modifier rule by ID.",
+        "description": "Delete a severity modifier rule by ID.",
         "operationId": "DeleteSecurityFindingsAutomationSeverityModifierRule",
         "parameters": [
           {
@@ -287724,7 +289132,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Rule successfully deleted"
+            "description": "Successfully deleted the severity modifier rule"
           },
           "403": {
             "$ref": "#/components/responses/ForbiddenResponse"
@@ -287867,7 +289275,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "put": {
-        "description": "Update an existing severity modifier rule by ID.",
+        "description": "Update a severity modifier rule by ID.",
         "operationId": "UpdateSecurityFindingsAutomationSeverityModifierRule",
         "parameters": [
           {
@@ -288130,7 +289538,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Create a new ticket creation rule for the current organization.",
+        "description": "Create a ticket creation rule for the current organization.",
         "operationId": "CreateSecurityFindingsAutomationTicketCreationRule",
         "requestBody": {
           "content": {
@@ -288367,7 +289775,7 @@
     },
     "/api/v2/security/findings/automation/ticket_creation_rules/{rule_id}": {
       "delete": {
-        "description": "Delete an existing ticket creation rule by ID.",
+        "description": "Delete a ticket creation rule by ID.",
         "operationId": "DeleteSecurityFindingsAutomationTicketCreationRule",
         "parameters": [
           {
@@ -288384,7 +289792,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Rule successfully deleted."
+            "description": "Successfully deleted the ticket creation rule"
           },
           "403": {
             "$ref": "#/components/responses/ForbiddenResponse"
@@ -288507,7 +289915,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "put": {
-        "description": "Update an existing ticket creation rule by ID.",
+        "description": "Update a ticket creation rule by ID.",
         "operationId": "UpdateSecurityFindingsAutomationTicketCreationRule",
         "parameters": [
           {
@@ -320943,7 +322351,7 @@
     },
     "/api/v2/timeseries-anomaly-investigations": {
       "post": {
-        "description": "Investigates a metrics timeseries request for its most significant anomaly and returns deterministic findings.\nMetrics queries with or without grouping are supported. This API version accepts exactly one request and returns at most one anomaly.",
+        "description": "Investigates a metrics timeseries request for its most significant anomalies and returns\ndeterministic findings. Metrics queries with or without grouping are supported. This\nAPI version accepts exactly one request and returns at most three anomalies.",
         "operationId": "CreateTimeseriesAnomalyInvestigation",
         "requestBody": {
           "content": {
@@ -320957,7 +322365,7 @@
                           {
                             "formulas": [
                               {
-                                "formula": "anomalies(query1, 'agile', 3)"
+                                "formula": "query1"
                               }
                             ],
                             "from": 1754406000000,
@@ -320999,8 +322407,8 @@
                               "anomalies": [
                                 {
                                   "anomaly_detection": {
-                                    "configuration_source": "request_formula",
-                                    "profile": null
+                                    "configuration_source": "watchdog_explains_default",
+                                    "profile": "watchdog_explains_v1"
                                   },
                                   "detected_interval": {
                                     "end": 1754406120000,
