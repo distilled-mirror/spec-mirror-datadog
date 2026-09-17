@@ -18762,6 +18762,16 @@
             "format": "int64",
             "type": "integer"
           },
+          "tags": {
+            "description": "The tag keys used to group costs for the budget.",
+            "example": [
+              "service"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "total_amount": {
             "description": "The sum of all budget entries' amounts.",
             "example": 1000,
@@ -18821,7 +18831,9 @@
           },
           "id": {
             "description": "The unique identifier for the unit.",
-            "type": "string"
+            "example": 42,
+            "format": "int64",
+            "type": "integer"
           },
           "name": {
             "description": "The full name of the unit.",
@@ -18984,6 +18996,9 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/BudgetWithEntriesData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/BudgetWithEntriesMeta"
           }
         },
         "type": "object"
@@ -19154,6 +19169,20 @@
         "x-enum-varnames": [
           "BUDGET"
         ]
+      },
+      "BudgetWithEntriesMeta": {
+        "description": "Additional information about errors encountered while retrieving budget cost data.",
+        "properties": {
+          "error": {
+            "description": "A user-facing explanation of why budget cost data could not be retrieved.",
+            "example": "",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
       },
       "BulkDeleteAppsDatastoreItemsRequest": {
         "description": "Request to delete items from a datastore.",
@@ -174995,6 +175024,10 @@
             "$ref": "#/components/schemas/WorkflowRunAsUserMode",
             "readOnly": true
           },
+          "sensitivePrivileges": {
+            "description": "Whether the workflow requires sensitive privileges to run. Only the workflow owner can update this field. This allows it to run actions that use [Execution Policies](https://docs.datadoghq.com/actions/private_actions/execution_policies/).",
+            "type": "boolean"
+          },
           "spec": {
             "$ref": "#/components/schemas/Spec"
           },
@@ -175103,6 +175136,10 @@
           "runAsUserMode": {
             "$ref": "#/components/schemas/WorkflowRunAsUserMode",
             "readOnly": true
+          },
+          "sensitivePrivileges": {
+            "description": "Whether the workflow requires sensitive privileges to run. Only the workflow owner can update this field. This allows it to run actions that use [Execution Policies](https://docs.datadoghq.com/actions/private_actions/execution_policies/).",
+            "type": "boolean"
           },
           "spec": {
             "$ref": "#/components/schemas/Spec"
@@ -175269,6 +175306,10 @@
           "runAsUserMode": {
             "$ref": "#/components/schemas/WorkflowRunAsUserMode",
             "readOnly": true
+          },
+          "sensitivePrivileges": {
+            "description": "Whether the workflow requires sensitive privileges to run. Only the workflow owner can update this field. This allows it to run actions that use [Execution Policies](https://docs.datadoghq.com/actions/private_actions/execution_policies/).",
+            "type": "boolean"
           },
           "spec": {
             "$ref": "#/components/schemas/Spec",
@@ -199322,7 +199363,7 @@
                           "costs_period_start": 1738281600000,
                           "costs_unit": {
                             "family": "currency",
-                            "id": "1",
+                            "id": 42,
                             "name": "dollar",
                             "plural": "dollars",
                             "scale_factor": 1,
