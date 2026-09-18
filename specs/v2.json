@@ -48808,6 +48808,9 @@
           "notify_end_types": {
             "$ref": "#/components/schemas/DowntimeNotifyEndTypes"
           },
+          "run_as": {
+            "$ref": "#/components/schemas/DowntimeRunAs"
+          },
           "schedule": {
             "$ref": "#/components/schemas/DowntimeScheduleResponse"
           },
@@ -48849,6 +48852,60 @@
           {
             "$ref": "#/components/schemas/DowntimeMonitorIncludedItem"
           }
+        ]
+      },
+      "DowntimeRunAs": {
+        "description": "The principals (users, roles, or teams) allowed to act on behalf of the downtime.\n\n**Note**: This feature is currently in Preview and may not be available for all organizations.",
+        "items": {
+          "$ref": "#/components/schemas/DowntimeRunAsItem"
+        },
+        "readOnly": true,
+        "type": "array"
+      },
+      "DowntimeRunAsItem": {
+        "description": "A set of principals allowed to act on behalf of the downtime.",
+        "properties": {
+          "principals": {
+            "description": "List of principals allowed to act on behalf of the downtime.",
+            "items": {
+              "$ref": "#/components/schemas/DowntimeRunAsPrincipal"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "DowntimeRunAsPrincipal": {
+        "description": "A principal (user, role, or team) allowed to act on behalf of the downtime.",
+        "properties": {
+          "id": {
+            "description": "The ID of the principal.",
+            "example": "00000000-0000-1234-0000-000000000000",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DowntimeRunAsPrincipalType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "DowntimeRunAsPrincipalType": {
+        "description": "The type of principal allowed to act on behalf of the downtime.",
+        "enum": [
+          "user",
+          "role",
+          "team"
+        ],
+        "example": "user",
+        "type": "string",
+        "x-enum-varnames": [
+          "USER",
+          "ROLE",
+          "TEAM"
         ]
       },
       "DowntimeScheduleCreateRequest": {
@@ -49579,10 +49636,11 @@
         "type": "object"
       },
       "ElasticCloudDetailedIndexStatsIntegrationDataflowRequest": {
-        "description": "The Elastic Cloud detailed index stats dataflow.",
+        "additionalProperties": false,
+        "description": "Primary shard metrics broken down per index, rather than aggregated across the cluster.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data. Defaults to `false`; set to `true` to start collection.",
             "example": true,
             "type": "boolean"
           }
@@ -49590,10 +49648,10 @@
         "type": "object"
       },
       "ElasticCloudDetailedIndexStatsIntegrationDataflowResponse": {
-        "description": "The Elastic Cloud detailed index stats dataflow.",
+        "description": "Primary shard metrics broken down per index, rather than aggregated across the cluster.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data.",
             "example": true,
             "type": "boolean"
           },
@@ -49604,10 +49662,11 @@
         "type": "object"
       },
       "ElasticCloudIndexStatsIntegrationDataflowRequest": {
-        "description": "The Elastic Cloud index stats dataflow.",
+        "additionalProperties": false,
+        "description": "Metrics for individual indices. Only the indices granted to the role of the user in `authentication` are collected.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data. Defaults to `false`; set to `true` to start collection.",
             "example": true,
             "type": "boolean"
           }
@@ -49615,10 +49674,10 @@
         "type": "object"
       },
       "ElasticCloudIndexStatsIntegrationDataflowResponse": {
-        "description": "The Elastic Cloud index stats dataflow.",
+        "description": "Metrics for individual indices. Only the indices granted to the role of the user in `authentication` are collected.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data.",
             "example": true,
             "type": "boolean"
           },
@@ -49632,7 +49691,7 @@
         "description": "Authentication for creating the Elastic Cloud integration account. Exactly one method is set.",
         "oneOf": [
           {
-            "$ref": "#/components/schemas/IntegrationAccountBasicAuthRequest"
+            "$ref": "#/components/schemas/ElasticCloudIntegrationAccountBasicAuthRequest"
           }
         ]
       },
@@ -49640,7 +49699,7 @@
         "description": "Authentication configured on the Elastic Cloud integration account.",
         "oneOf": [
           {
-            "$ref": "#/components/schemas/IntegrationAccountBasicAuthResponse"
+            "$ref": "#/components/schemas/ElasticCloudIntegrationAccountBasicAuthResponse"
           }
         ]
       },
@@ -49648,9 +49707,89 @@
         "description": "Authentication for updating the Elastic Cloud integration account. Exactly one method is set.",
         "oneOf": [
           {
-            "$ref": "#/components/schemas/IntegrationAccountBasicAuthUpdate"
+            "$ref": "#/components/schemas/ElasticCloudIntegrationAccountBasicAuthUpdate"
           }
         ]
+      },
+      "ElasticCloudIntegrationAccountBasicAuthRequest": {
+        "additionalProperties": false,
+        "description": "Username and password authentication.",
+        "properties": {
+          "auth_type": {
+            "$ref": "#/components/schemas/ElasticCloudIntegrationAccountBasicAuthType"
+          },
+          "password": {
+            "description": "Secret password or private key.",
+            "example": "your-password",
+            "type": "string",
+            "writeOnly": true
+          },
+          "username": {
+            "description": "Non-secret username or public identifier for the credential pair.",
+            "example": "datadog",
+            "type": "string"
+          }
+        },
+        "required": [
+          "auth_type",
+          "username",
+          "password"
+        ],
+        "type": "object"
+      },
+      "ElasticCloudIntegrationAccountBasicAuthResponse": {
+        "description": "The basic authentication method and username configured on the account.",
+        "properties": {
+          "auth_type": {
+            "$ref": "#/components/schemas/ElasticCloudIntegrationAccountBasicAuthType"
+          },
+          "username": {
+            "description": "Non-secret username or public identifier for the credential pair.",
+            "example": "datadog",
+            "type": "string"
+          }
+        },
+        "required": [
+          "auth_type",
+          "username"
+        ],
+        "type": "object"
+      },
+      "ElasticCloudIntegrationAccountBasicAuthType": {
+        "default": "basic",
+        "description": "The authentication method type.",
+        "enum": [
+          "basic"
+        ],
+        "example": "basic",
+        "type": "string",
+        "x-enum-varnames": [
+          "BASIC"
+        ]
+      },
+      "ElasticCloudIntegrationAccountBasicAuthUpdate": {
+        "additionalProperties": false,
+        "description": "Username and password authentication. Only the fields provided are changed; omit `password` to keep the stored one.",
+        "properties": {
+          "auth_type": {
+            "$ref": "#/components/schemas/ElasticCloudIntegrationAccountBasicAuthType"
+          },
+          "password": {
+            "description": "Secret password or private key.",
+            "example": "your-password",
+            "type": "string",
+            "writeOnly": true
+          },
+          "username": {
+            "description": "Non-secret username or public identifier for the credential pair.",
+            "example": "datadog",
+            "type": "string"
+          }
+        },
+        "required": [
+          "auth_type"
+        ],
+        "type": "object"
       },
       "ElasticCloudIntegrationAccountCreateAttributes": {
         "description": "Writable attributes used to create an Elastic Cloud integration account.",
@@ -49765,6 +49904,7 @@
         "type": "object"
       },
       "ElasticCloudIntegrationAccountSettingsRequest": {
+        "additionalProperties": false,
         "description": "Settings for creating the Elastic Cloud integration account.",
         "properties": {
           "tags": {
@@ -49803,6 +49943,7 @@
         "type": "object"
       },
       "ElasticCloudIntegrationAccountSettingsUpdate": {
+        "additionalProperties": false,
         "description": "Settings for updating the Elastic Cloud integration account. Only the fields provided are changed.",
         "properties": {
           "tags": {
@@ -49890,7 +50031,7 @@
       },
       "ElasticCloudIntegrationDataflowsRequest": {
         "additionalProperties": false,
-        "description": "Dataflows to configure on the Elastic Cloud integration account, keyed by dataflow id.",
+        "description": "Data Datadog collects from Elastic Cloud, keyed by dataflow id. Node-level cluster statistics are always collected; each dataflow here adds a further set of metrics on top of that baseline, so set `enabled` to start or stop it. Defaults listed on each dataflow apply when the account is created; on update, omitted fields keep their current values. Every dataflow queries the deployment as the user in `authentication`, so that user's role must hold the required Elasticsearch privileges; a dataflow enabled without them is stored but collects no data.",
         "properties": {
           "elastic-cloud-detailed-index-stats": {
             "$ref": "#/components/schemas/ElasticCloudDetailedIndexStatsIntegrationDataflowRequest"
@@ -49917,7 +50058,7 @@
         "type": "object"
       },
       "ElasticCloudIntegrationDataflowsResponse": {
-        "description": "Dataflows configured on the Elastic Cloud integration account, keyed by dataflow id.",
+        "description": "Data Datadog collects from Elastic Cloud, keyed by dataflow id.",
         "properties": {
           "elastic-cloud-detailed-index-stats": {
             "$ref": "#/components/schemas/ElasticCloudDetailedIndexStatsIntegrationDataflowResponse"
@@ -49947,10 +50088,10 @@
         "type": "object"
       },
       "ElasticCloudMetricsIntegrationDataflowResponse": {
-        "description": "The Elastic Cloud metrics dataflow.",
+        "description": "Node-level statistics for the clusters in your deployment, such as the number of nodes and the number of documents on each node. This is the integration's baseline collection: it is always on and cannot be turned off, which is why it appears in responses only.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data. Always `true`, because this collection cannot be turned off.",
             "example": true,
             "readOnly": true,
             "type": "boolean"
@@ -49962,10 +50103,11 @@
         "type": "object"
       },
       "ElasticCloudPendingTaskStatsIntegrationDataflowRequest": {
-        "description": "The Elastic Cloud pending task stats dataflow.",
+        "additionalProperties": false,
+        "description": "Metrics for cluster-level changes that have been submitted but not yet executed.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data. Defaults to `false`; set to `true` to start collection.",
             "example": true,
             "type": "boolean"
           }
@@ -49973,10 +50115,10 @@
         "type": "object"
       },
       "ElasticCloudPendingTaskStatsIntegrationDataflowResponse": {
-        "description": "The Elastic Cloud pending task stats dataflow.",
+        "description": "Metrics for cluster-level changes that have been submitted but not yet executed.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data.",
             "example": true,
             "type": "boolean"
           },
@@ -49987,10 +50129,11 @@
         "type": "object"
       },
       "ElasticCloudPrimaryShardGracefulTimeoutIntegrationDataflowRequest": {
-        "description": "The Elastic Cloud primary shard graceful timeout dataflow.",
+        "additionalProperties": false,
+        "description": "Tolerance for slow primary shard requests. Primary shard metrics can grow large enough for the request to time out; enabling this keeps the rest of the collection running when that happens instead of failing the run. Only has an effect alongside `elastic-cloud-primary-shard-stats`.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether this tolerance is applied. Defaults to `false`; set to `true` to apply it.",
             "example": true,
             "type": "boolean"
           }
@@ -49998,10 +50141,10 @@
         "type": "object"
       },
       "ElasticCloudPrimaryShardGracefulTimeoutIntegrationDataflowResponse": {
-        "description": "The Elastic Cloud primary shard graceful timeout dataflow.",
+        "description": "Tolerance for slow primary shard requests, keeping the rest of the collection running when a primary shard request times out instead of failing the run. Only has an effect alongside `elastic-cloud-primary-shard-stats`.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether this tolerance is applied.",
             "example": true,
             "type": "boolean"
           },
@@ -50012,10 +50155,11 @@
         "type": "object"
       },
       "ElasticCloudPrimaryShardStatsIntegrationDataflowRequest": {
-        "description": "The Elastic Cloud primary shard stats dataflow.",
+        "additionalProperties": false,
+        "description": "Metrics covering only the cluster's primary shards.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data. Defaults to `false`; set to `true` to start collection.",
             "example": true,
             "type": "boolean"
           }
@@ -50023,10 +50167,10 @@
         "type": "object"
       },
       "ElasticCloudPrimaryShardStatsIntegrationDataflowResponse": {
-        "description": "The Elastic Cloud primary shard stats dataflow.",
+        "description": "Metrics covering only the cluster's primary shards.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data.",
             "example": true,
             "type": "boolean"
           },
@@ -50037,10 +50181,11 @@
         "type": "object"
       },
       "ElasticCloudShardAllocationStatsIntegrationDataflowRequest": {
-        "description": "The Elastic Cloud shard allocation stats dataflow.",
+        "additionalProperties": false,
+        "description": "Metrics for how many shards are allocated to each data node, and the disk space they use.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data. Defaults to `false`; set to `true` to start collection.",
             "example": true,
             "type": "boolean"
           }
@@ -50048,10 +50193,10 @@
         "type": "object"
       },
       "ElasticCloudShardAllocationStatsIntegrationDataflowResponse": {
-        "description": "The Elastic Cloud shard allocation stats dataflow.",
+        "description": "Metrics for how many shards are allocated to each data node, and the disk space they use.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data.",
             "example": true,
             "type": "boolean"
           },
@@ -50062,10 +50207,11 @@
         "type": "object"
       },
       "ElasticCloudSlmStatsIntegrationDataflowRequest": {
-        "description": "The Elastic Cloud snapshot lifecycle management stats dataflow.",
+        "additionalProperties": false,
+        "description": "Metrics about the actions taken by snapshot lifecycle management. Requires the `read_slm` Elasticsearch cluster privilege on the role of the user in `authentication`; without it this dataflow collects no data.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data. Defaults to `false`; set to `true` to start collection.",
             "example": true,
             "type": "boolean"
           }
@@ -50073,10 +50219,10 @@
         "type": "object"
       },
       "ElasticCloudSlmStatsIntegrationDataflowResponse": {
-        "description": "The Elastic Cloud snapshot lifecycle management stats dataflow.",
+        "description": "Metrics about the actions taken by snapshot lifecycle management. Requires the `read_slm` Elasticsearch cluster privilege on the role of the user in `authentication`; without it this dataflow collects no data.",
         "properties": {
           "enabled": {
-            "description": "Whether the Elastic Cloud dataflow is enabled.",
+            "description": "Whether Datadog collects this data.",
             "example": true,
             "type": "boolean"
           },
@@ -75186,84 +75332,6 @@
           "type",
           "id",
           "attributes"
-        ],
-        "type": "object"
-      },
-      "IntegrationAccountBasicAuthRequest": {
-        "description": "Username and password authentication.",
-        "properties": {
-          "auth_type": {
-            "$ref": "#/components/schemas/IntegrationAccountBasicAuthType"
-          },
-          "password": {
-            "description": "Secret password or private key.",
-            "example": "your-password",
-            "type": "string",
-            "writeOnly": true
-          },
-          "username": {
-            "description": "Non-secret username or public identifier for the credential pair.",
-            "example": "datadog",
-            "type": "string"
-          }
-        },
-        "required": [
-          "auth_type",
-          "username",
-          "password"
-        ],
-        "type": "object"
-      },
-      "IntegrationAccountBasicAuthResponse": {
-        "description": "The basic authentication method and username configured on the account.",
-        "properties": {
-          "auth_type": {
-            "$ref": "#/components/schemas/IntegrationAccountBasicAuthType"
-          },
-          "username": {
-            "description": "Non-secret username or public identifier for the credential pair.",
-            "example": "datadog",
-            "type": "string"
-          }
-        },
-        "required": [
-          "auth_type",
-          "username"
-        ],
-        "type": "object"
-      },
-      "IntegrationAccountBasicAuthType": {
-        "default": "basic",
-        "description": "The authentication method type.",
-        "enum": [
-          "basic"
-        ],
-        "example": "basic",
-        "type": "string",
-        "x-enum-varnames": [
-          "BASIC"
-        ]
-      },
-      "IntegrationAccountBasicAuthUpdate": {
-        "description": "Username and password authentication. Only the fields provided are changed; omit `password` to keep the stored one.",
-        "properties": {
-          "auth_type": {
-            "$ref": "#/components/schemas/IntegrationAccountBasicAuthType"
-          },
-          "password": {
-            "description": "Secret password or private key.",
-            "example": "your-password",
-            "type": "string",
-            "writeOnly": true
-          },
-          "username": {
-            "description": "Non-secret username or public identifier for the credential pair.",
-            "example": "datadog",
-            "type": "string"
-          }
-        },
-        "required": [
-          "auth_type"
         ],
         "type": "object"
       },
@@ -124681,21 +124749,54 @@
         ]
       },
       "RecommendationsFilterRequest": {
-        "description": "Request body for filtering cost recommendations.",
+        "description": "JSON:API request body for filtering cost recommendations.",
         "example": {
-          "filter": "@resource_table:aws_ec2_instance",
-          "sort": [
-            {
-              "expression": "potential_daily_savings.amount",
-              "order": "DESC"
-            }
-          ]
+          "data": {
+            "attributes": {
+              "scope": "ccm",
+              "sort": [
+                {
+                  "expression": "potential_daily_savings.amount",
+                  "order": "DESC"
+                }
+              ]
+            },
+            "id": "@resource_table:aws_ec2_instance",
+            "type": "recommendations_filter"
+          }
         },
         "properties": {
-          "filter": {
-            "description": "Filter expression applied to the recommendations.",
+          "data": {
+            "$ref": "#/components/schemas/RecommendationsFilterRequestData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "RecommendationsFilterRequestData": {
+        "description": "JSON:API resource containing the cost recommendations filter. This legacy search contract\nuses the resource ID for the filter expression rather than as a persistent resource identifier.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/RecommendationsFilterRequestDataAttributes"
+          },
+          "id": {
+            "description": "Filter expression applied to the recommendations. The server treats an omitted ID as `*`\nand returns all recommendations.",
             "type": "string"
           },
+          "type": {
+            "$ref": "#/components/schemas/RecommendationsFilterRequestDataType"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "RecommendationsFilterRequestDataAttributes": {
+        "description": "Attributes used to filter and sort cost recommendations.",
+        "properties": {
           "scope": {
             "$ref": "#/components/schemas/RecommendationsFilterRequestScope"
           },
@@ -124712,6 +124813,18 @@
           }
         },
         "type": "object"
+      },
+      "RecommendationsFilterRequestDataType": {
+        "default": "recommendations_filter",
+        "description": "Legacy JSON:API resource type required by the cost recommendations search decoder.",
+        "enum": [
+          "recommendations_filter"
+        ],
+        "example": "recommendations_filter",
+        "type": "string",
+        "x-enum-varnames": [
+          "RECOMMENDATIONS_FILTER"
+        ]
       },
       "RecommendationsFilterRequestScope": {
         "description": "Recommendations scope. Defaults to `ccm`; use `experiment` for experimental recommendations or `*` for both.",
@@ -167397,10 +167510,11 @@
         ]
       },
       "TwilioAlertsLogsIntegrationDataflowRequest": {
-        "description": "The Twilio alerts logs dataflow.",
+        "additionalProperties": false,
+        "description": "Twilio Alert resource logs, which detail the errors and warnings raised when Twilio makes a webhook request to your server or when your application calls the Twilio REST API. This is the one kind of data the integration collects by default.",
         "properties": {
           "enabled": {
-            "description": "Whether the Twilio dataflow is enabled.",
+            "description": "Whether Datadog collects this data. Defaults to `true`; set to `false` to stop collection.",
             "example": true,
             "type": "boolean"
           }
@@ -167408,10 +167522,10 @@
         "type": "object"
       },
       "TwilioAlertsLogsIntegrationDataflowResponse": {
-        "description": "The Twilio alerts logs dataflow.",
+        "description": "Twilio Alert resource logs, which detail the errors and warnings raised when Twilio makes a webhook request to your server or when your application calls the Twilio REST API.",
         "properties": {
           "enabled": {
-            "description": "Whether the Twilio dataflow is enabled.",
+            "description": "Whether Datadog collects this data.",
             "example": true,
             "type": "boolean"
           },
@@ -167422,10 +167536,11 @@
         "type": "object"
       },
       "TwilioCallSummariesLogsIntegrationDataflowRequest": {
-        "description": "The Twilio call summaries logs dataflow.",
+        "additionalProperties": false,
+        "description": "Twilio Call Summary resource logs, covering the metadata and performance of the calls made from your Twilio account. Requires Voice Insights Advanced Features to be enabled on the Twilio account; without it this dataflow collects no data.",
         "properties": {
           "enabled": {
-            "description": "Whether the Twilio dataflow is enabled.",
+            "description": "Whether Datadog collects this data. Defaults to `false`; set to `true` to start collection.",
             "example": true,
             "type": "boolean"
           }
@@ -167433,10 +167548,10 @@
         "type": "object"
       },
       "TwilioCallSummariesLogsIntegrationDataflowResponse": {
-        "description": "The Twilio call summaries logs dataflow.",
+        "description": "Twilio Call Summary resource logs, covering the metadata and performance of the calls made from your Twilio account. Requires Voice Insights Advanced Features to be enabled on the Twilio account; without it this dataflow collects no data.",
         "properties": {
           "enabled": {
-            "description": "Whether the Twilio dataflow is enabled.",
+            "description": "Whether Datadog collects this data.",
             "example": true,
             "type": "boolean"
           },
@@ -167447,10 +167562,11 @@
         "type": "object"
       },
       "TwilioCloudCostMetricsIntegrationDataflowRequest": {
-        "description": "The Twilio cloud cost metrics dataflow.",
+        "additionalProperties": false,
+        "description": "Your Twilio cost data, so that Twilio spend can be broken down and attributed in [Cloud Cost Management](https://docs.datadoghq.com/cloud_cost_management/). Cost data appears in Cloud Cost Management within 24 hours of enabling this dataflow.",
         "properties": {
           "enabled": {
-            "description": "Whether the Twilio dataflow is enabled.",
+            "description": "Whether Datadog collects this data. Defaults to `false`; set to `true` to start collection.",
             "example": true,
             "type": "boolean"
           }
@@ -167458,10 +167574,10 @@
         "type": "object"
       },
       "TwilioCloudCostMetricsIntegrationDataflowResponse": {
-        "description": "The Twilio cloud cost metrics dataflow.",
+        "description": "Your Twilio cost data, so that Twilio spend can be broken down and attributed in [Cloud Cost Management](https://docs.datadoghq.com/cloud_cost_management/).",
         "properties": {
           "enabled": {
-            "description": "Whether the Twilio dataflow is enabled.",
+            "description": "Whether Datadog collects this data.",
             "example": true,
             "type": "boolean"
           },
@@ -167472,10 +167588,11 @@
         "type": "object"
       },
       "TwilioEventsLogsIntegrationDataflowRequest": {
-        "description": "The Twilio events logs dataflow.",
+        "additionalProperties": false,
+        "description": "Twilio Event resource logs, which record virtually every action taken in your Twilio account, such as provisioning a phone number, changing account security settings, or deleting a recording. Actions are recorded whether they came from the REST API, a user in the Twilio Console, or Twilio itself. [Cloud SIEM](https://docs.datadoghq.com/security/cloud_siem/) analyzes and correlates these logs to detect threats in real time.",
         "properties": {
           "enabled": {
-            "description": "Whether the Twilio dataflow is enabled.",
+            "description": "Whether Datadog collects this data. Defaults to `false`; set to `true` to start collection.",
             "example": true,
             "type": "boolean"
           }
@@ -167483,10 +167600,10 @@
         "type": "object"
       },
       "TwilioEventsLogsIntegrationDataflowResponse": {
-        "description": "The Twilio events logs dataflow.",
+        "description": "Twilio Event resource logs, which record virtually every action taken in your Twilio account, such as provisioning a phone number, changing account security settings, or deleting a recording. Actions are recorded whether they came from the REST API, a user in the Twilio Console, or Twilio itself. [Cloud SIEM](https://docs.datadoghq.com/security/cloud_siem/) analyzes and correlates these logs to detect threats in real time.",
         "properties": {
           "enabled": {
-            "description": "Whether the Twilio dataflow is enabled.",
+            "description": "Whether Datadog collects this data.",
             "example": true,
             "type": "boolean"
           },
@@ -167500,7 +167617,7 @@
         "description": "Authentication for creating the Twilio integration account. Exactly one method is set.",
         "oneOf": [
           {
-            "$ref": "#/components/schemas/IntegrationAccountBasicAuthRequest"
+            "$ref": "#/components/schemas/TwilioIntegrationAccountBasicAuthRequest"
           }
         ]
       },
@@ -167508,7 +167625,7 @@
         "description": "Authentication configured on the Twilio integration account.",
         "oneOf": [
           {
-            "$ref": "#/components/schemas/IntegrationAccountBasicAuthResponse"
+            "$ref": "#/components/schemas/TwilioIntegrationAccountBasicAuthResponse"
           }
         ]
       },
@@ -167516,9 +167633,89 @@
         "description": "Authentication for updating the Twilio integration account. Exactly one method is set.",
         "oneOf": [
           {
-            "$ref": "#/components/schemas/IntegrationAccountBasicAuthUpdate"
+            "$ref": "#/components/schemas/TwilioIntegrationAccountBasicAuthUpdate"
           }
         ]
+      },
+      "TwilioIntegrationAccountBasicAuthRequest": {
+        "additionalProperties": false,
+        "description": "Username and password authentication.",
+        "properties": {
+          "auth_type": {
+            "$ref": "#/components/schemas/TwilioIntegrationAccountBasicAuthType"
+          },
+          "password": {
+            "description": "Secret password or private key.",
+            "example": "your-password",
+            "type": "string",
+            "writeOnly": true
+          },
+          "username": {
+            "description": "Non-secret username or public identifier for the credential pair.",
+            "example": "datadog",
+            "type": "string"
+          }
+        },
+        "required": [
+          "auth_type",
+          "username",
+          "password"
+        ],
+        "type": "object"
+      },
+      "TwilioIntegrationAccountBasicAuthResponse": {
+        "description": "The basic authentication method and username configured on the account.",
+        "properties": {
+          "auth_type": {
+            "$ref": "#/components/schemas/TwilioIntegrationAccountBasicAuthType"
+          },
+          "username": {
+            "description": "Non-secret username or public identifier for the credential pair.",
+            "example": "datadog",
+            "type": "string"
+          }
+        },
+        "required": [
+          "auth_type",
+          "username"
+        ],
+        "type": "object"
+      },
+      "TwilioIntegrationAccountBasicAuthType": {
+        "default": "basic",
+        "description": "The authentication method type.",
+        "enum": [
+          "basic"
+        ],
+        "example": "basic",
+        "type": "string",
+        "x-enum-varnames": [
+          "BASIC"
+        ]
+      },
+      "TwilioIntegrationAccountBasicAuthUpdate": {
+        "additionalProperties": false,
+        "description": "Username and password authentication. Only the fields provided are changed; omit `password` to keep the stored one.",
+        "properties": {
+          "auth_type": {
+            "$ref": "#/components/schemas/TwilioIntegrationAccountBasicAuthType"
+          },
+          "password": {
+            "description": "Secret password or private key.",
+            "example": "your-password",
+            "type": "string",
+            "writeOnly": true
+          },
+          "username": {
+            "description": "Non-secret username or public identifier for the credential pair.",
+            "example": "datadog",
+            "type": "string"
+          }
+        },
+        "required": [
+          "auth_type"
+        ],
+        "type": "object"
       },
       "TwilioIntegrationAccountCreateAttributes": {
         "description": "Writable attributes used to create a Twilio integration account.",
@@ -167633,6 +167830,7 @@
         "type": "object"
       },
       "TwilioIntegrationAccountSettingsRequest": {
+        "additionalProperties": false,
         "description": "Settings for creating the Twilio integration account.",
         "properties": {
           "account_sid": {
@@ -167671,6 +167869,7 @@
         "type": "object"
       },
       "TwilioIntegrationAccountSettingsUpdate": {
+        "additionalProperties": false,
         "description": "Settings for updating the Twilio integration account. Only the fields provided are changed.",
         "properties": {
           "account_sid": {
@@ -167758,7 +167957,7 @@
       },
       "TwilioIntegrationDataflowsRequest": {
         "additionalProperties": false,
-        "description": "Dataflows to configure on the Twilio integration account, keyed by dataflow id.",
+        "description": "Data Datadog collects from Twilio, keyed by dataflow id. Each dataflow turns on a distinct kind of collection: set `enabled` to start or stop it. Defaults listed on each dataflow apply when the account is created; on update, omitted fields keep their current values. Where a dataflow depends on a Twilio feature being enabled, that prerequisite is noted on the dataflow; a dataflow enabled without it is stored but collects no data.",
         "properties": {
           "twilio-alerts-logs": {
             "$ref": "#/components/schemas/TwilioAlertsLogsIntegrationDataflowRequest"
@@ -167779,7 +167978,7 @@
         "type": "object"
       },
       "TwilioIntegrationDataflowsResponse": {
-        "description": "Dataflows configured on the Twilio integration account, keyed by dataflow id.",
+        "description": "Data Datadog collects from Twilio, keyed by dataflow id.",
         "properties": {
           "twilio-alerts-logs": {
             "$ref": "#/components/schemas/TwilioAlertsLogsIntegrationDataflowResponse"
@@ -167800,10 +167999,11 @@
         "type": "object"
       },
       "TwilioMessagesLogsIntegrationDataflowRequest": {
-        "description": "The Twilio messages logs dataflow.",
+        "additionalProperties": false,
+        "description": "Twilio Message resource logs for inbound and outbound messages, used to track delivery and troubleshoot message errors. A log is produced when you send a message through the REST API, when Twilio executes a TwiML instruction, and when someone messages one of your Twilio numbers or channel addresses. Message bodies are never collected.",
         "properties": {
           "enabled": {
-            "description": "Whether the Twilio dataflow is enabled.",
+            "description": "Whether Datadog collects this data. Defaults to `false`; set to `true` to start collection.",
             "example": true,
             "type": "boolean"
           }
@@ -167811,10 +168011,10 @@
         "type": "object"
       },
       "TwilioMessagesLogsIntegrationDataflowResponse": {
-        "description": "The Twilio messages logs dataflow.",
+        "description": "Twilio Message resource logs for inbound and outbound messages, used to track delivery and troubleshoot message errors. A log is produced when you send a message through the REST API, when Twilio executes a TwiML instruction, and when someone messages one of your Twilio numbers or channel addresses. Message bodies are never collected.",
         "properties": {
           "enabled": {
-            "description": "Whether the Twilio dataflow is enabled.",
+            "description": "Whether Datadog collects this data.",
             "example": true,
             "type": "boolean"
           },
@@ -201456,13 +201656,19 @@
               "examples": {
                 "default": {
                   "value": {
-                    "filter": "@resource_table:aws_ec2_instance",
-                    "sort": [
-                      {
-                        "expression": "potential_daily_savings.amount",
-                        "order": "DESC"
-                      }
-                    ]
+                    "data": {
+                      "attributes": {
+                        "scope": "ccm",
+                        "sort": [
+                          {
+                            "expression": "potential_daily_savings.amount",
+                            "order": "DESC"
+                          }
+                        ]
+                      },
+                      "id": "@resource_table:aws_ec2_instance",
+                      "type": "recommendations_filter"
+                    }
                   }
                 }
               },
@@ -212903,6 +213109,16 @@
             "schema": {
               "example": "created_by,monitor",
               "type": "string"
+            }
+          },
+          {
+            "description": "If `true`, include the `run_as` attribute in the response, which lists the principals allowed to\nact on behalf of the downtime.\n\n**Note**: This feature is currently in Preview and may not be available for all organizations.",
+            "in": "query",
+            "name": "with_run_as",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
             }
           }
         ],
@@ -230787,7 +231003,7 @@
         },
         "summary": "List Elastic Cloud integration accounts",
         "tags": [
-          "Elastic Cloud Integration Accounts"
+          "Elastic Cloud Integration"
         ],
         "x-permission": {
           "operator": "OR",
@@ -230795,7 +231011,7 @@
             "integrations_read"
           ]
         },
-        "x-unstable": "**Note**: This endpoint is in public beta.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
         "description": "Create an Elastic Cloud integration account.",
@@ -230872,7 +231088,7 @@
         },
         "summary": "Create an Elastic Cloud integration account",
         "tags": [
-          "Elastic Cloud Integration Accounts"
+          "Elastic Cloud Integration"
         ],
         "x-codegen-request-body-name": "body",
         "x-permission": {
@@ -230881,7 +231097,7 @@
             "manage_integrations"
           ]
         },
-        "x-unstable": "**Note**: This endpoint is in public beta.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
     "/api/v2/integration-interfaces/elastic-cloud/accounts/{account_id}": {
@@ -230912,7 +231128,7 @@
         },
         "summary": "Delete an Elastic Cloud integration account",
         "tags": [
-          "Elastic Cloud Integration Accounts"
+          "Elastic Cloud Integration"
         ],
         "x-permission": {
           "operator": "OR",
@@ -230920,7 +231136,7 @@
             "manage_integrations"
           ]
         },
-        "x-unstable": "**Note**: This endpoint is in public beta.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "get": {
         "description": "Get an Elastic Cloud integration account.",
@@ -230989,7 +231205,7 @@
         },
         "summary": "Get an Elastic Cloud integration account",
         "tags": [
-          "Elastic Cloud Integration Accounts"
+          "Elastic Cloud Integration"
         ],
         "x-permission": {
           "operator": "OR",
@@ -230997,7 +231213,7 @@
             "integrations_read"
           ]
         },
-        "x-unstable": "**Note**: This endpoint is in public beta.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "patch": {
         "description": "Update an Elastic Cloud integration account. Only the fields provided are changed.",
@@ -231079,7 +231295,7 @@
         },
         "summary": "Update an Elastic Cloud integration account",
         "tags": [
-          "Elastic Cloud Integration Accounts"
+          "Elastic Cloud Integration"
         ],
         "x-codegen-request-body-name": "body",
         "x-permission": {
@@ -231088,7 +231304,7 @@
             "manage_integrations"
           ]
         },
-        "x-unstable": "**Note**: This endpoint is in public beta.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
     "/api/v2/integration-interfaces/twilio/accounts": {
@@ -231153,7 +231369,7 @@
         },
         "summary": "List Twilio integration accounts",
         "tags": [
-          "Twilio Integration Accounts"
+          "Twilio Integration"
         ],
         "x-permission": {
           "operator": "OR",
@@ -231161,7 +231377,7 @@
             "integrations_read"
           ]
         },
-        "x-unstable": "**Note**: This endpoint is in public beta.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
         "description": "Create a Twilio integration account.",
@@ -231235,7 +231451,7 @@
         },
         "summary": "Create a Twilio integration account",
         "tags": [
-          "Twilio Integration Accounts"
+          "Twilio Integration"
         ],
         "x-codegen-request-body-name": "body",
         "x-permission": {
@@ -231244,7 +231460,7 @@
             "manage_integrations"
           ]
         },
-        "x-unstable": "**Note**: This endpoint is in public beta.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
     "/api/v2/integration-interfaces/twilio/accounts/{account_id}": {
@@ -231275,7 +231491,7 @@
         },
         "summary": "Delete a Twilio integration account",
         "tags": [
-          "Twilio Integration Accounts"
+          "Twilio Integration"
         ],
         "x-permission": {
           "operator": "OR",
@@ -231283,7 +231499,7 @@
             "manage_integrations"
           ]
         },
-        "x-unstable": "**Note**: This endpoint is in public beta.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "get": {
         "description": "Get a Twilio integration account.",
@@ -231349,7 +231565,7 @@
         },
         "summary": "Get a Twilio integration account",
         "tags": [
-          "Twilio Integration Accounts"
+          "Twilio Integration"
         ],
         "x-permission": {
           "operator": "OR",
@@ -231357,7 +231573,7 @@
             "integrations_read"
           ]
         },
-        "x-unstable": "**Note**: This endpoint is in public beta.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "patch": {
         "description": "Update a Twilio integration account. Only the fields provided are changed.",
@@ -231436,7 +231652,7 @@
         },
         "summary": "Update a Twilio integration account",
         "tags": [
-          "Twilio Integration Accounts"
+          "Twilio Integration"
         ],
         "x-codegen-request-body-name": "body",
         "x-permission": {
@@ -231445,7 +231661,7 @@
             "manage_integrations"
           ]
         },
-        "x-unstable": "**Note**: This endpoint is in public beta.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
     "/api/v2/integration/aws/accounts": {
@@ -329419,12 +329635,12 @@
       "name": "Downtimes"
     },
     {
-      "description": "Manage your Datadog Elastic Cloud integration accounts directly through the Datadog API.\nCreate, update, and delete accounts, configure authentication and settings, and\nenable or disable dataflows such as cluster metrics, index stats, shard stats,\npending tasks, and snapshot lifecycle management stats. See the\n[Elastic Cloud integration page](https://docs.datadoghq.com/integrations/elastic-cloud/) for\nmore information.",
+      "description": "Manage your Datadog Elastic Cloud integration accounts and account resources\ndirectly through the Datadog API. See the\n[Elastic Cloud integration page](https://docs.datadoghq.com/integrations/elastic-cloud/) for\nmore information.",
       "externalDocs": {
         "description": "Elastic Cloud integration.",
         "url": "https://docs.datadoghq.com/integrations/elastic-cloud/"
       },
-      "name": "Elastic Cloud Integration Accounts"
+      "name": "Elastic Cloud Integration"
     },
     {
       "description": "Manage per-integration configurations for the Internal Developer Portal (IDP). These configurations control which external resources (for example, GitHub repositories, Jira projects, or PagerDuty services) are synced as entities into the Software Catalog.",
@@ -329863,12 +330079,12 @@
       "name": "Timeseries Anomaly Investigations"
     },
     {
-      "description": "Manage your Datadog Twilio integration accounts directly through the Datadog API.\nCreate, update, and delete accounts, configure authentication and settings, and\nenable or disable dataflows such as message logs, event logs, alerts, call\nsummaries, and Cloud Cost Management metrics. See the\n[Twilio integration page](https://docs.datadoghq.com/integrations/twilio/) for\nmore information.",
+      "description": "Manage your Datadog Twilio integration accounts and account resources directly\nthrough the Datadog API. See the\n[Twilio integration page](https://docs.datadoghq.com/integrations/twilio/) for\nmore information.",
       "externalDocs": {
         "description": "Twilio integration.",
         "url": "https://docs.datadoghq.com/integrations/twilio/"
       },
-      "name": "Twilio Integration Accounts"
+      "name": "Twilio Integration"
     },
     {
       "description": "The usage metering API allows you to get hourly, daily, and\nmonthly usage across multiple facets of Datadog.\nThis API is available to all Pro and Enterprise customers.\n\n**Note**: Usage data is delayed by up to 72 hours from when it was incurred.\nIt is retained for 15 months.\n\nYou can retrieve up to 24 hours of hourly usage data for multiple organizations,\nand up to two months of hourly usage data for a single organization in one request.\nLearn more on the [usage details documentation](https://docs.datadoghq.com/account_management/billing/usage_details/).",

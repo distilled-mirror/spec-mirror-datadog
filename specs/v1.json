@@ -38131,6 +38131,7 @@
               "incident_write": "Create, view, and manage incidents in Datadog.",
               "metrics_read": "View custom metrics.",
               "monitors_downtime": "Set downtimes to suppress alerts from any monitor in an organization. Mute and unmute monitors. The ability to write monitors is not required to set downtimes.",
+              "monitors_draft_write": "Create, edit, and delete draft monitors. Does not allow editing live monitors or publishing drafts to production.",
               "monitors_read": "View monitors.",
               "monitors_write": "Edit, delete, and resolve individual monitors.",
               "org_management": "Edit org configurations, including authentication and certain security preferences such as configuring SAML, renaming an org, configuring allowed login methods, creating child orgs, subscribing & unsubscribing from apps in the marketplace, and enabling & disabling Remote Configuration for the entire organization.",
@@ -48501,6 +48502,11 @@
             "AuthZ": [
               "monitors_write"
             ]
+          },
+          {
+            "AuthZ": [
+              "monitors_draft_write"
+            ]
           }
         ],
         "summary": "Create a monitor",
@@ -48511,7 +48517,8 @@
         "x-permission": {
           "operator": "OR",
           "permissions": [
-            "monitors_write"
+            "monitors_write",
+            "monitors_draft_write"
           ]
         }
       }
@@ -49094,6 +49101,11 @@
             "AuthZ": [
               "monitors_write"
             ]
+          },
+          {
+            "AuthZ": [
+              "monitors_draft_write"
+            ]
           }
         ],
         "summary": "Delete a monitor",
@@ -49103,7 +49115,8 @@
         "x-permission": {
           "operator": "OR",
           "permissions": [
-            "monitors_write"
+            "monitors_write",
+            "monitors_draft_write"
           ]
         }
       },
@@ -49355,6 +49368,11 @@
             "AuthZ": [
               "monitors_write"
             ]
+          },
+          {
+            "AuthZ": [
+              "monitors_draft_write"
+            ]
           }
         ],
         "summary": "Edit a monitor",
@@ -49365,7 +49383,8 @@
         "x-permission": {
           "operator": "OR",
           "permissions": [
-            "monitors_write"
+            "monitors_write",
+            "monitors_draft_write"
           ]
         }
       }
