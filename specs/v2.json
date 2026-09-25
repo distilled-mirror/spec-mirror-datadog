@@ -81262,8 +81262,11 @@
         "type": "object"
       },
       "LLMObsCreatePromptDataAttributes": {
-        "description": "Attributes for creating an Agent Observability prompt and its first version. `prompt_id` and `template` are required; all other attributes are optional.",
+        "description": "Attributes for creating an Agent Observability prompt and its first version. `prompt_id` and `template` are required; all other attributes are optional. If `config` is omitted, the first version stores an empty object. Configuration authoring must be enabled for your organization to supply `config`. Otherwise, supplying it, including an empty object, returns HTTP 403.",
         "properties": {
+          "config": {
+            "$ref": "#/components/schemas/LLMObsPromptConfig"
+          },
           "description": {
             "description": "Optional description of the prompt.",
             "type": "string"
@@ -81319,6 +81322,136 @@
         ],
         "type": "object"
       },
+      "LLMObsCreatePromptResponse": {
+        "description": "Response returned after creating an Agent Observability prompt.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LLMObsCreatePromptResponseData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "LLMObsCreatePromptResponseData": {
+        "description": "Data object returned after creating an Agent Observability prompt.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/LLMObsCreatePromptResponseDataAttributes"
+          },
+          "id": {
+            "description": "Unique identifier of the prompt.",
+            "example": "4a1a28ff-8a25-5f0f-946f-f48264d772eb",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/LLMObsPromptType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "LLMObsCreatePromptResponseDataAttributes": {
+        "description": "Attributes returned after creating an Agent Observability prompt and its first version. Empty `config` is omitted when configuration authoring is disabled for the organization. Non-empty saved configuration is always returned.",
+        "properties": {
+          "author": {
+            "description": "UUID of the user who authored the prompt.",
+            "type": "string"
+          },
+          "config": {
+            "$ref": "#/components/schemas/LLMObsPromptConfig"
+          },
+          "created_at": {
+            "description": "Timestamp when the prompt was created.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "created_from": {
+            "description": "Source that created the prompt, such as `ui-registry`, `sdk-registry`, or `sdk-instrumentation`.",
+            "example": "sdk-registry",
+            "type": "string"
+          },
+          "datasets": {
+            "description": "Datasets observed in runs associated with this prompt.",
+            "items": {
+              "$ref": "#/components/schemas/LLMObsPromptDataset"
+            },
+            "type": "array"
+          },
+          "description": {
+            "description": "Description of the prompt.",
+            "type": "string"
+          },
+          "extracted_from": {
+            "description": "Source prompt from which this prompt was extracted, when applicable.",
+            "type": "string"
+          },
+          "in_registry": {
+            "description": "Whether the prompt is a registry entry (as opposed to a code-discovered prompt).",
+            "example": true,
+            "type": "boolean"
+          },
+          "last_seen_at": {
+            "description": "Timestamp of the most recent observed run of this prompt.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "last_version_created_at": {
+            "description": "Timestamp when the most recent version of the prompt was created.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "ml_app": {
+            "description": "The ML application this prompt is associated with.",
+            "type": "string"
+          },
+          "ml_apps": {
+            "description": "ML applications observed running this prompt.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "num_versions": {
+            "description": "Number of versions of the prompt.",
+            "example": 1,
+            "format": "int64",
+            "type": "integer"
+          },
+          "prompt_id": {
+            "description": "Customer-provided identifier of the prompt.",
+            "example": "customer-support-assistant",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/LLMObsPromptResponseSource"
+          },
+          "tags": {
+            "description": "Tags observed on runs of this prompt.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": {
+            "description": "Title of the prompt.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prompt_id",
+          "source",
+          "num_versions",
+          "in_registry",
+          "created_from"
+        ],
+        "type": "object"
+      },
       "LLMObsCreatePromptVersionData": {
         "description": "Data object for creating an Agent Observability prompt version.",
         "properties": {
@@ -81336,8 +81469,11 @@
         "type": "object"
       },
       "LLMObsCreatePromptVersionDataAttributes": {
-        "description": "Attributes for creating a new version of an Agent Observability prompt. `template` is required; all other attributes are optional.",
+        "description": "Attributes for creating a new version of an Agent Observability prompt. `template` is required; all other attributes are optional. If `config` is omitted, the latest version's configuration is carried forward. An explicit empty object clears it. Configuration authoring must be enabled for your organization to supply `config`. Otherwise, supplying it, including an empty object, returns HTTP 403. Omitting `config` still carries forward the latest configuration.",
         "properties": {
+          "config": {
+            "$ref": "#/components/schemas/LLMObsPromptConfig"
+          },
           "description": {
             "description": "Optional description of this version.",
             "type": "string"
@@ -87482,6 +87618,37 @@
         ],
         "type": "object"
       },
+      "LLMObsPromptAuthoringChatTemplate": {
+        "description": "A chat prompt containing messages, references to specific versions of other prompts, or both.",
+        "items": {
+          "$ref": "#/components/schemas/LLMObsPromptAuthoringItem"
+        },
+        "minItems": 1,
+        "type": "array"
+      },
+      "LLMObsPromptAuthoringItem": {
+        "description": "A chat message or a reference to a specific version of another prompt. A chat message must not contain an `include` field; the API rejects items that combine both forms.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/LLMObsPromptChatMessage"
+          },
+          {
+            "$ref": "#/components/schemas/LLMObsPromptIncludeItem"
+          }
+        ]
+      },
+      "LLMObsPromptAuthoringMessagesTemplate": {
+        "description": "A chat prompt whose authored items are stored under `messages`.",
+        "properties": {
+          "messages": {
+            "$ref": "#/components/schemas/LLMObsPromptAuthoringChatTemplate"
+          }
+        },
+        "required": [
+          "messages"
+        ],
+        "type": "object"
+      },
       "LLMObsPromptChatMessage": {
         "description": "A single chat message in a prompt template.",
         "properties": {
@@ -87511,6 +87678,18 @@
         "type": "array",
         "x-generate-alias-as-model": true
       },
+      "LLMObsPromptConfig": {
+        "additionalProperties": {},
+        "description": "Versioned prompt configuration is in Preview. To request access, contact [Datadog Support](https://www.datadoghq.com/support/) or your Customer Success Manager. Customer-owned configuration delivered with a prompt version. Datadog stores and returns the object without interpolating it, validating provider-specific keys, or applying it to model calls. Do not include secrets.",
+        "example": {
+          "model": "provider-model",
+          "response_format": {
+            "type": "json_object"
+          },
+          "temperature": 0.2
+        },
+        "type": "object"
+      },
       "LLMObsPromptData": {
         "description": "Data object for an Agent Observability prompt.",
         "properties": {
@@ -87534,7 +87713,7 @@
         "type": "object"
       },
       "LLMObsPromptDataAttributes": {
-        "description": "Attributes of an Agent Observability prompt registry entry.",
+        "description": "Attributes of an Agent Observability prompt registry entry. Prompt list and metadata-update responses omit complete template and configuration data.",
         "properties": {
           "author": {
             "description": "UUID of the user who authored the prompt.",
@@ -87644,6 +87823,55 @@
         ],
         "type": "object"
       },
+      "LLMObsPromptInclude": {
+        "additionalProperties": false,
+        "description": "Includes messages from a specific version of another prompt. Omitting `items` includes every message from that version in its original order. When `items` is present, messages are included in the specified order, including repetitions.",
+        "properties": {
+          "items": {
+            "description": "Zero-based indexes of messages from the included prompt. For example, `[2, 0, 0]` includes the third message, followed by the first message twice. Omit this field to include all messages in their original order.",
+            "items": {
+              "format": "int64",
+              "maximum": 2147483647,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "prompt_id": {
+            "description": "Customer-provided identifier of the included prompt.",
+            "example": "response-policy",
+            "minLength": 1,
+            "type": "string"
+          },
+          "version": {
+            "description": "Positive sequential version number of the included prompt.",
+            "example": 3,
+            "format": "int64",
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "prompt_id",
+          "version"
+        ],
+        "type": "object"
+      },
+      "LLMObsPromptIncludeItem": {
+        "additionalProperties": false,
+        "description": "Includes all or selected messages from a specific version of another prompt.",
+        "properties": {
+          "include": {
+            "$ref": "#/components/schemas/LLMObsPromptInclude"
+          }
+        },
+        "required": [
+          "include"
+        ],
+        "type": "object"
+      },
       "LLMObsPromptResponse": {
         "description": "Response containing a single Agent Observability prompt.",
         "example": {
@@ -87710,7 +87938,7 @@
         "type": "object"
       },
       "LLMObsPromptSDKDataAttributes": {
-        "description": "Attributes of a flattened prompt version returned for SDK consumption. Exactly one of `template` and `chat_template` is returned.",
+        "description": "Attributes of a flattened prompt version returned for SDK consumption. Exactly one of `template` and `chat_template` is returned. Empty `config` is omitted when configuration authoring is disabled for the organization. Non-empty saved configuration is always returned.",
         "properties": {
           "chat_template": {
             "description": "Chat template for this prompt version, as a list of role and content messages. Omitted for text templates.",
@@ -87718,6 +87946,9 @@
               "$ref": "#/components/schemas/LLMObsPromptChatMessage"
             },
             "type": "array"
+          },
+          "config": {
+            "$ref": "#/components/schemas/LLMObsPromptConfig"
           },
           "labels": {
             "deprecated": true,
@@ -87764,6 +87995,10 @@
                   "role": "user"
                 }
               ],
+              "config": {
+                "model": "provider-model",
+                "temperature": 0.2
+              },
               "prompt_id": "customer-support-assistant",
               "prompt_version_uuid": "d83ab666-61cc-5545-a83b-2424bb85467b",
               "version": "2"
@@ -87783,7 +88018,7 @@
         "type": "object"
       },
       "LLMObsPromptTemplate": {
-        "description": "A text template or a list of chat messages.",
+        "description": "A text template, a list of chat messages, or an authored chat object. Text can include an exact prompt version with `{{>prompt-id version=N}}`; other text, including `{{>...}}` sequences without a version, remains literal. Use an authored chat object when including prompts as chat messages.\n**Preview**: Prompt composition is available in Preview. To request access, contact [Datadog Support](https://docs.datadoghq.com/help/) or your Customer Success Manager.\nWithout access, inline references remain literal text and structured includes are unsupported. Previously compiled prompt versions remain available for execution.",
         "example": "You are a helpful assistant for {{audience}}.",
         "oneOf": [
           {
@@ -87791,6 +88026,9 @@
           },
           {
             "$ref": "#/components/schemas/LLMObsPromptChatTemplate"
+          },
+          {
+            "$ref": "#/components/schemas/LLMObsPromptAuthoringMessagesTemplate"
           }
         ]
       },
@@ -87834,11 +88072,17 @@
         "type": "object"
       },
       "LLMObsPromptVersionDataAttributes": {
-        "description": "Attributes of a specific version of an Agent Observability prompt.",
+        "description": "Attributes of a specific version of an Agent Observability prompt. For a composed version, `authoring_template` contains its pinned include-bearing source; ordinary versions omit that attribute. Empty `config` is omitted when configuration authoring is disabled for the organization. Non-empty saved configuration is always returned.",
         "properties": {
           "author": {
             "description": "UUID of the user who authored this version.",
             "type": "string"
+          },
+          "authoring_template": {
+            "$ref": "#/components/schemas/LLMObsPromptTemplate"
+          },
+          "config": {
+            "$ref": "#/components/schemas/LLMObsPromptConfig"
           },
           "created_at": {
             "description": "Timestamp stored on this prompt version.",
@@ -88053,6 +88297,7 @@
           "data": {
             "attributes": {
               "author": "3b12f1df-14fd-4e12-bd6f-4a2f5c8b3d1e",
+              "config": {},
               "created_at": "2025-02-01T14:30:00Z",
               "description": "Give concise answers and cite relevant help-center articles.",
               "prompt_id": "customer-support-assistant",
@@ -146342,6 +146587,7 @@
         "type": "object"
       },
       "SensitiveDataScannerMeta": {
+        "additionalProperties": {},
         "description": "Meta response containing information about the API.",
         "properties": {
           "count_limit": {
@@ -165007,6 +165253,10 @@
             },
             "type": "array"
           },
+          "id": {
+            "description": "Specifies the unique identifier of an existing routing rule to update.\nIf omitted, a new routing rule is created.",
+            "type": "string"
+          },
           "policy_id": {
             "description": "Identifies the policy to be applied when this routing rule matches.",
             "type": "string"
@@ -177766,7 +178016,8 @@
             "tokenUrl": "/oauth2/v1/token"
           }
         },
-        "type": "oauth2"
+        "type": "oauth2",
+        "x-env-name": "DD_BEARER_TOKEN"
       },
       "apiKeyAuth": {
         "description": "Your Datadog API Key.",
@@ -177915,6 +178166,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List tracers for a specific agent",
@@ -178067,6 +178321,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create a schedule",
@@ -178122,6 +178379,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a schedule",
@@ -178276,6 +178536,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update a schedule",
@@ -178359,6 +178622,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Trigger a schedule deployment",
@@ -178489,6 +178755,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List all fleet tracers",
@@ -178587,6 +178856,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List custom evaluator configurations",
@@ -178657,6 +178929,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a custom evaluator configuration",
@@ -178770,6 +179045,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a custom evaluator configuration",
@@ -178940,6 +179218,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create or update a custom evaluator configuration",
@@ -182403,6 +182684,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List annotations",
@@ -182517,6 +182801,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create an annotation",
@@ -182627,6 +182914,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get annotations for a page",
@@ -182687,6 +182977,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete an annotation",
@@ -182816,6 +183109,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update an annotation",
@@ -201035,6 +201331,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create or update a budget",
@@ -201188,6 +201487,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create or replace a budget's custom forecast",
@@ -201287,6 +201589,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Validate budget",
@@ -201316,6 +201621,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete budget",
@@ -201451,6 +201759,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get budget",
@@ -201486,6 +201797,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a budget's custom forecast",
@@ -201565,6 +201879,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a budget's custom forecast",
@@ -201620,6 +201937,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List budgets",
@@ -207740,6 +208060,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get current user",
@@ -207859,6 +208182,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update current user",
@@ -210522,6 +210848,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Creates a data deletion request",
@@ -210662,6 +210991,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Gets a list of data deletion requests",
@@ -210759,6 +211091,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Cancels a data deletion request",
@@ -212359,6 +212694,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get all deployment gates",
@@ -212461,6 +212799,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create deployment gate",
@@ -212554,6 +212895,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get rules for a deployment gate",
@@ -212671,6 +213015,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create deployment rule",
@@ -212744,6 +213091,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete deployment rule",
@@ -212843,6 +213193,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get deployment rule",
@@ -212971,6 +213324,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update deployment rule",
@@ -213035,6 +213391,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete deployment gate",
@@ -213124,6 +213483,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get deployment gate",
@@ -213236,6 +213598,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update deployment gate",
@@ -213374,6 +213739,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Trigger a deployment gate evaluation",
@@ -213464,6 +213832,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a deployment gate evaluation result",
@@ -213784,6 +214155,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a deployment event",
@@ -213852,6 +214226,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Patch a deployment event by version",
@@ -213947,6 +214324,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a list of deployment events",
@@ -214026,6 +214406,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a deployment event",
@@ -214106,6 +214489,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Patch a deployment event",
@@ -214273,6 +214659,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete an incident event",
@@ -214371,6 +214760,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a list of incident events",
@@ -214453,6 +214845,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get an incident event",
@@ -215977,6 +216372,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "servers": [
@@ -218772,6 +219170,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List available Datadog Agent versions",
@@ -218938,6 +219339,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List all Datadog Agents",
@@ -219028,6 +219432,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get detailed information about an agent",
@@ -219172,6 +219579,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List all deployments",
@@ -219326,6 +219736,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create a configuration deployment",
@@ -219430,6 +219843,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Upgrade hosts",
@@ -219557,6 +219973,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a deployment by ID",
@@ -219632,6 +220051,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Cancel a deployment",
@@ -219718,6 +220140,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List all schedules",
@@ -219811,6 +220236,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a schedule by ID",
@@ -222791,6 +223219,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List tag rules",
@@ -222930,6 +223361,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create a tag rule",
@@ -223023,6 +223457,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a tag rule",
@@ -223192,6 +223629,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a tag rule",
@@ -223334,6 +223774,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update a tag rule",
@@ -223462,6 +223905,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a tag rule compliance score",
@@ -223550,6 +223996,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get HAMR organization connection",
@@ -223657,6 +224106,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create or update HAMR organization connection",
@@ -229903,6 +230355,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List incident attachments",
@@ -238462,6 +238917,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List tenancy products",
@@ -238511,6 +238969,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get tenancy configs",
@@ -238622,6 +239083,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create tenancy config",
@@ -238657,6 +239121,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete tenancy config",
@@ -238713,6 +239180,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get tenancy config",
@@ -238833,6 +239303,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update tenancy config",
@@ -241295,6 +241768,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List Integrations",
@@ -243677,6 +244153,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get annotated interactions by content IDs",
@@ -243788,6 +244267,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List Agent Observability annotation queues",
@@ -243950,6 +244432,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create an Agent Observability annotation queue",
@@ -244010,6 +244495,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete an Agent Observability annotation queue",
@@ -244140,6 +244628,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update an Agent Observability annotation queue",
@@ -244238,6 +244729,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get annotated queue interactions",
@@ -244377,6 +244871,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get an annotated queue interaction",
@@ -244559,6 +245056,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create or update annotations",
@@ -244697,6 +245197,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete annotations",
@@ -244885,6 +245388,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Add annotation queue interactions",
@@ -244981,6 +245487,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete annotation queue interactions",
@@ -245092,6 +245601,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get annotation queue label schema",
@@ -245320,6 +245832,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update annotation queue label schema",
@@ -245458,6 +245973,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Aggregate Agent Observability experimentation",
@@ -245623,6 +246141,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Search Agent Observability experimentation",
@@ -245763,6 +246284,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Simple search experimentation entities",
@@ -245947,6 +246471,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List Agent Observability experiments",
@@ -246082,6 +246609,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create an Agent Observability experiment",
@@ -246162,6 +246692,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete Agent Observability experiments",
@@ -246279,6 +246812,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update an Agent Observability experiment",
@@ -246389,6 +246925,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List Agent Observability experiment spans (v1)",
@@ -246500,6 +247039,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Push events for an Agent Observability experiment",
@@ -246583,6 +247125,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List LLM integration accounts",
@@ -246715,6 +247260,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Run an LLM inference",
@@ -246805,6 +247353,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List LLM integration models",
@@ -246920,6 +247471,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List Agent Observability projects",
@@ -247045,6 +247599,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create an Agent Observability project",
@@ -247125,6 +247682,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete Agent Observability projects",
@@ -247238,6 +247798,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update an Agent Observability project",
@@ -247325,6 +247888,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List Agent Observability prompts",
@@ -247340,7 +247906,7 @@
         "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Create a new prompt (and its first version) in the Agent Observability prompt registry.",
+        "description": "Create a new prompt (and its first version) in the Agent Observability prompt registry.\n\n> **Preview**: Prompt composition is available in Preview. To request access, contact [Datadog Support](https://docs.datadoghq.com/help/) or your Customer Success Manager.",
         "operationId": "CreateLLMObsPrompt",
         "requestBody": {
           "content": {
@@ -247350,6 +247916,13 @@
                   "value": {
                     "data": {
                       "attributes": {
+                        "config": {
+                          "model": "provider-model",
+                          "response_format": {
+                            "type": "json_object"
+                          },
+                          "temperature": 0.2
+                        },
                         "description": "Answers customer questions using the company knowledge base.",
                         "prompt_id": "customer-support-assistant",
                         "template": [
@@ -247387,6 +247960,13 @@
                       "data": {
                         "attributes": {
                           "author": "3b12f1df-14fd-4e12-bd6f-4a2f5c8b3d1e",
+                          "config": {
+                            "model": "provider-model",
+                            "response_format": {
+                              "type": "json_object"
+                            },
+                            "temperature": 0.2
+                          },
                           "created_at": "2025-01-15T10:00:00Z",
                           "created_from": "sdk-registry",
                           "description": "Answers customer questions using the company knowledge base.",
@@ -247404,7 +247984,7 @@
                   }
                 },
                 "schema": {
-                  "$ref": "#/components/schemas/LLMObsPromptResponse"
+                  "$ref": "#/components/schemas/LLMObsCreatePromptResponse"
                 }
               }
             },
@@ -247458,6 +248038,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create an Agent Observability prompt",
@@ -247549,6 +248132,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete an Agent Observability prompt",
@@ -247597,6 +248183,10 @@
                               "role": "user"
                             }
                           ],
+                          "config": {
+                            "model": "provider-model",
+                            "temperature": 0.2
+                          },
                           "prompt_id": "customer-support-assistant",
                           "prompt_version_uuid": "d83ab666-61cc-5545-a83b-2424bb85467b",
                           "version": "2"
@@ -247652,6 +248242,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get an Agent Observability prompt",
@@ -247779,6 +248372,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update an Agent Observability prompt",
@@ -247880,6 +248476,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List versions of an Agent Observability prompt",
@@ -247895,7 +248494,7 @@
         "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Create a new version of an existing Agent Observability prompt.",
+        "description": "Create a new version of an existing Agent Observability prompt.\n\n> **Preview**: Prompt composition is available in Preview. To request access, contact [Datadog Support](https://docs.datadoghq.com/help/) or your Customer Success Manager.",
         "operationId": "CreateLLMObsPromptVersion",
         "parameters": [
           {
@@ -247906,10 +248505,61 @@
           "content": {
             "application/json": {
               "examples": {
+                "composed_chat": {
+                  "summary": "Create a version that includes all or selected messages from other prompts",
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "template": {
+                          "messages": [
+                            {
+                              "include": {
+                                "prompt_id": "assistant-introduction",
+                                "version": 2
+                              }
+                            },
+                            {
+                              "include": {
+                                "items": [
+                                  2,
+                                  0,
+                                  0
+                                ],
+                                "prompt_id": "response-examples",
+                                "version": 4
+                              }
+                            },
+                            {
+                              "content": "Answer {{question}}.",
+                              "role": "user"
+                            }
+                          ]
+                        }
+                      },
+                      "type": "prompt-template-versions"
+                    }
+                  }
+                },
+                "composed_text": {
+                  "summary": "Create a version that includes text from another prompt",
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "description": "Reuse the exact response policy.",
+                        "template": "{{>response-policy version=3}}\n\nAnswer {{question}}."
+                      },
+                      "type": "prompt-template-versions"
+                    }
+                  }
+                },
                 "default": {
                   "value": {
                     "data": {
                       "attributes": {
+                        "config": {
+                          "model": "provider-model",
+                          "temperature": 0.4
+                        },
                         "description": "Give concise answers and cite relevant help-center articles.",
                         "template": [
                           {
@@ -247940,11 +248590,92 @@
             "content": {
               "application/json": {
                 "examples": {
+                  "composed_chat": {
+                    "summary": "A composed chat version preserves structured authored includes",
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "authoring_template": {
+                            "messages": [
+                              {
+                                "include": {
+                                  "prompt_id": "assistant-introduction",
+                                  "version": 2
+                                }
+                              },
+                              {
+                                "include": {
+                                  "items": [
+                                    2,
+                                    0,
+                                    0
+                                  ],
+                                  "prompt_id": "response-examples",
+                                  "version": 4
+                                }
+                              },
+                              {
+                                "content": "Answer {{question}}.",
+                                "role": "user"
+                              }
+                            ]
+                          },
+                          "prompt_id": "support-chat",
+                          "prompt_uuid": "4a1a28ff-8a25-5f0f-946f-f48264d772eb",
+                          "template": [
+                            {
+                              "content": "You are a helpful assistant.",
+                              "role": "system"
+                            },
+                            {
+                              "content": "Here is one concise example.",
+                              "role": "assistant"
+                            },
+                            {
+                              "content": "You are a helpful assistant.",
+                              "role": "system"
+                            },
+                            {
+                              "content": "You are a helpful assistant.",
+                              "role": "system"
+                            },
+                            {
+                              "content": "Answer {{question}}.",
+                              "role": "user"
+                            }
+                          ],
+                          "version": 2
+                        },
+                        "id": "d83ab666-61cc-5545-a83b-2424bb85467b",
+                        "type": "prompt-template-versions"
+                      }
+                    }
+                  },
+                  "composed_text": {
+                    "summary": "A composed text version returns compiled and authored templates",
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "authoring_template": "{{>response-policy version=3}}\n\nAnswer {{question}}.",
+                          "prompt_id": "support-answer",
+                          "prompt_uuid": "4a1a28ff-8a25-5f0f-946f-f48264d772eb",
+                          "template": "Follow the approved response policy.\n\nAnswer {{question}}.",
+                          "version": 2
+                        },
+                        "id": "d83ab666-61cc-5545-a83b-2424bb85467b",
+                        "type": "prompt-template-versions"
+                      }
+                    }
+                  },
                   "default": {
                     "value": {
                       "data": {
                         "attributes": {
                           "author": "3b12f1df-14fd-4e12-bd6f-4a2f5c8b3d1e",
+                          "config": {
+                            "model": "provider-model",
+                            "temperature": 0.4
+                          },
                           "created_at": "2025-02-01T14:30:00Z",
                           "description": "Give concise answers and cite relevant help-center articles.",
                           "prompt_id": "customer-support-assistant",
@@ -248023,6 +248754,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create a new Agent Observability prompt version",
@@ -248044,7 +248778,7 @@
     },
     "/api/v2/llm-obs/v1/prompts/{prompt_id}/versions/{version}": {
       "get": {
-        "description": "Get the full template of a single, specific version of an Agent Observability prompt.",
+        "description": "Get the full template and configuration of a single, specific version of an Agent Observability prompt.",
         "operationId": "GetLLMObsPromptVersion",
         "parameters": [
           {
@@ -248064,6 +248798,7 @@
                       "data": {
                         "attributes": {
                           "author": "3b12f1df-14fd-4e12-bd6f-4a2f5c8b3d1e",
+                          "config": {},
                           "created_at": "2025-02-01T14:30:00Z",
                           "description": "Give concise answers and cite relevant help-center articles.",
                           "prompt_id": "customer-support-assistant",
@@ -248142,6 +248877,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a specific Agent Observability prompt version",
@@ -248200,6 +248938,10 @@
                       "data": {
                         "attributes": {
                           "author": "3b12f1df-14fd-4e12-bd6f-4a2f5c8b3d1e",
+                          "config": {
+                            "model": "provider-model",
+                            "temperature": 0.4
+                          },
                           "created_at": "2025-02-01T14:30:00Z",
                           "description": "Give concise answers and cite relevant help-center articles.",
                           "prompt_id": "customer-support-assistant",
@@ -248278,6 +249020,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update an Agent Observability prompt version",
@@ -248513,6 +249258,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List Agent Observability spans",
@@ -248661,6 +249409,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Search Agent Observability spans",
@@ -248780,6 +249531,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List patterns clustered points",
@@ -248877,6 +249631,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List patterns configurations",
@@ -249004,6 +249761,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create or update a patterns configuration",
@@ -249106,6 +249866,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a patterns configuration",
@@ -249186,6 +249949,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a patterns configuration",
@@ -249293,6 +250059,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List patterns runs",
@@ -249411,6 +250180,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Trigger a patterns run",
@@ -249525,6 +250297,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get patterns run status",
@@ -249646,6 +250421,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List patterns topics",
@@ -249784,6 +250562,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List patterns topics with clustered points",
@@ -249914,6 +250695,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List Agent Observability datasets",
@@ -250058,6 +250842,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create an Agent Observability dataset",
@@ -250153,6 +250940,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete Agent Observability datasets",
@@ -250271,6 +251061,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update an Agent Observability dataset",
@@ -250458,6 +251251,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Batch update Agent Observability dataset records",
@@ -250605,6 +251401,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Clone an Agent Observability dataset",
@@ -250728,6 +251527,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get Agent Observability dataset draft state",
@@ -250851,6 +251653,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Lock Agent Observability dataset draft state",
@@ -250948,6 +251753,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Unlock Agent Observability dataset draft state",
@@ -251075,6 +251883,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Export an Agent Observability dataset",
@@ -251202,6 +252013,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List Agent Observability dataset records",
@@ -251332,6 +252146,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update Agent Observability dataset records",
@@ -251490,6 +252307,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Append records to an Agent Observability dataset",
@@ -251588,6 +252408,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete Agent Observability dataset records",
@@ -251709,6 +252532,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Restore an Agent Observability dataset version",
@@ -251839,6 +252665,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List Agent Observability dataset versions",
@@ -251953,6 +252782,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List Agent Observability experiment events (v2)",
@@ -252105,6 +252937,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Upload records to an Agent Observability dataset",
@@ -252239,6 +253074,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List events for an Agent Observability experiment",
@@ -290498,6 +291336,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get all default inbox rules",
@@ -290589,6 +291430,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a default inbox rule",
@@ -290680,6 +291524,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Disable a default inbox rule",
@@ -290771,6 +291618,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Enable a default inbox rule",
@@ -290897,6 +291747,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get all due date rules",
@@ -291043,6 +291896,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create a due date rule",
@@ -291147,6 +292003,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Reorder due date rules",
@@ -291198,6 +292057,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a due date rule",
@@ -291298,6 +292160,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a due date rule",
@@ -291468,6 +292333,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update a due date rule",
@@ -291585,6 +292453,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get all inbox rules",
@@ -291711,6 +292582,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create an inbox rule",
@@ -291815,6 +292689,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Reorder inbox rules",
@@ -291866,6 +292743,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete an inbox rule",
@@ -291956,6 +292836,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get an inbox rule",
@@ -292099,6 +292982,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update an inbox rule",
@@ -292218,6 +293104,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get all mute rules",
@@ -292348,6 +293237,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create a mute rule",
@@ -292452,6 +293344,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Reorder mute rules",
@@ -292503,6 +293398,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a mute rule",
@@ -292595,6 +293493,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a mute rule",
@@ -292737,6 +293638,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update a mute rule",
@@ -292859,6 +293763,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get all severity modifier rules",
@@ -292989,6 +293896,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create a severity modifier rule",
@@ -293093,6 +294003,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Reorder severity modifier rules",
@@ -293154,6 +294067,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a severity modifier rule",
@@ -293256,6 +294172,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a severity modifier rule",
@@ -293400,6 +294319,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update a severity modifier rule",
@@ -293519,6 +294441,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get all ticket creation rules",
@@ -293649,6 +294574,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create a ticket creation rule",
@@ -293753,6 +294681,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Reorder ticket creation rules",
@@ -293804,6 +294735,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a ticket creation rule",
@@ -293896,6 +294830,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a ticket creation rule",
@@ -294042,6 +294979,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update a ticket creation rule",
@@ -295345,6 +296285,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List assets SBOMs",
@@ -295479,6 +296422,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get SBOM",
@@ -295632,6 +296578,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List scanned assets metadata",
@@ -296022,6 +296971,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get the list of signal-based notification rules",
@@ -296140,6 +297092,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create a new signal-based notification rule",
@@ -296188,6 +297143,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a signal-based notification rule",
@@ -296281,6 +297239,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get details of a signal-based notification rule",
@@ -296417,6 +297378,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Patch a signal-based notification rule",
@@ -296578,6 +297542,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Ingest STIX threat intelligence",
@@ -297098,6 +298065,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List vulnerabilities",
@@ -297244,6 +298214,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get the list of vulnerability notification rules",
@@ -297363,6 +298336,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create a new vulnerability-based notification rule",
@@ -297411,6 +298387,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a vulnerability-based notification rule",
@@ -297505,6 +298484,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get details of a vulnerability notification rule",
@@ -297642,6 +298624,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Patch a vulnerability-based notification rule",
@@ -297891,6 +298876,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "List vulnerable assets",
@@ -311546,6 +312534,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get the list of SPDX licenses",
@@ -318613,6 +319604,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get widgets from an image",
@@ -330142,6 +331136,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Validate API and application keys",
@@ -330692,6 +331689,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Search widgets",
@@ -330854,6 +331854,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Create a widget",
@@ -330939,6 +331942,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Delete a widget",
@@ -331050,6 +332056,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Get a widget",
@@ -331232,6 +332241,9 @@
           {
             "apiKeyAuth": [],
             "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
           }
         ],
         "summary": "Update a widget",
@@ -332256,6 +333268,9 @@
     {
       "apiKeyAuth": [],
       "appKeyAuth": []
+    },
+    {
+      "AuthZ": []
     }
   ],
   "servers": [
