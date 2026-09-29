@@ -1853,6 +1853,16 @@
           "type": "string"
         }
       },
+      "PersonalAccessTokensFilterLeakedParameter": {
+        "description": "When true, only return access tokens that have been detected as leaked. Has no effect when false.",
+        "in": "query",
+        "name": "filter[leaked]",
+        "required": false,
+        "schema": {
+          "example": true,
+          "type": "boolean"
+        }
+      },
       "PersonalAccessTokensFilterOwnerIDParameter": {
         "description": "Filter access tokens by the owner's ID. Supports multiple values.",
         "in": "query",
@@ -1873,6 +1883,19 @@
         "required": false,
         "schema": {
           "type": "string"
+        }
+      },
+      "PersonalAccessTokensIncludeParameter": {
+        "description": "Comma-separated list of relationship objects that should be included in the response.",
+        "explode": false,
+        "in": "query",
+        "name": "include",
+        "required": false,
+        "schema": {
+          "items": {
+            "$ref": "#/components/schemas/PersonalAccessTokensIncludeQueryParameterItem"
+          },
+          "type": "array"
         }
       },
       "PersonalAccessTokensSortParameter": {
@@ -5487,6 +5510,9 @@
       "AccessTokenListItemRelationships": {
         "description": "Resources related to the access token entry in the mixed list response.",
         "properties": {
+          "leak_information": {
+            "$ref": "#/components/schemas/RelationshipToLeakedKey"
+          },
           "owned_by": {
             "$ref": "#/components/schemas/RelationshipToAccessTokenOwner"
           }
@@ -5504,6 +5530,21 @@
         "x-enum-varnames": [
           "USERS",
           "SERVICE_ACCOUNT"
+        ]
+      },
+      "AccessTokenResponseIncludedArray": {
+        "description": "Array of objects related to the access tokens.",
+        "items": {
+          "$ref": "#/components/schemas/AccessTokenResponseIncludedItem"
+        },
+        "type": "array"
+      },
+      "AccessTokenResponseIncludedItem": {
+        "description": "An object related to an access token.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/LeakedKey"
+          }
         ]
       },
       "AccessTokensType": {
@@ -18015,11 +18056,11 @@
         "description": "The request body for deleting multiple rows from a reference table.",
         "properties": {
           "data": {
-            "description": "List of row resources to delete from the reference table.",
+            "description": "List of row resources to delete from the reference table. The request payload can be up to 1 MiB.",
             "items": {
               "$ref": "#/components/schemas/TableRowResourceIdentifier"
             },
-            "maxItems": 200,
+            "maxItems": 45589,
             "type": "array"
           }
         },
@@ -18191,11 +18232,11 @@
         "description": "The request body for creating or updating multiple rows into a reference table.",
         "properties": {
           "data": {
-            "description": "List of row resources to create or update in the reference table.",
+            "description": "List of row resources to create or update in the reference table. The request payload can be up to 1 MiB.",
             "items": {
               "$ref": "#/components/schemas/BatchUpsertRowsRequestData"
             },
-            "maxItems": 200,
+            "maxItems": 20971,
             "type": "array"
           }
         },
@@ -61463,7 +61504,7 @@
             "type": "string"
           },
           "relationships": {
-            "$ref": "#/components/schemas/PersonalAccessTokenRelationships"
+            "$ref": "#/components/schemas/FullPersonalAccessTokenRelationships"
           },
           "type": {
             "$ref": "#/components/schemas/PersonalAccessTokensType"
@@ -61520,6 +61561,15 @@
         },
         "type": "object"
       },
+      "FullPersonalAccessTokenRelationships": {
+        "description": "Resources related to the access token.",
+        "properties": {
+          "owned_by": {
+            "$ref": "#/components/schemas/RelationshipToUser"
+          }
+        },
+        "type": "object"
+      },
       "FullServiceAccessToken": {
         "description": "Datadog access token, including the token key.",
         "properties": {
@@ -61531,7 +61581,7 @@
             "type": "string"
           },
           "relationships": {
-            "$ref": "#/components/schemas/ServiceAccessTokenRelationships"
+            "$ref": "#/components/schemas/FullServiceAccessTokenRelationships"
           },
           "type": {
             "$ref": "#/components/schemas/ServiceAccessTokensType"
@@ -61584,6 +61634,15 @@
               "type": "string"
             },
             "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "FullServiceAccessTokenRelationships": {
+        "description": "Resources related to the access token.",
+        "properties": {
+          "owned_by": {
+            "$ref": "#/components/schemas/RelationshipToServiceAccount"
           }
         },
         "type": "object"
@@ -90985,6 +91044,9 @@
             },
             "type": "array"
           },
+          "included": {
+            "$ref": "#/components/schemas/AccessTokenResponseIncludedArray"
+          },
           "meta": {
             "$ref": "#/components/schemas/PersonalAccessTokenResponseMeta"
           }
@@ -91110,8 +91172,8 @@
             }
           ],
           "links": {
-            "first": "/api/v2/reference-tables/tables/00000000-0000-0000-0000-000000000000/rows/list?page%5Blimit%5D=100",
-            "self": "/api/v2/reference-tables/tables/00000000-0000-0000-0000-000000000000/rows/list?page%5Bcontinuation_token%5D=eyJzaWQiOjEyMzQ1LCJwayI6ImV4YW1wbGVfcGsifQ%3D%3D&page%5Blimit%5D=100"
+            "first": "/api/v2/reference-tables/tables/<TABLE_ID>/rows/list?page[limit]=100",
+            "self": "/api/v2/reference-tables/tables/<TABLE_ID>/rows/list?page[continuation_token]=<CONTINUATION_TOKEN>"
           },
           "meta": {
             "page": {
@@ -91145,17 +91207,17 @@
         "properties": {
           "first": {
             "description": "Link to the first page of results.",
-            "example": "/api/v2/reference-tables/tables/00000000-0000-0000-0000-000000000000/rows/list?page%5Blimit%5D=100",
+            "example": "/api/v2/reference-tables/tables/<TABLE_ID>/rows/list?page[limit]=100",
             "type": "string"
           },
           "next": {
             "description": "Link to the next page of results. Only present when more rows are available.",
-            "example": "/api/v2/reference-tables/tables/00000000-0000-0000-0000-000000000000/rows/list?page%5Bcontinuation_token%5D=eyJzaWQiOjEyMzQ1LCJwayI6ImV4YW1wbGVfcGsifQ%3D%3D&page%5Blimit%5D=100",
+            "example": "/api/v2/reference-tables/tables/<TABLE_ID>/rows/list?page[continuation_token]=<CONTINUATION_TOKEN>",
             "type": "string"
           },
           "self": {
             "description": "Link to the current page of results.",
-            "example": "/api/v2/reference-tables/tables/00000000-0000-0000-0000-000000000000/rows/list?page%5Bcontinuation_token%5D=eyJzaWQiOjEyMzQ1LCJwayI6ImV4YW1wbGVfcGsifQ%3D%3D&page%5Blimit%5D=100",
+            "example": "/api/v2/reference-tables/tables/<TABLE_ID>/rows/list?page[continuation_token]=<CONTINUATION_TOKEN>",
             "type": "string"
           }
         },
@@ -91325,6 +91387,9 @@
               "$ref": "#/components/schemas/ServiceAccessToken"
             },
             "type": "array"
+          },
+          "included": {
+            "$ref": "#/components/schemas/AccessTokenResponseIncludedArray"
           },
           "meta": {
             "$ref": "#/components/schemas/ServiceAccessTokenResponseMeta"
@@ -117306,6 +117371,9 @@
       "PersonalAccessTokenRelationships": {
         "description": "Resources related to the access token.",
         "properties": {
+          "leak_information": {
+            "$ref": "#/components/schemas/RelationshipToLeakedKey"
+          },
           "owned_by": {
             "$ref": "#/components/schemas/RelationshipToUser"
           }
@@ -117317,6 +117385,9 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/PersonalAccessToken"
+          },
+          "included": {
+            "$ref": "#/components/schemas/AccessTokenResponseIncludedArray"
           }
         },
         "type": "object"
@@ -117398,6 +117469,17 @@
         ],
         "type": "object"
       },
+      "PersonalAccessTokensIncludeQueryParameterItem": {
+        "description": "Relationship object that should be included in the response.",
+        "enum": [
+          "leak_information"
+        ],
+        "example": "leak_information",
+        "type": "string",
+        "x-enum-varnames": [
+          "LEAK_INFORMATION"
+        ]
+      },
       "PersonalAccessTokensSort": {
         "default": "name",
         "description": "Sorting options",
@@ -117409,7 +117491,9 @@
           "expires_at",
           "-expires_at",
           "last_used_at",
-          "-last_used_at"
+          "-last_used_at",
+          "leaked",
+          "-leaked"
         ],
         "type": "string",
         "x-enum-varnames": [
@@ -117420,7 +117504,9 @@
           "EXPIRES_AT_ASCENDING",
           "EXPIRES_AT_DESCENDING",
           "LAST_USED_AT_ASCENDING",
-          "LAST_USED_AT_DESCENDING"
+          "LAST_USED_AT_DESCENDING",
+          "LEAKED_ASCENDING",
+          "LEAKED_DESCENDING"
         ]
       },
       "PersonalAccessTokensType": {
@@ -126851,6 +126937,37 @@
         },
         "required": [
           "data"
+        ],
+        "type": "object"
+      },
+      "RelationshipToLeakedKey": {
+        "description": "Relationship to the leak the access token was found in. `data` is null when the access token has not been detected as leaked.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RelationshipToLeakedKeyData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "RelationshipToLeakedKeyData": {
+        "description": "Relationship to the leak the access token was found in.",
+        "nullable": true,
+        "properties": {
+          "id": {
+            "description": "A unique identifier that represents the leak.",
+            "example": "00000000-0000-1234-0000-000000000000",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/LeakedKeyType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
         ],
         "type": "object"
       },
@@ -138902,7 +139019,7 @@
             "$ref": "#/components/schemas/SecurityEntityRiskScoreAttributesSeverity"
           },
           "signalsDetected": {
-            "description": "Number of security signals detected for this entity.",
+            "description": "Number of risk-contributing security signals detected for this entity.",
             "example": 15,
             "format": "int64",
             "type": "integer"
@@ -147386,6 +147503,9 @@
       "ServiceAccessTokenRelationships": {
         "description": "Resources related to the access token.",
         "properties": {
+          "leak_information": {
+            "$ref": "#/components/schemas/RelationshipToLeakedKey"
+          },
           "owned_by": {
             "$ref": "#/components/schemas/RelationshipToServiceAccount"
           }
@@ -147397,6 +147517,9 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/ServiceAccessToken"
+          },
+          "included": {
+            "$ref": "#/components/schemas/AccessTokenResponseIncludedArray"
           }
         },
         "type": "object"
@@ -173064,6 +173187,96 @@
             "$ref": "#/components/schemas/WorkflowDataUpdate"
           }
         },
+        "type": "object"
+      },
+      "UpdatedPersonalAccessToken": {
+        "description": "Datadog access token returned by the update endpoint.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/PersonalAccessTokenAttributes"
+          },
+          "id": {
+            "description": "ID of the access token.",
+            "example": "00000000-0000-1234-0000-000000000000",
+            "type": "string"
+          },
+          "relationships": {
+            "$ref": "#/components/schemas/UpdatedPersonalAccessTokenRelationships"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PersonalAccessTokensType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "UpdatedPersonalAccessTokenRelationships": {
+        "description": "Resources related to the access token.",
+        "properties": {
+          "owned_by": {
+            "$ref": "#/components/schemas/RelationshipToUser"
+          }
+        },
+        "type": "object"
+      },
+      "UpdatedPersonalAccessTokenResponse": {
+        "description": "Response for updating an access token.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UpdatedPersonalAccessToken"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "UpdatedServiceAccessToken": {
+        "description": "Datadog access token returned by the update endpoint.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/ServiceAccessTokenAttributes"
+          },
+          "id": {
+            "description": "ID of the access token.",
+            "example": "00000000-0000-1234-0000-000000000000",
+            "type": "string"
+          },
+          "relationships": {
+            "$ref": "#/components/schemas/UpdatedServiceAccessTokenRelationships"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ServiceAccessTokensType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "UpdatedServiceAccessTokenRelationships": {
+        "description": "Resources related to the access token.",
+        "properties": {
+          "owned_by": {
+            "$ref": "#/components/schemas/RelationshipToServiceAccount"
+          }
+        },
+        "type": "object"
+      },
+      "UpdatedServiceAccessTokenResponse": {
+        "description": "Response for updating an access token.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UpdatedServiceAccessToken"
+          }
+        },
+        "required": [
+          "data"
+        ],
         "type": "object"
       },
       "UpsertAllocationRequest": {
@@ -210572,7 +210785,7 @@
     },
     "/api/v2/ddsql/query/tabular": {
       "post": {
-        "description": "Submit a DDSQL statement and return either a `running` state with an opaque `query_id`\nfor the client to poll, or a `completed` state with the column-major result set inlined\nwhen the query finishes quickly enough to be served synchronously.",
+        "description": "Submit a DDSQL statement and return either a `running` state with an opaque `query_id`\nfor the client to poll, or a `completed` state with the column-major result set inlined\nwhen the query finishes quickly enough to be served synchronously.\n\nFor a scoped application key, include `timeseries_query` in its scopes.\nA query that does not read a data source, such as `SELECT 1`, requires no additional\ndata-source permissions. Queries that read data sources also require the user or\nservice account that owns the application key to have the corresponding data access\npermissions through their roles. The `timeseries_query` permission does not grant\naccess to the underlying data sources.",
         "operationId": "ExecuteDdsqlTabularQuery",
         "requestBody": {
           "content": {
@@ -210733,15 +210946,32 @@
             "description": "Internal Server Error"
           }
         },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "timeseries_query"
+            ]
+          }
+        ],
         "summary": "Execute a tabular DDSQL query",
         "tags": [
           "DDSQL"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "timeseries_query"
+          ]
+        }
       }
     },
     "/api/v2/ddsql/query/tabular/fetch": {
       "post": {
-        "description": "Poll a previously submitted DDSQL query for results. Pass the opaque `query_id` returned\nby a prior `ExecuteDdsqlTabularQuery` (or by a prior `FetchDdsqlTabularQuery` that\nreturned `state: running`) and the server returns either a `running` state to poll again\nor a `completed` state with the column-major result set inlined.",
+        "description": "Poll a previously submitted DDSQL query for results. Pass the opaque `query_id` returned\nby a prior `ExecuteDdsqlTabularQuery` (or by a prior `FetchDdsqlTabularQuery` that\nreturned `state: running`) and the server returns either a `running` state to poll again\nor a `completed` state with the column-major result set inlined.\n\nFor a scoped application key, include `timeseries_query` in its scopes.\nFetch results as the same user and organization that submitted the query.\nThe user or service account that owns the application key must have the data access\npermissions required by the queried data sources through their roles.",
         "operationId": "FetchDdsqlTabularQuery",
         "requestBody": {
           "content": {
@@ -210897,10 +211127,27 @@
             "description": "Internal Server Error"
           }
         },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "timeseries_query"
+            ]
+          }
+        ],
         "summary": "Fetch the result of a DDSQL query",
         "tags": [
           "DDSQL"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "timeseries_query"
+          ]
+        }
       }
     },
     "/api/v2/deletion/data/{product}": {
@@ -272408,6 +272655,12 @@
           },
           {
             "$ref": "#/components/parameters/PersonalAccessTokensFilterOwnerIDParameter"
+          },
+          {
+            "$ref": "#/components/parameters/PersonalAccessTokensFilterLeakedParameter"
+          },
+          {
+            "$ref": "#/components/parameters/PersonalAccessTokensIncludeParameter"
           }
         ],
         "responses": {
@@ -272636,6 +272889,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/AccessTokenID"
+          },
+          {
+            "$ref": "#/components/parameters/PersonalAccessTokensIncludeParameter"
           }
         ],
         "responses": {
@@ -272763,7 +273019,7 @@
                   }
                 },
                 "schema": {
-                  "$ref": "#/components/schemas/PersonalAccessTokenResponse"
+                  "$ref": "#/components/schemas/UpdatedPersonalAccessTokenResponse"
                 }
               }
             },
@@ -276787,7 +277043,7 @@
     },
     "/api/v2/reference-tables/queries/batch-rows": {
       "post": {
-        "description": "Batch query reference table rows by their primary key values.  Returns only found rows in the included array.",
+        "description": "Batch query reference table rows by their primary key values. Returns only found rows in the included array.",
         "operationId": "BatchRowsQuery",
         "requestBody": {
           "content": {
@@ -277796,9 +278052,9 @@
                         }
                       ],
                       "links": {
-                        "first": "/api/v2/reference-tables/tables/00000000-0000-0000-0000-000000000000/rows/list?page%5Blimit%5D=100",
-                        "next": "/api/v2/reference-tables/tables/00000000-0000-0000-0000-000000000000/rows/list?page%5Bcontinuation_token%5D=eyJzaWQiOjY5NzA0ODkwNDE4ODA3MTAzOTgsInBrIjoiMTAyLjEzMC4xMjcuMTE3In0%3D&page%5Blimit%5D=100",
-                        "self": "/api/v2/reference-tables/tables/00000000-0000-0000-0000-000000000000/rows/list?page%5Bcontinuation_token%5D=eyJzaWQiOjEyMzQ1LCJwayI6ImV4YW1wbGVfcGsifQ%3D%3D&page%5Blimit%5D=100"
+                        "first": "/api/v2/reference-tables/tables/<TABLE_ID>/rows/list?page[limit]=100",
+                        "next": "/api/v2/reference-tables/tables/<TABLE_ID>/rows/list?page[continuation_token]=<NEXT_CONTINUATION_TOKEN>",
+                        "self": "/api/v2/reference-tables/tables/<TABLE_ID>/rows/list?page[continuation_token]=<CONTINUATION_TOKEN>"
                       }
                     }
                   }
@@ -308249,6 +308505,12 @@
           },
           {
             "$ref": "#/components/parameters/PersonalAccessTokensFilterParameter"
+          },
+          {
+            "$ref": "#/components/parameters/PersonalAccessTokensFilterLeakedParameter"
+          },
+          {
+            "$ref": "#/components/parameters/PersonalAccessTokensIncludeParameter"
           }
         ],
         "responses": {
@@ -308505,6 +308767,9 @@
           },
           {
             "$ref": "#/components/parameters/AccessTokenID"
+          },
+          {
+            "$ref": "#/components/parameters/PersonalAccessTokensIncludeParameter"
           }
         ],
         "responses": {
@@ -308634,7 +308899,7 @@
                   }
                 },
                 "schema": {
-                  "$ref": "#/components/schemas/ServiceAccessTokenResponse"
+                  "$ref": "#/components/schemas/UpdatedServiceAccessTokenResponse"
                 }
               }
             },
