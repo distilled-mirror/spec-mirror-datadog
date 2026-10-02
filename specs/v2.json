@@ -14583,6 +14583,300 @@
           "ARBITRARY_RULE_STATUS"
         ]
       },
+      "ArchiveSearchCreateRehydration": {
+        "description": "Rehydration settings. Include this object to index the matched logs into a retained historical view.\nOmit it to run an Archive Search that only scans the archive.",
+        "properties": {
+          "max_rehydrated_events": {
+            "description": "Maximum number of events to rehydrate. The organization's reindexing limit is configured\nin millions, so this value is at least 1,000,000.",
+            "example": 1000000,
+            "format": "int64",
+            "minimum": 1000000,
+            "type": "integer"
+          },
+          "retention_days": {
+            "description": "Number of days the rehydrated logs are retained for.",
+            "example": 15,
+            "format": "int64",
+            "type": "integer"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/ArchiveSearchRehydrationTier"
+          }
+        },
+        "required": [
+          "retention_days",
+          "tier",
+          "max_rehydrated_events"
+        ],
+        "type": "object"
+      },
+      "ArchiveSearchCreateRequest": {
+        "description": "Request to create an Archive Search.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ArchiveSearchCreateRequestData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "ArchiveSearchCreateRequestAttributes": {
+        "description": "Attributes accepted when creating an Archive Search.",
+        "properties": {
+          "archive_id": {
+            "description": "ID of the archive to search. Use the Logs Archives API to list the archives of the organization.",
+            "example": "mhmyYmyLTOaFYKvhNadu1w",
+            "type": "string"
+          },
+          "description": {
+            "description": "Free-text description of the Archive Search.",
+            "example": "Investigating the checkout latency spike.",
+            "type": "string"
+          },
+          "from": {
+            "description": "Start of the time range to search, as an ISO 8601 timestamp.",
+            "example": "2026-01-01T00:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name of the Archive Search.",
+            "example": "checkout-latency-investigation",
+            "type": "string"
+          },
+          "query": {
+            "description": "Log search query used to filter the archived logs.",
+            "example": "service:checkout status:error",
+            "type": "string"
+          },
+          "rehydration": {
+            "$ref": "#/components/schemas/ArchiveSearchCreateRehydration"
+          },
+          "to": {
+            "description": "End of the time range to search, as an ISO 8601 timestamp. Must be after `from`.",
+            "example": "2026-01-02T00:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "archive_id",
+          "name",
+          "query",
+          "from",
+          "to"
+        ],
+        "type": "object"
+      },
+      "ArchiveSearchCreateRequestData": {
+        "description": "Archive Search object to create.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/ArchiveSearchCreateRequestAttributes"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ArchiveSearchType"
+          }
+        },
+        "required": [
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "ArchiveSearchRehydration": {
+        "description": "Rehydration settings of the Archive Search. Absent when the search only scans the archive\nwithout indexing the results.",
+        "properties": {
+          "max_rehydrated_events": {
+            "description": "Maximum number of events to rehydrate.",
+            "example": 1000000,
+            "format": "int64",
+            "type": "integer"
+          },
+          "retention_days": {
+            "description": "Number of days the rehydrated logs are retained for.",
+            "example": 15,
+            "format": "int64",
+            "type": "integer"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/ArchiveSearchRehydrationTier"
+          }
+        },
+        "required": [
+          "retention_days",
+          "tier",
+          "max_rehydrated_events"
+        ],
+        "type": "object"
+      },
+      "ArchiveSearchRehydrationTier": {
+        "description": "Storage tier the matched logs are rehydrated into.",
+        "enum": [
+          "standard",
+          "flex"
+        ],
+        "example": "standard",
+        "type": "string",
+        "x-enum-varnames": [
+          "STANDARD",
+          "FLEX"
+        ]
+      },
+      "ArchiveSearchResponse": {
+        "description": "Response containing a single Archive Search.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ArchiveSearchResponseData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "ArchiveSearchResponseAttributes": {
+        "description": "Attributes of an Archive Search.",
+        "properties": {
+          "archive_id": {
+            "description": "ID of the archive being searched.",
+            "example": "mhmyYmyLTOaFYKvhNadu1w",
+            "type": "string"
+          },
+          "bytes_scanned": {
+            "description": "Number of bytes read from the archive at the end of the search.",
+            "example": 402764439,
+            "format": "int64",
+            "type": "integer"
+          },
+          "completed_at": {
+            "description": "Time the Archive Search finished, as an ISO 8601 timestamp.\nAbsent while the search is still running.",
+            "example": "2026-01-02T12:30:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Time the Archive Search was created, as an ISO 8601 timestamp.",
+            "example": "2026-01-02T12:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "description": {
+            "description": "Free-text description of the Archive Search.",
+            "example": "Investigating the checkout latency spike.",
+            "type": "string"
+          },
+          "events_scanned": {
+            "description": "Number of events read from the archive at the end of the search.",
+            "example": 1500,
+            "format": "int64",
+            "type": "integer"
+          },
+          "expected_duration": {
+            "description": "Estimated time left before the Archive Search completes, in seconds.",
+            "example": 120,
+            "format": "int64",
+            "type": "integer"
+          },
+          "from": {
+            "description": "Start of the searched time range, as an ISO 8601 timestamp.",
+            "example": "2026-01-01T00:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name of the Archive Search.",
+            "example": "checkout-latency-investigation",
+            "type": "string"
+          },
+          "query": {
+            "description": "Log search query used to filter the archived logs.",
+            "example": "service:checkout status:error",
+            "type": "string"
+          },
+          "rehydration": {
+            "$ref": "#/components/schemas/ArchiveSearchRehydration"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ArchiveSearchStatus"
+          },
+          "to": {
+            "description": "End of the searched time range, as an ISO 8601 timestamp.",
+            "example": "2026-01-02T00:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "archive_id",
+          "name",
+          "query",
+          "from",
+          "to",
+          "status",
+          "created_at",
+          "events_scanned",
+          "bytes_scanned"
+        ],
+        "type": "object"
+      },
+      "ArchiveSearchResponseData": {
+        "description": "Archive Search object.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/ArchiveSearchResponseAttributes"
+          },
+          "id": {
+            "description": "Unique identifier of the Archive Search.",
+            "example": "nv2eu4srgyzdkulggjzg2zkmmzifa2rum5iq",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ArchiveSearchType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "ArchiveSearchStatus": {
+        "description": "Current state of an Archive Search.",
+        "enum": [
+          "RUNNING",
+          "COMPLETED",
+          "FAILED",
+          "CANCELLED",
+          "QUOTA_REACHED",
+          "EXPIRED"
+        ],
+        "example": "RUNNING",
+        "type": "string",
+        "x-enum-varnames": [
+          "RUNNING",
+          "COMPLETED",
+          "FAILED",
+          "CANCELLED",
+          "QUOTA_REACHED",
+          "EXPIRED"
+        ]
+      },
+      "ArchiveSearchType": {
+        "default": "archive_search",
+        "description": "Archive Search resource type.",
+        "enum": [
+          "archive_search"
+        ],
+        "example": "archive_search",
+        "type": "string",
+        "x-enum-varnames": [
+          "ARCHIVE_SEARCH"
+        ]
+      },
       "Argument": {
         "description": "A named argument for a custom static analysis rule.",
         "properties": {
@@ -43007,6 +43301,11 @@
             "example": "service:xyz host:abc",
             "type": "string"
           },
+          "source": {
+            "description": "The source of the deletion request.",
+            "example": "standard",
+            "type": "string"
+          },
           "starting_at": {
             "description": "Starting time of the process to delete the requested data.",
             "example": "2024-01-01T02:00:00.000000Z",
@@ -50218,7 +50517,7 @@
         "type": "object"
       },
       "DueDateRuleDataCreate": {
-        "description": "The data object for a due date rule create or update request.",
+        "description": "The data object for a due date rule create request.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/DueDateRuleAttributesCreate"
@@ -50241,6 +50540,29 @@
           },
           "id": {
             "description": "The ID of the due date rule.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DueDateRuleType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "DueDateRuleDataUpdate": {
+        "description": "The data object for a due date rule update request. The `id` must match the `rule_id` path parameter.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/DueDateRuleAttributesCreate"
+          },
+          "id": {
+            "description": "The ID of the due date rule to update.",
             "example": "00000000-0000-0000-0000-000000000000",
             "format": "uuid",
             "type": "string"
@@ -50283,7 +50605,19 @@
         "type": "object"
       },
       "DueDateRuleReorderRequest": {
-        "description": "The body of the due date rule reorder request.",
+        "description": "The body of a due date rule reorder request.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DueDateRuleReorderData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "DueDateRuleReorderResponse": {
+        "description": "The response of a due date rule reorder request.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/DueDateRuleReorderData"
@@ -50321,7 +50655,7 @@
         "description": "The body of a due date rule update request.",
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/DueDateRuleDataCreate"
+            "$ref": "#/components/schemas/DueDateRuleDataUpdate"
           }
         },
         "required": [
@@ -99942,7 +100276,7 @@
         "type": "object"
       },
       "MuteRuleDataCreate": {
-        "description": "The data object for a mute rule create or update request.",
+        "description": "The data object for a mute rule create request.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/MuteRuleAttributesCreate"
@@ -99965,6 +100299,29 @@
           },
           "id": {
             "description": "The ID of the mute rule.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/MuteRuleType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "MuteRuleDataUpdate": {
+        "description": "The data object for a mute rule update request. The `id` must match the `rule_id` path parameter.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/MuteRuleAttributesCreate"
+          },
+          "id": {
+            "description": "The ID of the mute rule to update.",
             "example": "00000000-0000-0000-0000-000000000000",
             "format": "uuid",
             "type": "string"
@@ -100007,7 +100364,19 @@
         "type": "object"
       },
       "MuteRuleReorderRequest": {
-        "description": "The body of the mute rule reorder request.",
+        "description": "The body of a mute rule reorder request.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MuteRuleReorderData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "MuteRuleReorderResponse": {
+        "description": "The response of a mute rule reorder request.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/MuteRuleReorderData"
@@ -100045,7 +100414,7 @@
         "description": "The body of a mute rule update request.",
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/MuteRuleDataCreate"
+            "$ref": "#/components/schemas/MuteRuleDataUpdate"
           }
         },
         "required": [
@@ -103600,6 +103969,9 @@
             "$ref": "#/components/schemas/ObservabilityPipelineAggregateProcessor"
           },
           {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableProcessor"
+          },
+          {
             "$ref": "#/components/schemas/ObservabilityPipelineMetricTagsProcessor"
           },
           {
@@ -106496,6 +106868,244 @@
           "value"
         ],
         "type": "object"
+      },
+      "ObservabilityPipelineMetricEnrichmentTableFile": {
+        "description": "Defines a static enrichment table loaded from a CSV file for metric enrichment.",
+        "properties": {
+          "encoding": {
+            "$ref": "#/components/schemas/ObservabilityPipelineEnrichmentTableFileEncoding"
+          },
+          "key": {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableFileKey"
+          },
+          "path": {
+            "description": "Path to the CSV file.",
+            "example": "/etc/enrichment/lookup.csv",
+            "type": "string"
+          }
+        },
+        "required": [
+          "encoding",
+          "key",
+          "path"
+        ],
+        "type": "object"
+      },
+      "ObservabilityPipelineMetricEnrichmentTableFileKey": {
+        "description": "Defines how to map a metric lookup value to a CSV column during enrichment table lookups.",
+        "properties": {
+          "column": {
+            "description": "The CSV column name or index to match against the lookup value.",
+            "example": "service",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableLookupSource"
+          }
+        },
+        "required": [
+          "column",
+          "source"
+        ],
+        "type": "object"
+      },
+      "ObservabilityPipelineMetricEnrichmentTableFileProcessor": {
+        "description": "An `enrichment_table` processor that enriches metrics using a static CSV file.",
+        "properties": {
+          "display_name": {
+            "$ref": "#/components/schemas/ObservabilityPipelineComponentDisplayName"
+          },
+          "enabled": {
+            "description": "Indicates whether the processor is enabled.",
+            "example": true,
+            "type": "boolean"
+          },
+          "file": {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableFile"
+          },
+          "id": {
+            "description": "The unique identifier for this component. Used in other parts of the pipeline to reference this component\n(for example, as the `input` to downstream components).",
+            "example": "enrichment-table-processor",
+            "type": "string"
+          },
+          "include": {
+            "description": "A Datadog search query used to determine which metrics this processor targets.",
+            "example": "*",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ObservabilityPipelineEnrichmentTableProcessorType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "include",
+          "file",
+          "enabled"
+        ],
+        "type": "object"
+      },
+      "ObservabilityPipelineMetricEnrichmentTableLookupSource": {
+        "description": "Specifies the source of the key value used for metric enrichment table lookups.\nThe lookup key can be either the metric name or a metric tag.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableMetricNameLookup"
+          },
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableTagLookup"
+          }
+        ]
+      },
+      "ObservabilityPipelineMetricEnrichmentTableMetricNameLookup": {
+        "description": "Uses the metric name as the lookup key for enrichment table matching.",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableMetricNameLookupType"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "ObservabilityPipelineMetricEnrichmentTableMetricNameLookupType": {
+        "default": "metric_name",
+        "description": "The lookup source type. The value should always be `metric_name`.",
+        "enum": [
+          "metric_name"
+        ],
+        "example": "metric_name",
+        "type": "string",
+        "x-enum-varnames": [
+          "METRIC_NAME"
+        ]
+      },
+      "ObservabilityPipelineMetricEnrichmentTableProcessor": {
+        "description": "The `enrichment_table` processor enriches metrics with tags from a static CSV file or a Datadog reference table.\nIt looks up a row using the metric name or a metric tag value. It then adds each column of the matching row as a\nmetric tag, overwriting any existing tag with the same key. Exactly one of `file` or `reference_table` must be\nconfigured.\n\n**Supported pipeline types:** metrics",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableFileProcessor"
+          },
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableReferenceTableProcessor"
+          }
+        ],
+        "x-pipeline-types": [
+          "metrics"
+        ]
+      },
+      "ObservabilityPipelineMetricEnrichmentTableReferenceKey": {
+        "description": "Defines the metric lookup value used as the reference-table row ID.",
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableLookupSource"
+          }
+        },
+        "required": [
+          "source"
+        ],
+        "type": "object"
+      },
+      "ObservabilityPipelineMetricEnrichmentTableReferenceTable": {
+        "description": "Uses a Datadog reference table to enrich metrics.",
+        "properties": {
+          "app_key_key": {
+            "description": "The name of the environment variable or secret that holds the Datadog application key used to access the\nreference table.",
+            "example": "DD_APP_KEY",
+            "type": "string"
+          },
+          "columns": {
+            "description": "A list of column names to include from the reference table. If not provided, all columns are included.",
+            "items": {
+              "description": "The name of a column to include from the reference table.",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "type": "array"
+          },
+          "key": {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableReferenceKey"
+          },
+          "table_id": {
+            "description": "The unique identifier of the reference table.",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "table_id"
+        ],
+        "type": "object"
+      },
+      "ObservabilityPipelineMetricEnrichmentTableReferenceTableProcessor": {
+        "description": "An `enrichment_table` processor that enriches metrics using a Datadog reference table.",
+        "properties": {
+          "display_name": {
+            "$ref": "#/components/schemas/ObservabilityPipelineComponentDisplayName"
+          },
+          "enabled": {
+            "description": "Indicates whether the processor is enabled.",
+            "example": true,
+            "type": "boolean"
+          },
+          "id": {
+            "description": "The unique identifier for this component. Used in other parts of the pipeline to reference this component\n(for example, as the `input` to downstream components).",
+            "example": "enrichment-table-processor",
+            "type": "string"
+          },
+          "include": {
+            "description": "A Datadog search query used to determine which metrics this processor targets.",
+            "example": "*",
+            "type": "string"
+          },
+          "reference_table": {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableReferenceTable"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ObservabilityPipelineEnrichmentTableProcessorType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "include",
+          "reference_table",
+          "enabled"
+        ],
+        "type": "object"
+      },
+      "ObservabilityPipelineMetricEnrichmentTableTagLookup": {
+        "description": "Uses a metric tag as the lookup key for enrichment table matching.",
+        "properties": {
+          "name": {
+            "description": "The Datadog tag key used as the lookup key.",
+            "example": "service",
+            "maxLength": 200,
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ObservabilityPipelineMetricEnrichmentTableTagLookupType"
+          }
+        },
+        "required": [
+          "type",
+          "name"
+        ],
+        "type": "object"
+      },
+      "ObservabilityPipelineMetricEnrichmentTableTagLookupType": {
+        "default": "tag",
+        "description": "The lookup source type. The value should always be `tag`.",
+        "enum": [
+          "tag"
+        ],
+        "example": "tag",
+        "type": "string",
+        "x-enum-varnames": [
+          "TAG"
+        ]
       },
       "ObservabilityPipelineMetricTagsProcessor": {
         "description": "The `metric_tags` processor filters metrics based on their tags using Datadog tag key patterns.\n\n**Supported pipeline types:** metrics",
@@ -125218,7 +125828,7 @@
             "type": "string"
           },
           "feature_ids": {
-            "description": "The list of feature IDs associated with the RUM operation.",
+            "description": "The list of journey IDs associated with the RUM operation.",
             "items": {
               "type": "string"
             },
@@ -125296,7 +125906,7 @@
             "type": "string"
           },
           "feature_ids": {
-            "description": "The list of feature IDs associated with the RUM operation.",
+            "description": "The list of journey IDs associated with the RUM operation.",
             "items": {
               "type": "string"
             },
@@ -125368,7 +125978,7 @@
         "type": "object"
       },
       "RUMOperationStrongLinkCreateRequest": {
-        "description": "The request body for creating a RUM operation strong link.",
+        "description": "The request body for creating a RUM operation link.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/RUMOperationStrongLinkCreateRequestData"
@@ -125380,7 +125990,7 @@
         "type": "object"
       },
       "RUMOperationStrongLinkCreateRequestAttributes": {
-        "description": "Attributes for creating a RUM operation strong link.",
+        "description": "Attributes for creating a RUM operation link.",
         "properties": {
           "application_id": {
             "description": "The RUM application ID used when creating a stub operation from `operation_name`.",
@@ -125388,13 +125998,13 @@
             "type": "string"
           },
           "description": {
-            "description": "A description of the strong link.",
+            "description": "A description of the link.",
             "nullable": true,
             "type": "string"
           },
           "feature_id": {
-            "description": "The unique identifier of the feature to link.",
-            "example": "feature-123",
+            "description": "The unique identifier of the journey to link.",
+            "example": "journey-123",
             "type": "string"
           },
           "operation_id": {
@@ -125410,7 +126020,7 @@
             "$ref": "#/components/schemas/RUMOperationStrongLinkStatus"
           },
           "tags": {
-            "description": "A list of tags associated with the strong link.",
+            "description": "A list of tags associated with the link.",
             "items": {
               "type": "string"
             },
@@ -125423,7 +126033,7 @@
         "type": "object"
       },
       "RUMOperationStrongLinkCreateRequestData": {
-        "description": "The data object for creating a RUM operation strong link.",
+        "description": "The data object for creating a RUM operation link.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/RUMOperationStrongLinkCreateRequestAttributes"
@@ -125439,7 +126049,7 @@
         "type": "object"
       },
       "RUMOperationStrongLinkResponse": {
-        "description": "The response for a single RUM operation strong link.",
+        "description": "The response for a single RUM operation link.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/RUMOperationStrongLinkResponseData"
@@ -125451,22 +126061,22 @@
         "type": "object"
       },
       "RUMOperationStrongLinkResponseAttributes": {
-        "description": "Attributes of a RUM operation strong link response.",
+        "description": "Attributes of a RUM operation link response.",
         "properties": {
           "created_at": {
-            "description": "The timestamp when the strong link was created.",
+            "description": "The timestamp when the link was created.",
             "format": "date-time",
             "readOnly": true,
             "type": "string"
           },
           "description": {
-            "description": "A description of the strong link.",
+            "description": "A description of the link.",
             "nullable": true,
             "type": "string"
           },
           "feature_id": {
-            "description": "The unique identifier of the linked feature.",
-            "example": "feature-123",
+            "description": "The unique identifier of the linked journey.",
+            "example": "journey-123",
             "readOnly": true,
             "type": "string"
           },
@@ -125480,14 +126090,14 @@
             "$ref": "#/components/schemas/RUMOperationStrongLinkStatus"
           },
           "tags": {
-            "description": "A list of tags associated with the strong link.",
+            "description": "A list of tags associated with the link.",
             "items": {
               "type": "string"
             },
             "type": "array"
           },
           "updated_at": {
-            "description": "The timestamp when the strong link was last updated.",
+            "description": "The timestamp when the link was last updated.",
             "format": "date-time",
             "nullable": true,
             "readOnly": true,
@@ -125502,14 +126112,14 @@
         "type": "object"
       },
       "RUMOperationStrongLinkResponseData": {
-        "description": "The data object in a RUM operation strong link response.",
+        "description": "The data object in a RUM operation link response.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/RUMOperationStrongLinkResponseAttributes"
           },
           "id": {
-            "description": "The unique identifier of the strong link, formatted as `<operation_id>:<feature_id>`.",
-            "example": "abc12345-1234-5678-abcd-ef1234567890:feature-123",
+            "description": "The unique identifier of the link, formatted as `<operation_id>:<feature_id>`.",
+            "example": "abc12345-1234-5678-abcd-ef1234567890:journey-123",
             "readOnly": true,
             "type": "string"
           },
@@ -125525,7 +126135,7 @@
         "type": "object"
       },
       "RUMOperationStrongLinkStatus": {
-        "description": "The status of a RUM operation strong link.",
+        "description": "The status of a RUM operation link.",
         "enum": [
           "DRAFT",
           "CONFIRMED",
@@ -125540,7 +126150,7 @@
         ]
       },
       "RUMOperationStrongLinkType": {
-        "description": "The JSON:API type for RUM operation strong link resources.",
+        "description": "The JSON:API type for RUM operation link resources.",
         "enum": [
           "strong_links"
         ],
@@ -125551,7 +126161,7 @@
         ]
       },
       "RUMOperationStrongLinkUpdateRequest": {
-        "description": "The request body for updating a RUM operation strong link.",
+        "description": "The request body for updating a RUM operation link.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/RUMOperationStrongLinkUpdateRequestData"
@@ -125563,7 +126173,7 @@
         "type": "object"
       },
       "RUMOperationStrongLinkUpdateRequestAttributes": {
-        "description": "Attributes for updating a RUM operation strong link.",
+        "description": "Attributes for updating a RUM operation link.",
         "properties": {
           "status": {
             "$ref": "#/components/schemas/RUMOperationStrongLinkUpdateStatus"
@@ -125575,7 +126185,7 @@
         "type": "object"
       },
       "RUMOperationStrongLinkUpdateRequestData": {
-        "description": "The data object for updating a RUM operation strong link.",
+        "description": "The data object for updating a RUM operation link.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/RUMOperationStrongLinkUpdateRequestAttributes"
@@ -125591,7 +126201,7 @@
         "type": "object"
       },
       "RUMOperationStrongLinkUpdateStatus": {
-        "description": "The status of a RUM operation strong link. Can only be set to `CONFIRMED` or `REJECTED`.",
+        "description": "The status of a RUM operation link. Can only be set to `CONFIRMED` or `REJECTED`.",
         "enum": [
           "CONFIRMED",
           "REJECTED"
@@ -125604,7 +126214,7 @@
         ]
       },
       "RUMOperationStrongLinksListResponse": {
-        "description": "The response for a list of RUM operation strong links.",
+        "description": "The response for a list of RUM operation links.",
         "properties": {
           "data": {
             "items": {
@@ -125622,7 +126232,7 @@
         "type": "object"
       },
       "RUMOperationStrongLinksListResponseMeta": {
-        "description": "Metadata for a list of RUM operation strong links.",
+        "description": "Metadata for a list of RUM operation links.",
         "properties": {
           "limit": {
             "description": "The pagination limit.",
@@ -125635,7 +126245,7 @@
             "type": "integer"
           },
           "total": {
-            "description": "The total number of strong links matching the request.",
+            "description": "The total number of links matching the request.",
             "format": "int64",
             "type": "integer"
           }
@@ -126242,7 +126852,7 @@
               "scope": "ccm",
               "sort": [
                 {
-                  "expression": "potential_daily_savings.amount",
+                  "expression": "@potential_daily_savings",
                   "order": "DESC"
                 }
               ]
@@ -126268,7 +126878,7 @@
             "$ref": "#/components/schemas/RecommendationsFilterRequestDataAttributes"
           },
           "id": {
-            "description": "Filter expression applied to the recommendations. The server treats an omitted ID as `*`\nand returns all recommendations.",
+            "description": "Filter expression applied to the recommendations when `attributes.filter` is omitted.\nWhen supplied, `attributes.filter` overrides this value, including when empty. If the\nresulting filter is empty, it defaults to `*`. Scope, view, and pagination still apply.",
             "type": "string"
           },
           "type": {
@@ -126283,6 +126893,11 @@
       "RecommendationsFilterRequestDataAttributes": {
         "description": "Attributes used to filter and sort cost recommendations.",
         "properties": {
+          "filter": {
+            "description": "Filter expression applied to the recommendations. When supplied, this attribute overrides\n`data.id`, including when empty. When omitted, `data.id` is used. If the resulting filter\nis empty, it defaults to `*`. Scope, view, and pagination still apply.",
+            "example": "@resource_table:aws_ec2_instance",
+            "type": "string"
+          },
           "scope": {
             "$ref": "#/components/schemas/RecommendationsFilterRequestScope"
           },
@@ -126330,7 +126945,7 @@
         "description": "A single sort clause applied to the cost recommendations result set.",
         "properties": {
           "expression": {
-            "description": "Field to sort by (for example, `potential_daily_savings.amount`).",
+            "description": "Field to sort by (for example, `@potential_daily_savings`).",
             "type": "string"
           },
           "order": {
@@ -150334,7 +150949,7 @@
         "type": "object"
       },
       "SeverityModifierRuleDataCreate": {
-        "description": "The data object for a severity modifier rule create or update request.",
+        "description": "The data object for a severity modifier rule create request.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/SeverityModifierRuleAttributesCreate"
@@ -150357,6 +150972,29 @@
           },
           "id": {
             "description": "The ID of the severity modifier rule.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SeverityModifierRuleType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "SeverityModifierRuleDataUpdate": {
+        "description": "The data object for a severity modifier rule update request. The `id` must match the `rule_id` path parameter.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/SeverityModifierRuleAttributesCreate"
+          },
+          "id": {
+            "description": "The ID of the severity modifier rule to update.",
             "example": "00000000-0000-0000-0000-000000000000",
             "format": "uuid",
             "type": "string"
@@ -150515,7 +151153,7 @@
         "description": "The body of a severity modifier rule update request.",
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/SeverityModifierRuleDataCreate"
+            "$ref": "#/components/schemas/SeverityModifierRuleDataUpdate"
           }
         },
         "required": [
@@ -162639,7 +163277,7 @@
         ]
       },
       "TableRowResourceArray": {
-        "description": "List of rows from a reference table query.",
+        "description": "List of rows from a reference table query, along with metadata about rows that were requested but not found.",
         "properties": {
           "data": {
             "description": "The rows.",
@@ -162647,10 +163285,47 @@
               "$ref": "#/components/schemas/TableRowResourceData"
             },
             "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/TableRowResourceArrayMeta"
           }
         },
         "required": [
           "data"
+        ],
+        "type": "object"
+      },
+      "TableRowResourceArrayMeta": {
+        "description": "Metadata about the rows requested, including which ones were not found.",
+        "properties": {
+          "found_count": {
+            "description": "Number of requested rows that were found and returned in `data`.",
+            "example": 1,
+            "format": "int64",
+            "type": "integer"
+          },
+          "not_found": {
+            "description": "Row IDs from the request that do not exist in the reference table. Empty when every requested row was found.",
+            "example": [
+              "row_id_2"
+            ],
+            "items": {
+              "description": "Row identifier, corresponding to the primary key value.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "requested_count": {
+            "description": "Number of row IDs supplied in the `row_id` query parameter.",
+            "example": 2,
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "requested_count",
+          "found_count",
+          "not_found"
         ],
         "type": "object"
       },
@@ -168061,7 +168736,7 @@
         "type": "object"
       },
       "TicketCreationRuleDataCreate": {
-        "description": "The data object for a ticket creation rule create or update request.",
+        "description": "The data object for a ticket creation rule create request.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/TicketCreationRuleAttributesCreate"
@@ -168084,6 +168759,29 @@
           },
           "id": {
             "description": "The ID of the ticket creation rule.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TicketCreationRuleType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "TicketCreationRuleDataUpdate": {
+        "description": "The data object for a ticket creation rule update request. The `id` must match the `rule_id` path parameter.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/TicketCreationRuleAttributesCreate"
+          },
+          "id": {
+            "description": "The ID of the ticket creation rule to update.",
             "example": "00000000-0000-0000-0000-000000000000",
             "format": "uuid",
             "type": "string"
@@ -168126,7 +168824,19 @@
         "type": "object"
       },
       "TicketCreationRuleReorderRequest": {
-        "description": "The body of the ticket creation rule reorder request.",
+        "description": "The body of a ticket creation rule reorder request.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TicketCreationRuleReorderData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "TicketCreationRuleReorderResponse": {
+        "description": "The response of a ticket creation rule reorder request.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/TicketCreationRuleReorderData"
@@ -168164,7 +168874,7 @@
         "description": "The body of a ticket creation rule update request.",
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/TicketCreationRuleDataCreate"
+            "$ref": "#/components/schemas/TicketCreationRuleDataUpdate"
           }
         },
         "required": [
@@ -204286,7 +204996,7 @@
                         "scope": "ccm",
                         "sort": [
                           {
-                            "expression": "potential_daily_savings.amount",
+                            "expression": "@potential_daily_savings",
                             "order": "DESC"
                           }
                         ]
@@ -211305,6 +212015,7 @@
                           "org_id": 123,
                           "product": "logs",
                           "query": "service:xyz host:abc",
+                          "source": "standard",
                           "starting_at": "2024-01-01T02:00:00.000000Z",
                           "status": "pending",
                           "to_time": 1704063600000,
@@ -211457,6 +212168,7 @@
                             "org_id": 123,
                             "product": "logs",
                             "query": "service:xyz host:abc",
+                            "source": "standard",
                             "starting_at": "2024-01-01T02:00:00.000000Z",
                             "status": "pending",
                             "to_time": 1704063600000,
@@ -211548,6 +212260,7 @@
                           "org_id": 123,
                           "product": "logs",
                           "query": "service:xyz host:abc",
+                          "source": "standard",
                           "starting_at": "2024-01-01T02:00:00.000000Z",
                           "status": "canceled",
                           "to_time": 1704063600000,
@@ -254093,6 +254806,222 @@
         }
       }
     },
+    "/api/v2/logs/archive_searches": {
+      "post": {
+        "description": "Start a search over the logs stored in an archive.\n\nWithout a `rehydration` object, the search only scans the archive and reports how much data\nmatched. With one, the matched logs are also indexed into a retained historical view, which\nrequires the `logs_write_historical_view` permission.",
+        "operationId": "CreateArchiveSearch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveSearchCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "archive_id": "mhmyYmyLTOaFYKvhNadu1w",
+                          "bytes_scanned": 0,
+                          "created_at": "2026-01-02T12:00:00Z",
+                          "description": "Investigating the checkout latency spike.",
+                          "events_scanned": 0,
+                          "expected_duration": 120,
+                          "from": "2026-01-01T00:00:00Z",
+                          "name": "checkout-latency-investigation",
+                          "query": "service:checkout status:error",
+                          "status": "RUNNING",
+                          "to": "2026-01-02T00:00:00Z"
+                        },
+                        "id": "nv2eu4srgyzdkulggjzg2zkmmzifa2rum5iq",
+                        "type": "archive_search"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveSearchResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
+          }
+        ],
+        "summary": "Create an Archive Search",
+        "tags": [
+          "Logs Archive Searches"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "logs_write_historical_view",
+            "logs_write_archive_search"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/logs/archive_searches/{archive_search_id}": {
+      "get": {
+        "description": "Get a single Archive Search, including its status and the amount of archive data scanned when the search finishes.",
+        "operationId": "GetArchiveSearch",
+        "parameters": [
+          {
+            "description": "Unique identifier of the Archive Search.",
+            "example": "nv2eu4srgyzdkulggjzg2zkmmzifa2rum5iq",
+            "in": "path",
+            "name": "archive_search_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "archive_id": "mhmyYmyLTOaFYKvhNadu1w",
+                          "bytes_scanned": 402764439,
+                          "completed_at": "2026-01-02T12:30:00Z",
+                          "created_at": "2026-01-02T12:00:00Z",
+                          "description": "Investigating the checkout latency spike.",
+                          "events_scanned": 1500,
+                          "from": "2026-01-01T00:00:00Z",
+                          "name": "checkout-latency-investigation",
+                          "query": "service:checkout status:error",
+                          "rehydration": {
+                            "max_rehydrated_events": 1000000,
+                            "retention_days": 15,
+                            "tier": "standard"
+                          },
+                          "status": "COMPLETED",
+                          "to": "2026-01-02T00:00:00Z"
+                        },
+                        "id": "nv2eu4srgyzdkulggjzg2zkmmzifa2rum5iq",
+                        "type": "archive_search"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveSearchResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
+          }
+        ],
+        "summary": "Get an Archive Search",
+        "tags": [
+          "Logs Archive Searches"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "logs_read_data"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
     "/api/v2/logs/config/archive-order": {
       "get": {
         "description": "Get the current order of your archives.\nThis endpoint takes no JSON arguments.",
@@ -277937,7 +278866,14 @@
                           "id": "row_id_1",
                           "type": "row"
                         }
-                      ]
+                      ],
+                      "meta": {
+                        "found_count": 1,
+                        "not_found": [
+                          "row_id_2"
+                        ],
+                        "requested_count": 2
+                      }
                     }
                   }
                 },
@@ -286278,7 +287214,7 @@
                           "description": "Tracks users completing the checkout flow.",
                           "display_name": "Checkout completed",
                           "feature_ids": [
-                            "feature-123"
+                            "journey-123"
                           ],
                           "journey_rum": {
                             "rum_steps": [
@@ -286390,7 +287326,7 @@
                           "description": "Tracks users completing the checkout flow.",
                           "display_name": "Checkout completed",
                           "feature_ids": [
-                            "feature-123"
+                            "journey-123"
                           ],
                           "journey_rum": {
                             "rum_steps": [
@@ -286468,7 +287404,7 @@
     },
     "/api/v2/rum/operations/search": {
       "get": {
-        "description": "Search RUM operations for your organization. Supports filtering by query, creator, team, feature, and application.",
+        "description": "Search RUM operations for your organization. Supports filtering by query, creator, team,\njourney, and application.",
         "operationId": "ListRUMOperations",
         "parameters": [
           {
@@ -286527,7 +287463,7 @@
             }
           },
           {
-            "description": "Filter operations by feature ID. Accepts a comma-separated list of feature IDs.",
+            "description": "Filter operations by journey ID. Accepts a comma-separated list of journey IDs.",
             "in": "query",
             "name": "feature_id",
             "required": false,
@@ -286569,7 +287505,7 @@
                             "description": "Tracks users completing the checkout flow.",
                             "display_name": "Checkout completed",
                             "feature_ids": [
-                              "feature-123"
+                              "journey-123"
                             ],
                             "journey_rum": {
                               "rum_steps": [
@@ -286650,11 +287586,11 @@
     },
     "/api/v2/rum/operations/strong_links": {
       "get": {
-        "description": "List strong links between RUM operations and features. A strong link confirms that a feature\nbelongs to an operation. Provide `operation_id`, `feature_id`, or both to filter results;\nat least one is required.",
+        "description": "List links between RUM operations and journeys. A link confirms that a journey\nbelongs to an operation. Provide `operation_id`, `feature_id` (journey ID), or both to filter results;\nat least one is required.",
         "operationId": "ListRUMOperationStrongLinks",
         "parameters": [
           {
-            "description": "Filter strong links by RUM operation ID.",
+            "description": "Filter links by RUM operation ID.",
             "in": "query",
             "name": "operation_id",
             "required": false,
@@ -286663,7 +287599,7 @@
             }
           },
           {
-            "description": "Filter strong links by feature ID.",
+            "description": "Filter links by journey (feature) ID.",
             "in": "query",
             "name": "feature_id",
             "required": false,
@@ -286708,8 +287644,8 @@
                         {
                           "attributes": {
                             "created_at": "2024-01-15T10:30:00Z",
-                            "description": "Confirmed link between checkout_completed and feature-123.",
-                            "feature_id": "feature-123",
+                            "description": "Confirmed link between checkout_completed and journey-123.",
+                            "feature_id": "journey-123",
                             "operation_id": "abc12345-1234-5678-abcd-ef1234567890",
                             "status": "CONFIRMED",
                             "tags": [
@@ -286717,7 +287653,7 @@
                             ],
                             "updated_at": null
                           },
-                          "id": "abc12345-1234-5678-abcd-ef1234567890:feature-123",
+                          "id": "abc12345-1234-5678-abcd-ef1234567890:journey-123",
                           "type": "strong_links"
                         }
                       ],
@@ -286750,13 +287686,13 @@
             "$ref": "#/components/responses/TooManyRequestsResponse"
           }
         },
-        "summary": "List RUM operation strong links",
+        "summary": "List RUM operation links",
         "tags": [
           "RUM Operations"
         ]
       },
       "post": {
-        "description": "Create a strong link between a RUM operation and a feature, confirming that the feature\nbelongs to the operation. The operation can be identified by `operation_id` or `operation_name`;\nif `operation_name` does not match an existing operation, a stub operation is created.",
+        "description": "Create a link between a RUM operation and a journey, confirming that the journey\nbelongs to the operation. The operation can be identified by `operation_id` or `operation_name`;\nif `operation_name` does not match an existing operation, a stub operation is created.",
         "operationId": "CreateRUMOperationStrongLink",
         "requestBody": {
           "content": {
@@ -286778,8 +287714,8 @@
                       "data": {
                         "attributes": {
                           "created_at": "2024-01-15T10:30:00Z",
-                          "description": "Confirmed link between checkout_completed and feature-123.",
-                          "feature_id": "feature-123",
+                          "description": "Confirmed link between checkout_completed and journey-123.",
+                          "feature_id": "journey-123",
                           "operation_id": "abc12345-1234-5678-abcd-ef1234567890",
                           "status": "CONFIRMED",
                           "tags": [
@@ -286787,7 +287723,7 @@
                           ],
                           "updated_at": null
                         },
-                        "id": "abc12345-1234-5678-abcd-ef1234567890:feature-123",
+                        "id": "abc12345-1234-5678-abcd-ef1234567890:journey-123",
                         "type": "strong_links"
                       }
                     }
@@ -286828,13 +287764,13 @@
                 }
               }
             },
-            "description": "Conflict. A strong link between this operation and feature already exists."
+            "description": "Conflict. A link between this operation and journey already exists."
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequestsResponse"
           }
         },
-        "summary": "Create a RUM operation strong link",
+        "summary": "Create a RUM operation link",
         "tags": [
           "RUM Operations"
         ],
@@ -286843,7 +287779,7 @@
     },
     "/api/v2/rum/operations/strong_links/{rum_operation_id}/{feature_id}": {
       "delete": {
-        "description": "Delete the strong link between a RUM operation and a feature.",
+        "description": "Delete the link between a RUM operation and a journey.",
         "operationId": "DeleteRUMOperationStrongLink",
         "parameters": [
           {
@@ -286856,7 +287792,7 @@
             }
           },
           {
-            "description": "The unique identifier of the feature.",
+            "description": "The unique identifier of the journey.",
             "in": "path",
             "name": "feature_id",
             "required": true,
@@ -286883,14 +287819,14 @@
             "$ref": "#/components/responses/TooManyRequestsResponse"
           }
         },
-        "summary": "Delete a RUM operation strong link",
+        "summary": "Delete a RUM operation link",
         "tags": [
           "RUM Operations"
         ],
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "put": {
-        "description": "Update the status of a strong link between a RUM operation and a feature.",
+        "description": "Update the status of a link between a RUM operation and a journey.",
         "operationId": "UpdateRUMOperationStrongLink",
         "parameters": [
           {
@@ -286903,7 +287839,7 @@
             }
           },
           {
-            "description": "The unique identifier of the feature.",
+            "description": "The unique identifier of the journey.",
             "in": "path",
             "name": "feature_id",
             "required": true,
@@ -286932,8 +287868,8 @@
                       "data": {
                         "attributes": {
                           "created_at": "2024-01-15T10:30:00Z",
-                          "description": "Confirmed link between checkout_completed and feature-123.",
-                          "feature_id": "feature-123",
+                          "description": "Confirmed link between checkout_completed and journey-123.",
+                          "feature_id": "journey-123",
                           "operation_id": "abc12345-1234-5678-abcd-ef1234567890",
                           "status": "CONFIRMED",
                           "tags": [
@@ -286941,7 +287877,7 @@
                           ],
                           "updated_at": "2024-01-16T09:00:00Z"
                         },
-                        "id": "abc12345-1234-5678-abcd-ef1234567890:feature-123",
+                        "id": "abc12345-1234-5678-abcd-ef1234567890:journey-123",
                         "type": "strong_links"
                       }
                     }
@@ -286978,7 +287914,7 @@
             "$ref": "#/components/responses/TooManyRequestsResponse"
           }
         },
-        "summary": "Update a RUM operation strong link",
+        "summary": "Update a RUM operation link",
         "tags": [
           "RUM Operations"
         ],
@@ -287059,7 +287995,7 @@
                           "description": "Tracks users completing the checkout flow.",
                           "display_name": "Checkout completed",
                           "feature_ids": [
-                            "feature-123"
+                            "journey-123"
                           ],
                           "journey_rum": {
                             "rum_steps": [
@@ -287169,7 +288105,7 @@
                           "description": "Tracks users completing the checkout flow.",
                           "display_name": "Checkout completed",
                           "feature_ids": [
-                            "feature-123"
+                            "journey-123"
                           ],
                           "journey_rum": {
                             "rum_steps": [
@@ -292499,7 +293435,7 @@
                   }
                 },
                 "schema": {
-                  "$ref": "#/components/schemas/DueDateRuleReorderRequest"
+                  "$ref": "#/components/schemas/DueDateRuleReorderResponse"
                 }
               }
             },
@@ -292760,6 +293696,7 @@
                           "query": "env:prod"
                         }
                       },
+                      "id": "00000000-0000-0000-0000-000000000000",
                       "type": "due_date_rules"
                     }
                   }
@@ -293840,7 +294777,7 @@
                   }
                 },
                 "schema": {
-                  "$ref": "#/components/schemas/MuteRuleReorderRequest"
+                  "$ref": "#/components/schemas/MuteRuleReorderResponse"
                 }
               }
             },
@@ -294079,6 +295016,7 @@
                           "query": "env:dev"
                         }
                       },
+                      "id": "00000000-0000-0000-0000-000000000000",
                       "type": "mute_rules"
                     }
                   }
@@ -294759,6 +295697,7 @@
                           "query": "env:dev"
                         }
                       },
+                      "id": "00000000-0000-0000-0000-000000000000",
                       "type": "severity_modifier_rules"
                     }
                   }
@@ -295177,7 +296116,7 @@
                   }
                 },
                 "schema": {
-                  "$ref": "#/components/schemas/TicketCreationRuleReorderRequest"
+                  "$ref": "#/components/schemas/TicketCreationRuleReorderResponse"
                 }
               }
             },
@@ -295418,6 +296357,7 @@
                           "query": "env:prod"
                         }
                       },
+                      "id": "00000000-0000-0000-0000-000000000000",
                       "type": "ticket_creation_rules"
                     }
                   }
@@ -334364,6 +335304,10 @@
       "name": "Logs"
     },
     {
+      "description": "Search the logs stored in a Logs Archive without reindexing them, and optionally rehydrate\nthe matches into a retained historical view.\n\nSee the [Rehydrating from Archives](https://app.datadoghq.com/logs/pipelines/historical-views)\npage for the searches currently running in Datadog.",
+      "name": "Logs Archive Searches"
+    },
+    {
       "description": "Archives forward all the logs ingested to a cloud storage system.\n\nSee the [Archives Page](https://app.datadoghq.com/logs/pipelines/archives)\nfor a list of the archives currently configured in Datadog.",
       "externalDocs": {
         "description": "Find out more at",
@@ -334517,7 +335461,7 @@
       "name": "RUM Insights"
     },
     {
-      "description": "Manage [RUM Operations](https://docs.datadoghq.com/real_user_monitoring/), business\ntransactions detected from RUM events through a configurable journey, and their strong links\nto features. See the [RUM & Session Replay page](https://docs.datadoghq.com/real_user_monitoring/)\nfor more information.",
+      "description": "Manage [RUM Operations](https://docs.datadoghq.com/real_user_monitoring/), business\ntransactions detected from RUM events through a configurable journey, and their links\nto journeys. See the [RUM & Session Replay page](https://docs.datadoghq.com/real_user_monitoring/)\nfor more information.",
       "name": "RUM Operations"
     },
     {
