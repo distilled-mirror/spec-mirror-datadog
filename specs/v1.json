@@ -1981,6 +1981,9 @@
             "nullable": true,
             "type": "string"
           },
+          "experience_type": {
+            "$ref": "#/components/schemas/DashboardExperienceType"
+          },
           "id": {
             "description": "ID of the dashboard.",
             "example": "123-abc-456",
@@ -2168,6 +2171,20 @@
           }
         },
         "type": "object"
+      },
+      "DashboardExperienceType": {
+        "description": "The experience type of the dashboard.",
+        "enum": [
+          "default",
+          "product_analytics"
+        ],
+        "example": "default",
+        "readOnly": true,
+        "type": "string",
+        "x-enum-varnames": [
+          "DEFAULT",
+          "PRODUCT_ANALYTICS"
+        ]
       },
       "DashboardFixedTimeframe": {
         "description": "A fixed dashboard timeframe.",
