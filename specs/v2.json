@@ -88661,6 +88661,11 @@
             "format": "date-time",
             "type": "string"
           },
+          "debug_id": {
+            "description": "The debug identifier (UUID format) that uniquely identifies this\nJavaScript source map. Returned for source maps indexed by debug ID.",
+            "example": "00000000-0000-4000-8000-000000000001",
+            "type": "string"
+          },
           "domain": {
             "description": "The domain associated with the source map.",
             "example": "example.com",
@@ -163965,6 +163970,17 @@
           "IL2CPP"
         ]
       },
+      "SourcemapSearchBy": {
+        "description": "The search mode for listing JavaScript source maps.",
+        "enum": [
+          "debug_id"
+        ],
+        "example": "debug_id",
+        "type": "string",
+        "x-enum-varnames": [
+          "DEBUG_ID"
+        ]
+      },
       "SourcemapsData": {
         "description": "List of source map data objects.",
         "items": {
@@ -163992,8 +164008,12 @@
             "example": false,
             "type": "boolean"
           },
+          "next_cursor": {
+            "description": "Cursor for the next page of a JavaScript cursor-based listing. Pass\nthis value as `page[after]` with the same search mode and filters.\nOnly returned when another page is available.",
+            "type": "string"
+          },
           "total_filtered_count": {
-            "description": "Total number of source maps matching the filter criteria.",
+            "description": "Total number of matching source maps for legacy page-number pagination.\nCursor-based listings do not compute a total; this field may be zero\neven when records are returned. Use `has_more_results` to continue.",
             "example": 100,
             "format": "int64",
             "type": "integer"
@@ -330414,9 +330434,19 @@
     },
     "/api/v2/sourcemaps/list": {
       "get": {
-        "description": "Retrieves a paginated list of source maps matching the specified filter criteria.",
+        "description": "Retrieves a paginated list of source maps. Send filters as query parameters,\nnot in a JSON request body. `mapkind` defaults to `js`.\n\nFor JavaScript source maps, choose one of the three request shapes below.\n\n**Examples:** the following commands use the US1 API host. Replace the host with\nthe API host for your site, and the service, version, debug ID, and cursor with\nvalues from your organization. Use `--get` so curl sends the filters in the query\nstring; `-X GET` with `--data-urlencode` sends them in the request body instead.\n\n**1. List by service and version**\n\nProvide both `filter[service]` and `filter[version]` to search source maps\nindexed by service and version. Omit `search_by`.\n\n**Pagination:** prefer cursor pagination. Omit `page[after]` and `page[number]`\non the first request. To get the next page, pass `meta.page.next_cursor` as\n`page[after]`, keeping the same filters. Continue until\n`meta.page.has_more_results` is `false`. Do not decode or modify the cursor.\nLegacy page-number pagination is also supported, starting at `page[number]=1`.\n\n```bash\ncurl -sS --get \"https://api.datadoghq.com/api/v2/sourcemaps/list\" \\\n  -H \"Accept: application/json\" \\\n  -H \"Authorization: Bearer ${DD_BEARER_TOKEN}\" \\\n  --data-urlencode \"mapkind=js\" \\\n  --data-urlencode \"filter[service]=my-web-service\" \\\n  --data-urlencode \"filter[version]=1.0.0\" \\\n  --data-urlencode \"page[size]=10\"\n```\n\n**2. Find a specific JavaScript debug ID**\n\nProvide `filter[debug_id]` with a UUID. Service and version filters are not\nrequired. Omit `search_by`.\n\n**Pagination:** the lookup returns at most one result, so no pagination is\nneeded. `page[after]` is not supported.\n\n```bash\ncurl -sS --get \"https://api.datadoghq.com/api/v2/sourcemaps/list\" \\\n  -H \"Accept: application/json\" \\\n  -H \"Authorization: Bearer ${DD_BEARER_TOKEN}\" \\\n  --data-urlencode \"mapkind=js\" \\\n  --data-urlencode \"filter[debug_id]=00000000-0000-4000-8000-000000000001\"\n```\n\n**3. Browse source maps indexed by debug ID**\n\nSet `search_by=debug_id` without specifying a debug ID. Do not send service,\nversion, or filename filters in this mode.\n\n**Pagination:** this mode requires cursor pagination; `page[number]` is not\nsupported. Omit `page[after]` on the first request. To get the next page, pass\n`meta.page.next_cursor` as `page[after]`, keeping the same search mode and\nfilters. Continue until `meta.page.has_more_results` is `false`. Do not decode\nor modify the cursor.\n\nFirst page:\n\n```bash\ncurl -sS --get \"https://api.datadoghq.com/api/v2/sourcemaps/list\" \\\n  -H \"Accept: application/json\" \\\n  -H \"Authorization: Bearer ${DD_BEARER_TOKEN}\" \\\n  --data-urlencode \"mapkind=js\" \\\n  --data-urlencode \"search_by=debug_id\" \\\n  --data-urlencode \"page[size]=10\"\n```\n\nNext page:\n\n```bash\ncurl -sS --get \"https://api.datadoghq.com/api/v2/sourcemaps/list\" \\\n  -H \"Accept: application/json\" \\\n  -H \"Authorization: Bearer ${DD_BEARER_TOKEN}\" \\\n  --data-urlencode \"mapkind=js\" \\\n  --data-urlencode \"search_by=debug_id\" \\\n  --data-urlencode \"page[size]=10\" \\\n  --data-urlencode \"page[after]=<meta.page.next_cursor>\"\n```\n\nFor other map kinds, use `page[number]`, starting at 1.",
         "operationId": "ListSourcemaps",
         "parameters": [
+          {
+            "description": "Set to `debug_id` to browse JavaScript source maps indexed by debug ID.\nOnly supported for `mapkind=js`. Omit for service/version searches or a\nspecific `filter[debug_id]` lookup. In debug-ID browse mode, service,\nversion, and filename filters are not supported.",
+            "example": "debug_id",
+            "in": "query",
+            "name": "search_by",
+            "schema": {
+              "$ref": "#/components/schemas/SourcemapSearchBy"
+            },
+            "x-docs-curl-required": true
+          },
           {
             "description": "The type of source map. Defaults to `js`.",
             "in": "query",
@@ -330426,29 +330456,38 @@
             }
           },
           {
-            "description": "The number of results to return per page. Must be at least 1.",
+            "description": "Cursor for the next page of a JavaScript listing. Use the value from\n`meta.page.next_cursor` and keep the same search mode and filters.\nOmit on the first request. Not supported for other map kinds or for\na specific `filter[debug_id]` lookup without `search_by=debug_id`.",
+            "in": "query",
+            "name": "page[after]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The number of results per page. Defaults to 100. Must be at least 1; values above 1000 are capped at 1000.",
             "in": "query",
             "name": "page[size]",
             "schema": {
-              "default": 20,
-              "example": 20,
+              "default": 100,
+              "example": 10,
               "format": "int64",
+              "minimum": 1,
               "type": "integer"
             }
           },
           {
-            "description": "The page number to retrieve, starting from 1.",
+            "description": "Legacy page number, starting from 1. Prefer `page[after]` for JavaScript\nlistings. Not supported with `search_by=debug_id`. Other map kinds\ndefault to page 1 when pagination parameters are omitted.",
             "in": "query",
             "name": "page[number]",
             "schema": {
-              "default": 1,
               "example": 1,
               "format": "int64",
+              "minimum": 1,
               "type": "integer"
             }
           },
           {
-            "description": "Filter by service names (multiple values allowed). Required for\n`js`, `jvm`, `react`, and `flutter` map kinds.",
+            "description": "Filter by service names (multiple values allowed). Required for\n`jvm`, `react`, and `flutter` map kinds. Also required for `js` unless\nsearching by `filter[debug_id]` or browsing with `search_by=debug_id`.",
             "explode": true,
             "in": "query",
             "name": "filter[service]",
@@ -330464,7 +330503,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by version values (multiple values allowed). Required for\n`js`, `jvm`, `react`, and `flutter` map kinds.",
+            "description": "Filter by version values (multiple values allowed). Required for\n`jvm`, `react`, and `flutter` map kinds. Also required for `js` unless\nsearching by `filter[debug_id]` or browsing with `search_by=debug_id`.",
             "explode": true,
             "in": "query",
             "name": "filter[version]",
@@ -330631,10 +330670,11 @@
             }
           },
           {
-            "description": "Filter by debug ID (single value). Supported for `react`.",
+            "description": "Filter by a single debug ID in UUID format. Supported for `js` and `react`.\nFor `js`, the lookup returns at most one result and does not require\nservice/version filters. For `react`, service/version filters remain required.",
             "in": "query",
             "name": "filter[debug_id]",
             "schema": {
+              "format": "uuid",
               "type": "string"
             }
           },
@@ -330668,6 +330708,30 @@
             "content": {
               "application/json": {
                 "examples": {
+                  "debug_id_listing": {
+                    "summary": "Browse JavaScript source maps by debug ID",
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "created_at": "2024-01-01T00:00:00Z",
+                            "debug_id": "00000000-0000-4000-8000-000000000001",
+                            "mapkind": "js",
+                            "size": 1024
+                          },
+                          "id": "7",
+                          "type": "sourcemaps"
+                        }
+                      ],
+                      "meta": {
+                        "page": {
+                          "has_more_results": true,
+                          "next_cursor": "opaque-debug-id-cursor",
+                          "total_filtered_count": 0
+                        }
+                      }
+                    }
+                  },
                   "default": {
                     "value": {
                       "data": [
@@ -353190,7 +353254,11 @@
       "name": "Logs"
     },
     {
-      "description": "Search the logs stored in a Logs Archive without reindexing them, and optionally rehydrate\nthe matches into a retained historical view.\n\nSee the [Rehydrating from Archives](https://app.datadoghq.com/logs/pipelines/historical-views)\npage for the searches currently running in Datadog.",
+      "description": "Archive Search queries logs directly from long-term storage archives without prior\nrehydration and charges only for the data scanned.\n\nA search runs in one of two modes. By default, it scans the archive and retains up to\n100,000 matching logs for 24 hours on a dedicated results page. Include a `rehydration`\nobject to run a Search & Rehydration instead, which retains the matches for a longer\ncustom retention period and makes them available beyond Log Explorer, such as in Dashboards and Notebooks.\n\nA search requires the `logs_write_historical_view` or `logs_write_archive_search`\npermission. Rehydration requires `logs_write_historical_view`.",
+      "externalDocs": {
+        "description": "Find out more at",
+        "url": "https://docs.datadoghq.com/logs/explorer/archive_search/"
+      },
       "name": "Logs Archive Searches"
     },
     {
