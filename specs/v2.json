@@ -345,7 +345,7 @@
         }
       },
       "CaseCustomAttributeIDPathParameter": {
-        "description": "Case Custom attribute's UUID",
+        "description": "Work item custom attribute's UUID.",
         "example": "f98a5a5b-e0ff-45d4-b2f5-afe6e74de505",
         "in": "path",
         "name": "custom_attribute_id",
@@ -355,7 +355,7 @@
         }
       },
       "CaseCustomAttributeKeyPathParameter": {
-        "description": "Case Custom attribute's key",
+        "description": "Work item custom attribute's key.",
         "example": "aws_region",
         "in": "path",
         "name": "custom_attribute_key",
@@ -365,7 +365,7 @@
         }
       },
       "CaseIDPathParameter": {
-        "description": "Case's UUID or key",
+        "description": "Work item's UUID or key",
         "example": "f98a5a5b-e0ff-45d4-b2f5-afe6e74de504",
         "in": "path",
         "name": "case_id",
@@ -384,7 +384,7 @@
         }
       },
       "CaseTypeIDPathParameter": {
-        "description": "The UUID of the case type.",
+        "description": "The UUID of the work item type.",
         "example": "f98a5a5b-e0ff-45d4-b2f5-afe6e74de505",
         "in": "path",
         "name": "case_type_id",
@@ -1386,7 +1386,7 @@
         }
       },
       "LinkIDPathParameter": {
-        "description": "The UUID of the case link.",
+        "description": "The UUID of the work item link.",
         "in": "path",
         "name": "link_id",
         "required": true,
@@ -2721,7 +2721,7 @@
         }
       },
       "ViewIDPathParameter": {
-        "description": "The UUID of the case view.",
+        "description": "The UUID of the work item view.",
         "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
         "in": "path",
         "name": "view_id",
@@ -16071,7 +16071,7 @@
         ]
       },
       "AutoCloseInactiveCases": {
-        "description": "Auto-close inactive cases settings.",
+        "description": "Auto-close inactive work items settings.",
         "properties": {
           "enabled": {
             "description": "Whether auto-close is enabled.",
@@ -16086,17 +16086,17 @@
         "type": "object"
       },
       "AutoTransitionAssignedCases": {
-        "description": "Auto-transition assigned cases settings.",
+        "description": "Auto-transition assigned work items settings.",
         "properties": {
           "auto_transition_assigned_cases_on_self_assigned": {
-            "description": "Whether to auto-transition cases when self-assigned.",
+            "description": "Whether to auto-transition work items when self-assigned.",
             "type": "boolean"
           }
         },
         "type": "object"
       },
       "AutomationRule": {
-        "description": "An automation rule that executes an action (such as running a Datadog workflow or assigning an AI agent) when a specified case event occurs within a project.",
+        "description": "An automation rule that executes an action (such as running a Datadog workflow or assigning an AI agent) when a specified work item event occurs within a project.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/AutomationRuleAttributes"
@@ -16144,7 +16144,7 @@
             "type": "string"
           },
           "assigned_agent_id": {
-            "description": "The identifier of the AI agent to assign to the case. Required when the action type is `ASSIGN_AGENT`.",
+            "description": "The identifier of the AI agent to assign to the work item. Required when the action type is `ASSIGN_AGENT`.",
             "type": "string"
           },
           "handle": {
@@ -16156,7 +16156,7 @@
         "type": "object"
       },
       "AutomationRuleActionType": {
-        "description": "The type of automated action to perform when the rule triggers. `EXECUTE_WORKFLOW` runs a Datadog workflow; `ASSIGN_AGENT` assigns an AI agent to the case.",
+        "description": "The type of automated action to perform when the rule triggers. `EXECUTE_WORKFLOW` runs a Datadog workflow; `ASSIGN_AGENT` assigns an AI agent to the work item.",
         "enum": [
           "EXECUTE_WORKFLOW",
           "ASSIGN_AGENT"
@@ -16365,7 +16365,7 @@
         "type": "object"
       },
       "AutomationRuleTrigger": {
-        "description": "Defines when the rule activates. Combines a trigger type (the case event to listen for) with optional trigger data (conditions that narrow when the trigger fires).",
+        "description": "Defines when the rule activates. Combines a trigger type (the work item event to listen for) with optional trigger data (conditions that narrow when the trigger fires).",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/AutomationRuleTriggerData"
@@ -16391,7 +16391,7 @@
             "type": "string"
           },
           "field": {
-            "description": "The case attribute field name to monitor for changes. Used with `ATTRIBUTE_VALUE_CHANGED` triggers.",
+            "description": "The work item attribute field name to monitor for changes. Used with `ATTRIBUTE_VALUE_CHANGED` triggers.",
             "type": "string"
           },
           "from_status_name": {
@@ -16406,7 +16406,7 @@
         "type": "object"
       },
       "AutomationRuleTriggerType": {
-        "description": "The case event that activates the automation rule.",
+        "description": "The work item event that activates the automation rule.",
         "enum": [
           "CASE_CREATED",
           "STATUS_TRANSITIONED",
@@ -21726,13 +21726,13 @@
         "type": "object"
       },
       "Case": {
-        "description": "A case",
+        "description": "A work item",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseAttributes"
           },
           "id": {
-            "description": "Case's identifier",
+            "description": "Work item's identifier",
             "example": "aeadc05e-98a8-11ec-ac2c-da7ad0900001",
             "type": "string"
           },
@@ -21752,7 +21752,7 @@
       },
       "Case3rdPartyTicketStatus": {
         "default": "IN_PROGRESS",
-        "description": "Case status",
+        "description": "Work item status",
         "enum": [
           "IN_PROGRESS",
           "COMPLETED",
@@ -21776,7 +21776,7 @@
             "type": "string"
           },
           "value": {
-            "description": "The count of cases in this group.",
+            "description": "The count of work items in this group.",
             "example": [
               42
             ],
@@ -21794,7 +21794,7 @@
         "type": "object"
       },
       "CaseAggregateGroupBy": {
-        "description": "Configuration for grouping aggregated results by one or more case fields.",
+        "description": "Configuration for grouping aggregated results by one or more work item fields.",
         "properties": {
           "groups": {
             "description": "Fields to group by.",
@@ -21821,7 +21821,7 @@
         "type": "object"
       },
       "CaseAggregateRequest": {
-        "description": "Request payload for aggregating case counts with grouping. Use this to get faceted breakdowns of cases (for example, count of cases grouped by priority and status).",
+        "description": "Request payload for aggregating work item counts with grouping. Use this to get faceted breakdowns of work items (for example, count of work items grouped by priority and status).",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseAggregateRequestData"
@@ -21839,7 +21839,7 @@
             "$ref": "#/components/schemas/CaseAggregateGroupBy"
           },
           "query_filter": {
-            "description": "A search query to filter which cases are included in the aggregation. Uses the same syntax as the Case Management search bar.",
+            "description": "A search query to filter which work items are included in the aggregation. Uses the same syntax as the Work Management search bar.",
             "example": "service:case-api",
             "type": "string"
           }
@@ -21867,7 +21867,7 @@
         "type": "object"
       },
       "CaseAggregateResourceType": {
-        "description": "JSON:API resource type for case aggregation requests.",
+        "description": "JSON:API resource type for work item aggregation requests.",
         "enum": [
           "aggregate"
         ],
@@ -21878,7 +21878,7 @@
         ]
       },
       "CaseAggregateResponse": {
-        "description": "Response containing aggregated case counts grouped by the requested fields.",
+        "description": "Response containing aggregated work item counts grouped by the requested fields.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseAggregateResponseData"
@@ -21900,7 +21900,7 @@
             "type": "array"
           },
           "total": {
-            "description": "Total count of aggregated cases.",
+            "description": "Total count of aggregated work items.",
             "example": 100,
             "format": "double",
             "type": "number"
@@ -21937,7 +21937,7 @@
         "type": "object"
       },
       "CaseAssign": {
-        "description": "Case assign",
+        "description": "Work item assign",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseAssignAttributes"
@@ -21953,7 +21953,7 @@
         "type": "object"
       },
       "CaseAssignAttributes": {
-        "description": "Case assign attributes",
+        "description": "Work item assign attributes",
         "properties": {
           "assignee_id": {
             "description": "Assignee's UUID",
@@ -21967,7 +21967,7 @@
         "type": "object"
       },
       "CaseAssignRequest": {
-        "description": "Case assign request",
+        "description": "Work item assign request",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseAssign"
@@ -21979,10 +21979,10 @@
         "type": "object"
       },
       "CaseAttributes": {
-        "description": "Case resource attributes",
+        "description": "Work item resource attributes",
         "properties": {
           "archived_at": {
-            "description": "Timestamp of when the case was archived",
+            "description": "Timestamp of when the work item was archived",
             "format": "date-time",
             "nullable": true,
             "readOnly": true,
@@ -21992,14 +21992,14 @@
             "$ref": "#/components/schemas/CaseObjectAttributes"
           },
           "closed_at": {
-            "description": "Timestamp of when the case was closed",
+            "description": "Timestamp of when the work item was closed",
             "format": "date-time",
             "nullable": true,
             "readOnly": true,
             "type": "string"
           },
           "created_at": {
-            "description": "Timestamp of when the case was created",
+            "description": "Timestamp of when the work item was created",
             "format": "date-time",
             "readOnly": true,
             "type": "string"
@@ -22008,7 +22008,7 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/CustomAttributeValue"
             },
-            "description": "Case custom attributes",
+            "description": "Work item custom attributes",
             "type": "object"
           },
           "description": {
@@ -22024,7 +22024,7 @@
             "type": "string"
           },
           "modified_at": {
-            "description": "Timestamp of when the case was last modified",
+            "description": "Timestamp of when the work item was last modified",
             "format": "date-time",
             "nullable": true,
             "readOnly": true,
@@ -22054,7 +22054,7 @@
             "$ref": "#/components/schemas/CaseType"
           },
           "type_id": {
-            "description": "Case type UUID",
+            "description": "Work item type UUID",
             "example": "3b010bde-09ce-4449-b745-71dd5f861963",
             "type": "string"
           }
@@ -22063,7 +22063,7 @@
       },
       "CaseAutomationRuleResourceType": {
         "default": "rule",
-        "description": "JSON:API resource type for case automation rules.",
+        "description": "JSON:API resource type for work item automation rules.",
         "enum": [
           "rule"
         ],
@@ -22074,7 +22074,7 @@
         ]
       },
       "CaseAutomationRuleState": {
-        "description": "Whether the automation rule is active. Enabled rules trigger on matching case events; disabled rules are inactive but preserve their configuration.",
+        "description": "Whether the automation rule is active. Enabled rules trigger on matching work item events; disabled rules are inactive but preserve their configuration.",
         "enum": [
           "ENABLED",
           "DISABLED"
@@ -22116,7 +22116,7 @@
         ]
       },
       "CaseBulkResourceType": {
-        "description": "JSON:API resource type for bulk case operations.",
+        "description": "JSON:API resource type for bulk work item operations.",
         "enum": [
           "bulk"
         ],
@@ -22127,7 +22127,7 @@
         ]
       },
       "CaseBulkUpdateRequest": {
-        "description": "Request payload for applying a single action (such as changing priority, status, or assignment) to multiple cases at once.",
+        "description": "Request payload for applying a single action (such as changing priority, status, or assignment) to multiple work items at once.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseBulkUpdateRequestData"
@@ -22139,10 +22139,10 @@
         "type": "object"
       },
       "CaseBulkUpdateRequestAttributes": {
-        "description": "Attributes for the bulk update, specifying which cases to update and the action to apply.",
+        "description": "Attributes for the bulk update, specifying which work items to update and the action to apply.",
         "properties": {
           "case_ids": {
-            "description": "An array of case identifiers to apply the bulk action to.",
+            "description": "An array of work item identifiers to apply the bulk action to.",
             "example": [
               "case-id-1",
               "case-id-2"
@@ -22189,7 +22189,7 @@
         "type": "object"
       },
       "CaseComment": {
-        "description": "Case comment",
+        "description": "Work item comment",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseCommentAttributes"
@@ -22205,7 +22205,7 @@
         "type": "object"
       },
       "CaseCommentAttributes": {
-        "description": "Case comment attributes",
+        "description": "Work item comment attributes",
         "properties": {
           "comment": {
             "description": "The `CaseCommentAttributes` `message`.",
@@ -22219,7 +22219,7 @@
         "type": "object"
       },
       "CaseCommentRequest": {
-        "description": "Case comment request",
+        "description": "Work item comment request",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseComment"
@@ -22231,7 +22231,7 @@
         "type": "object"
       },
       "CaseCountGroup": {
-        "description": "A facet group containing counts broken down by the distinct values of a case field (for example, status or priority).",
+        "description": "A facet group containing counts broken down by the distinct values of a work item field (for example, status or priority).",
         "properties": {
           "group": {
             "description": "The name of the field being grouped on (for example, `status` or `priority`).",
@@ -22253,10 +22253,10 @@
         "type": "object"
       },
       "CaseCountGroupValue": {
-        "description": "A single value within a count group, representing the number of cases with that specific field value.",
+        "description": "A single value within a count group, representing the number of work items with that specific field value.",
         "properties": {
           "count": {
-            "description": "Count of cases for this value.",
+            "description": "Count of work items for this value.",
             "example": 42,
             "format": "int64",
             "type": "integer"
@@ -22274,7 +22274,7 @@
         "type": "object"
       },
       "CaseCountResponse": {
-        "description": "Response containing the total number of cases matching a query, optionally grouped by specified fields.",
+        "description": "Response containing the total number of work items matching a query, optionally grouped by specified fields.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseCountResponseData"
@@ -22326,7 +22326,7 @@
         "type": "object"
       },
       "CaseCreate": {
-        "description": "Case creation data",
+        "description": "Work item creation data",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseCreateAttributes"
@@ -22345,13 +22345,13 @@
         "type": "object"
       },
       "CaseCreateAttributes": {
-        "description": "Case creation attributes",
+        "description": "Work item creation attributes",
         "properties": {
           "custom_attributes": {
             "additionalProperties": {
               "$ref": "#/components/schemas/CustomAttributeValue"
             },
-            "description": "Case custom attributes",
+            "description": "Work item custom attributes",
             "type": "object"
           },
           "description": {
@@ -22370,7 +22370,7 @@
             "type": "string"
           },
           "type_id": {
-            "description": "Case type UUID",
+            "description": "Work item type UUID",
             "example": "3b010bde-09ce-4449-b745-71dd5f861963",
             "type": "string"
           }
@@ -22382,7 +22382,7 @@
         "type": "object"
       },
       "CaseCreateRelationships": {
-        "description": "Relationships formed with the case on creation",
+        "description": "Relationships formed with the work item on creation",
         "properties": {
           "assignee": {
             "$ref": "#/components/schemas/NullableUserRelationship"
@@ -22397,7 +22397,7 @@
         "type": "object"
       },
       "CaseCreateRequest": {
-        "description": "Case create request",
+        "description": "Work item create request",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseCreate"
@@ -22421,7 +22421,7 @@
         ]
       },
       "CaseEmpty": {
-        "description": "Case empty request data",
+        "description": "Work item empty request data",
         "properties": {
           "type": {
             "$ref": "#/components/schemas/CaseResourceType"
@@ -22433,7 +22433,7 @@
         "type": "object"
       },
       "CaseEmptyRequest": {
-        "description": "Case empty request",
+        "description": "Work item empty request",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseEmpty"
@@ -22445,7 +22445,7 @@
         "type": "object"
       },
       "CaseInsight": {
-        "description": "A reference to an external Datadog resource that provides investigative context for a case, such as a security signal, monitor alert, error tracking issue, or incident.",
+        "description": "A reference to an external Datadog resource that provides investigative context for a work item, such as a security signal, monitor alert, error tracking issue, or incident.",
         "properties": {
           "ref": {
             "description": "The URL path or deep link to the insight resource within Datadog (for example, `/monitors/12345?q=total`).",
@@ -22469,7 +22469,7 @@
         "type": "object"
       },
       "CaseInsightType": {
-        "description": "The type of Datadog resource linked to the case as contextual evidence. Each type corresponds to a different Datadog product signal (for example, a security finding, a monitor alert, or an incident).",
+        "description": "The type of Datadog resource linked to the work item as contextual evidence. Each type corresponds to a different Datadog product signal (for example, a security finding, a monitor alert, or an incident).",
         "enum": [
           "SECURITY_SIGNAL",
           "MONITOR",
@@ -22510,10 +22510,10 @@
         ]
       },
       "CaseInsightsAttributes": {
-        "description": "Attributes for adding or removing insights from a case.",
+        "description": "Attributes for adding or removing insights from a work item.",
         "properties": {
           "insights": {
-            "description": "Array of insights to add to or remove from a case.",
+            "description": "Array of insights to add to or remove from a work item.",
             "items": {
               "$ref": "#/components/schemas/CaseInsight"
             },
@@ -22565,7 +22565,7 @@
         "type": "object"
       },
       "CaseInsightsRequest": {
-        "description": "Request payload for adding or removing case insights.",
+        "description": "Request payload for adding or removing work item insights.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseInsightsData"
@@ -22577,13 +22577,13 @@
         "type": "object"
       },
       "CaseLink": {
-        "description": "A directional link representing a relationship between two entities. At least one entity must be a case.",
+        "description": "A directional link representing a relationship between two entities. At least one entity must be a work item.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseLinkAttributes"
           },
           "id": {
-            "description": "The case link identifier.",
+            "description": "The work item link identifier.",
             "example": "804cd682-55f6-4541-ab00-b608b282ea7d",
             "type": "string"
           },
@@ -22599,7 +22599,7 @@
         "type": "object"
       },
       "CaseLinkAttributes": {
-        "description": "Attributes describing a directional relationship between two entities (cases, incidents, or pages).",
+        "description": "Attributes describing a directional relationship between two entities (work items, incidents, or pages).",
         "properties": {
           "child_entity_id": {
             "description": "The UUID of the child (target) entity in the relationship.",
@@ -22637,7 +22637,7 @@
         "type": "object"
       },
       "CaseLinkCreate": {
-        "description": "Data object for creating a case link.",
+        "description": "Data object for creating a work item link.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseLinkAttributes"
@@ -22665,7 +22665,7 @@
         "type": "object"
       },
       "CaseLinkResourceType": {
-        "description": "JSON:API resource type for case links.",
+        "description": "JSON:API resource type for work item links.",
         "enum": [
           "link"
         ],
@@ -22676,7 +22676,7 @@
         ]
       },
       "CaseLinkResponse": {
-        "description": "Response containing a single case link.",
+        "description": "Response containing a single work item link.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseLink"
@@ -22688,10 +22688,10 @@
         "type": "object"
       },
       "CaseLinksResponse": {
-        "description": "Response containing a list of case links.",
+        "description": "Response containing a list of work item links.",
         "properties": {
           "data": {
-            "description": "A list of case links.",
+            "description": "A list of work item links.",
             "items": {
               "$ref": "#/components/schemas/CaseLink"
             },
@@ -22746,7 +22746,7 @@
         ]
       },
       "CaseNotificationRule": {
-        "description": "A notification rule for case management",
+        "description": "A notification rule for Work Management",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseNotificationRuleAttributes"
@@ -22775,7 +22775,7 @@
             "type": "boolean"
           },
           "query": {
-            "description": "Query to filter cases for this notification rule",
+            "description": "Query to filter work items for this notification rule",
             "type": "string"
           },
           "recipients": {
@@ -22820,7 +22820,7 @@
             "type": "boolean"
           },
           "query": {
-            "description": "Query to filter cases for this notification rule",
+            "description": "Query to filter work items for this notification rule",
             "type": "string"
           },
           "recipients": {
@@ -23041,12 +23041,12 @@
           },
           "type": "array"
         },
-        "description": "Key-value pairs of case attributes. Each key maps to an array of string values, used for flexible metadata such as labels or tags.",
+        "description": "Key-value pairs of work item attributes. Each key maps to an array of string values, used for flexible metadata such as labels or tags.",
         "type": "object"
       },
       "CasePriority": {
         "default": "NOT_DEFINED",
-        "description": "Case priority",
+        "description": "Work item priority",
         "enum": [
           "NOT_DEFINED",
           "P1",
@@ -23067,7 +23067,7 @@
         ]
       },
       "CaseRelationships": {
-        "description": "Resources related to a case",
+        "description": "Resources related to a work item",
         "properties": {
           "assignee": {
             "$ref": "#/components/schemas/NullableUserRelationship"
@@ -23086,7 +23086,7 @@
       },
       "CaseResourceType": {
         "default": "case",
-        "description": "JSON:API resource type for cases.",
+        "description": "JSON:API resource type for work items.",
         "enum": [
           "case"
         ],
@@ -23097,7 +23097,7 @@
         ]
       },
       "CaseResponse": {
-        "description": "Case response",
+        "description": "Work item response",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/Case"
@@ -23106,7 +23106,7 @@
         "type": "object"
       },
       "CaseSortableField": {
-        "description": "Case field that can be sorted on",
+        "description": "Work item field that can be sorted on",
         "enum": [
           "created_at",
           "priority",
@@ -23122,7 +23122,7 @@
       },
       "CaseStatus": {
         "deprecated": true,
-        "description": "Deprecated way of representing the case status, which only supports OPEN, IN_PROGRESS, and CLOSED statuses. Use `status_name` instead.",
+        "description": "Deprecated way of representing the work item status, which only supports OPEN, IN_PROGRESS, and CLOSED statuses. Use `status_name` instead.",
         "enum": [
           "OPEN",
           "IN_PROGRESS",
@@ -23137,7 +23137,7 @@
         ]
       },
       "CaseStatusGroup": {
-        "description": "Status group of the case.",
+        "description": "Status group of the work item.",
         "enum": [
           "SG_OPEN",
           "SG_IN_PROGRESS",
@@ -23152,7 +23152,7 @@
         ]
       },
       "CaseStatusName": {
-        "description": "Status of the case. Must be one of the existing statuses for the case's type.",
+        "description": "Status of the work item. Must be one of the existing statuses for the work item's type.",
         "example": "Open",
         "type": "string"
       },
@@ -23182,7 +23182,7 @@
       },
       "CaseType": {
         "deprecated": true,
-        "description": "Case type",
+        "description": "Work item type",
         "enum": [
           "STANDARD"
         ],
@@ -23193,7 +23193,7 @@
         ]
       },
       "CaseTypeCreate": {
-        "description": "Data object for creating a case type.",
+        "description": "Data object for creating a work item type.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseTypeResourceAttributes"
@@ -23209,7 +23209,7 @@
         "type": "object"
       },
       "CaseTypeCreateRequest": {
-        "description": "Request payload for creating a case type.",
+        "description": "Request payload for creating a work item type.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseTypeCreate"
@@ -23221,13 +23221,13 @@
         "type": "object"
       },
       "CaseTypeResource": {
-        "description": "A case type that defines a classification category for cases. Each case type can have its own custom attributes, statuses, and automation rules.",
+        "description": "A work item type that defines a classification category for work items. Each work item type can have its own custom attributes, statuses, and automation rules.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseTypeResourceAttributes"
           },
           "id": {
-            "description": "Case type's identifier",
+            "description": "Work item type's identifier",
             "example": "aeadc05e-98a8-11ec-ac2c-da7ad0900001",
             "type": "string"
           },
@@ -23238,27 +23238,27 @@
         "type": "object"
       },
       "CaseTypeResourceAttributes": {
-        "description": "Attributes of a case type, which define a classification category for cases. Organizations use case types to model different workflows (for example, Security Incident, Bug Report, Change Request).",
+        "description": "Attributes of a work item type, which define a classification category for work items. Organizations use work item types to model different workflows (for example, Security Incident, Bug Report, Change Request).",
         "properties": {
           "deleted_at": {
-            "description": "Timestamp when the case type was marked as deleted. A null value indicates the case type is active.",
+            "description": "Timestamp when the work item type was marked as deleted. A null value indicates the work item type is active.",
             "format": "date-time",
             "nullable": true,
             "readOnly": true,
             "type": "string"
           },
           "description": {
-            "description": "A detailed description explaining when this case type should be used.",
+            "description": "A detailed description explaining when this work item type should be used.",
             "example": "Investigations done in case management",
             "type": "string"
           },
           "emoji": {
-            "description": "An emoji icon representing the case type in the UI.",
+            "description": "An emoji icon representing the work item type in the UI.",
             "example": "🕵🏻‍♂️",
             "type": "string"
           },
           "name": {
-            "description": "The display name of the case type, shown in the Case Management UI when creating or viewing cases.",
+            "description": "The display name of the work item type, shown in the Work Management UI when creating or viewing work items.",
             "example": "Investigation",
             "type": "string"
           }
@@ -23270,7 +23270,7 @@
       },
       "CaseTypeResourceType": {
         "default": "case_type",
-        "description": "JSON:API resource type for case types.",
+        "description": "JSON:API resource type for work item types.",
         "enum": [
           "case_type"
         ],
@@ -23281,7 +23281,7 @@
         ]
       },
       "CaseTypeResponse": {
-        "description": "Response containing a single case type.",
+        "description": "Response containing a single work item type.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseTypeResource"
@@ -23290,7 +23290,7 @@
         "type": "object"
       },
       "CaseTypeUpdate": {
-        "description": "Data object for updating a case type.",
+        "description": "Data object for updating a work item type.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseTypeResourceAttributes"
@@ -23305,7 +23305,7 @@
         "type": "object"
       },
       "CaseTypeUpdateRequest": {
-        "description": "Request payload for updating a case type.",
+        "description": "Request payload for updating a work item type.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseTypeUpdate"
@@ -23317,10 +23317,10 @@
         "type": "object"
       },
       "CaseTypesResponse": {
-        "description": "Response containing a list of case types.",
+        "description": "Response containing a list of work item types.",
         "properties": {
           "data": {
-            "description": "List of case types",
+            "description": "List of work item types",
             "items": {
               "$ref": "#/components/schemas/CaseTypeResource"
             },
@@ -23330,7 +23330,7 @@
         "type": "object"
       },
       "CaseUpdateAttributes": {
-        "description": "Case update attributes",
+        "description": "Work item update attributes",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseUpdateAttributesAttributes"
@@ -23346,7 +23346,7 @@
         "type": "object"
       },
       "CaseUpdateAttributesAttributes": {
-        "description": "Case update attributes attributes",
+        "description": "Work item update attributes.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseObjectAttributes"
@@ -23358,7 +23358,7 @@
         "type": "object"
       },
       "CaseUpdateAttributesRequest": {
-        "description": "Case update attributes request",
+        "description": "Work item update attributes request",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseUpdateAttributes"
@@ -23370,7 +23370,7 @@
         "type": "object"
       },
       "CaseUpdateComment": {
-        "description": "Data object for updating a case comment.",
+        "description": "Data object for updating a work item comment.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseUpdateCommentAttributes"
@@ -23400,7 +23400,7 @@
         "type": "object"
       },
       "CaseUpdateCommentRequest": {
-        "description": "Request payload for updating a comment on a case timeline.",
+        "description": "Request payload for updating a comment on a work item timeline.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseUpdateComment"
@@ -23412,7 +23412,7 @@
         "type": "object"
       },
       "CaseUpdateCustomAttribute": {
-        "description": "Case update custom attribute",
+        "description": "Work item update custom attribute",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CustomAttributeValue"
@@ -23428,7 +23428,7 @@
         "type": "object"
       },
       "CaseUpdateCustomAttributeRequest": {
-        "description": "Case update custom attribute request",
+        "description": "Work item update custom attribute request",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseUpdateCustomAttribute"
@@ -23440,7 +23440,7 @@
         "type": "object"
       },
       "CaseUpdateDescription": {
-        "description": "Case update description",
+        "description": "Work item update description",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseUpdateDescriptionAttributes"
@@ -23456,10 +23456,10 @@
         "type": "object"
       },
       "CaseUpdateDescriptionAttributes": {
-        "description": "Case update description attributes",
+        "description": "Work item update description attributes",
         "properties": {
           "description": {
-            "description": "Case new description",
+            "description": "Work item new description",
             "example": "Seeing some weird memory increase... We shouldn't ignore this",
             "type": "string"
           }
@@ -23470,7 +23470,7 @@
         "type": "object"
       },
       "CaseUpdateDescriptionRequest": {
-        "description": "Case update description request",
+        "description": "Work item update description request",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseUpdateDescription"
@@ -23482,7 +23482,7 @@
         "type": "object"
       },
       "CaseUpdateDueDate": {
-        "description": "Data object for updating a case's due date.",
+        "description": "Data object for updating a work item's due date.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseUpdateDueDateAttributes"
@@ -23498,10 +23498,10 @@
         "type": "object"
       },
       "CaseUpdateDueDateAttributes": {
-        "description": "Attributes for setting or clearing a case's due date.",
+        "description": "Attributes for setting or clearing a work item's due date.",
         "properties": {
           "due_date": {
-            "description": "The target resolution date for the case, in `YYYY-MM-DD` format. Set to `null` to clear the due date.",
+            "description": "The target resolution date for the work item, in `YYYY-MM-DD` format. Set to `null` to clear the due date.",
             "example": "2026-12-31",
             "type": "string"
           }
@@ -23512,7 +23512,7 @@
         "type": "object"
       },
       "CaseUpdateDueDateRequest": {
-        "description": "Request payload for updating a case's due date.",
+        "description": "Request payload for updating a work item's due date.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseUpdateDueDate"
@@ -23524,7 +23524,7 @@
         "type": "object"
       },
       "CaseUpdatePriority": {
-        "description": "Case priority status",
+        "description": "Work item priority status",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseUpdatePriorityAttributes"
@@ -23540,7 +23540,7 @@
         "type": "object"
       },
       "CaseUpdatePriorityAttributes": {
-        "description": "Case update priority attributes",
+        "description": "Work item update priority attributes",
         "properties": {
           "priority": {
             "$ref": "#/components/schemas/CasePriority"
@@ -23552,7 +23552,7 @@
         "type": "object"
       },
       "CaseUpdatePriorityRequest": {
-        "description": "Case update priority request",
+        "description": "Work item update priority request",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseUpdatePriority"
@@ -23564,7 +23564,7 @@
         "type": "object"
       },
       "CaseUpdateResolvedReason": {
-        "description": "Data object for updating a case's resolved reason.",
+        "description": "Data object for updating a work item's resolved reason.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseUpdateResolvedReasonAttributes"
@@ -23580,10 +23580,10 @@
         "type": "object"
       },
       "CaseUpdateResolvedReasonAttributes": {
-        "description": "Attributes for setting the resolution reason on a security case.",
+        "description": "Attributes for setting the resolution reason on a security work item.",
         "properties": {
           "security_resolved_reason": {
-            "description": "The reason the security case was resolved (for example, `FALSE_POSITIVE`, `TRUE_POSITIVE`, `BENIGN_POSITIVE`).",
+            "description": "The reason the security work item was resolved (for example, `FALSE_POSITIVE`, `TRUE_POSITIVE`, `BENIGN_POSITIVE`).",
             "example": "FALSE_POSITIVE",
             "type": "string"
           }
@@ -23594,7 +23594,7 @@
         "type": "object"
       },
       "CaseUpdateResolvedReasonRequest": {
-        "description": "Request payload for updating the resolution reason on a closed security case.",
+        "description": "Request payload for updating the resolution reason on a closed security work item.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseUpdateResolvedReason"
@@ -23606,7 +23606,7 @@
         "type": "object"
       },
       "CaseUpdateStatus": {
-        "description": "Case update status",
+        "description": "Work item update status",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseUpdateStatusAttributes"
@@ -23622,7 +23622,7 @@
         "type": "object"
       },
       "CaseUpdateStatusAttributes": {
-        "description": "Case update status attributes",
+        "description": "Work item update status attributes",
         "properties": {
           "status": {
             "$ref": "#/components/schemas/CaseStatus",
@@ -23635,7 +23635,7 @@
         "type": "object"
       },
       "CaseUpdateStatusRequest": {
-        "description": "Case update status request",
+        "description": "Work item update status request",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseUpdateStatus"
@@ -23647,7 +23647,7 @@
         "type": "object"
       },
       "CaseUpdateTitle": {
-        "description": "Case update title",
+        "description": "Work item update title",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseUpdateTitleAttributes"
@@ -23663,10 +23663,10 @@
         "type": "object"
       },
       "CaseUpdateTitleAttributes": {
-        "description": "Case update title attributes",
+        "description": "Work item update title attributes",
         "properties": {
           "title": {
-            "description": "Case new title",
+            "description": "Work item new title",
             "example": "Memory leak investigation on API",
             "type": "string"
           }
@@ -23677,7 +23677,7 @@
         "type": "object"
       },
       "CaseUpdateTitleRequest": {
-        "description": "Case update title request",
+        "description": "Work item update title request",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseUpdateTitle"
@@ -23689,7 +23689,7 @@
         "type": "object"
       },
       "CaseView": {
-        "description": "A saved case view that provides a filtered, reusable list of cases matching a specific query. Views act as persistent dashboards for monitoring case subsets.",
+        "description": "A saved work item view that provides a filtered, reusable list of work items matching a specific query. Views act as persistent dashboards for monitoring work item subsets.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseViewAttributes"
@@ -23714,7 +23714,7 @@
         "type": "object"
       },
       "CaseViewAttributes": {
-        "description": "Attributes of a case view, including the filter query and optional notification rule.",
+        "description": "Attributes of a work item view, including the filter query and optional notification rule.",
         "properties": {
           "created_at": {
             "description": "Timestamp when the view was created.",
@@ -23730,16 +23730,16 @@
             "type": "string"
           },
           "name": {
-            "description": "A human-readable name for the view, displayed in the Case Management UI.",
+            "description": "A human-readable name for the view, displayed in the Work Management UI.",
             "example": "Open bugs",
             "type": "string"
           },
           "np_rule_id": {
-            "description": "The identifier of a notification rule linked to this view. When set, users subscribed to the view receive alerts for matching cases.",
+            "description": "The identifier of a notification rule linked to this view. When set, users subscribed to the view receive alerts for matching work items.",
             "type": "string"
           },
           "query": {
-            "description": "The search query that determines which cases appear in this view. Uses the same syntax as the Case Management search bar (for example, `status:open priority:P1`).",
+            "description": "The search query that determines which work items appear in this view. Uses the same syntax as the Work Management search bar (for example, `status:open priority:P1`).",
             "example": "status:open type:bug",
             "type": "string"
           }
@@ -23752,7 +23752,7 @@
         "type": "object"
       },
       "CaseViewCreate": {
-        "description": "Data object for creating a case view.",
+        "description": "Data object for creating a work item view.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseViewCreateAttributes"
@@ -23768,7 +23768,7 @@
         "type": "object"
       },
       "CaseViewCreateAttributes": {
-        "description": "Attributes required to create a case view.",
+        "description": "Attributes required to create a work item view.",
         "properties": {
           "name": {
             "description": "The name of the view.",
@@ -23776,7 +23776,7 @@
             "type": "string"
           },
           "np_rule_id": {
-            "description": "The identifier of a notification rule linked to this view. When set, users subscribed to the view receive alerts for matching cases.",
+            "description": "The identifier of a notification rule linked to this view. When set, users subscribed to the view receive alerts for matching work items.",
             "type": "string"
           },
           "project_id": {
@@ -23785,7 +23785,7 @@
             "type": "string"
           },
           "query": {
-            "description": "The query used to filter cases in this view.",
+            "description": "The query used to filter work items in this view.",
             "example": "status:open type:bug",
             "type": "string"
           }
@@ -23798,7 +23798,7 @@
         "type": "object"
       },
       "CaseViewCreateRequest": {
-        "description": "Request payload for creating a case view.",
+        "description": "Request payload for creating a work item view.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseViewCreate"
@@ -23810,7 +23810,7 @@
         "type": "object"
       },
       "CaseViewRelationships": {
-        "description": "Related resources for the case view, including the creator, last modifier, and associated project.",
+        "description": "Related resources for the work item view, including the creator, last modifier, and associated project.",
         "properties": {
           "created_by": {
             "$ref": "#/components/schemas/NullableUserRelationship"
@@ -23826,7 +23826,7 @@
       },
       "CaseViewResourceType": {
         "default": "view",
-        "description": "JSON:API resource type for case views.",
+        "description": "JSON:API resource type for work item views.",
         "enum": [
           "view"
         ],
@@ -23837,7 +23837,7 @@
         ]
       },
       "CaseViewResponse": {
-        "description": "Response containing a single case view.",
+        "description": "Response containing a single work item view.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseView"
@@ -23849,7 +23849,7 @@
         "type": "object"
       },
       "CaseViewUpdate": {
-        "description": "Data object for updating a case view.",
+        "description": "Data object for updating a work item view.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CaseViewUpdateAttributes"
@@ -23864,25 +23864,25 @@
         "type": "object"
       },
       "CaseViewUpdateAttributes": {
-        "description": "Attributes that can be updated on a case view. All fields are optional; only provided fields are changed.",
+        "description": "Attributes that can be updated on a work item view. All fields are optional; only provided fields are changed.",
         "properties": {
           "name": {
             "description": "The name of the view.",
             "type": "string"
           },
           "np_rule_id": {
-            "description": "The identifier of a notification rule linked to this view. When set, users subscribed to the view receive alerts for matching cases.",
+            "description": "The identifier of a notification rule linked to this view. When set, users subscribed to the view receive alerts for matching work items.",
             "type": "string"
           },
           "query": {
-            "description": "The query used to filter cases in this view.",
+            "description": "The query used to filter work items in this view.",
             "type": "string"
           }
         },
         "type": "object"
       },
       "CaseViewUpdateRequest": {
-        "description": "Request payload for updating a case view.",
+        "description": "Request payload for updating a work item view.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CaseViewUpdate"
@@ -23894,10 +23894,10 @@
         "type": "object"
       },
       "CaseViewsResponse": {
-        "description": "Response containing a list of case views.",
+        "description": "Response containing a list of work item views.",
         "properties": {
           "data": {
-            "description": "A list of case views.",
+            "description": "A list of work item views.",
             "items": {
               "$ref": "#/components/schemas/CaseView"
             },
@@ -23910,10 +23910,10 @@
         "type": "object"
       },
       "CaseWatcher": {
-        "description": "Represents a user who is subscribed to notifications for a case. Watchers receive updates when the case's status, priority, assignee, or comments change.",
+        "description": "Represents a user who is subscribed to notifications for a work item. Watchers receive updates when the work item's status, priority, assignee, or comments change.",
         "properties": {
           "id": {
-            "description": "The primary identifier of the case watcher.",
+            "description": "The primary identifier of the work item watcher.",
             "example": "8146583c-0b5f-11ec-abf8-da7ad0900001",
             "type": "string"
           },
@@ -23932,7 +23932,7 @@
         "type": "object"
       },
       "CaseWatcherRelationships": {
-        "description": "Relationships for a case watcher, linking to the underlying user resource.",
+        "description": "Relationships for a work item watcher, linking to the underlying user resource.",
         "properties": {
           "user": {
             "$ref": "#/components/schemas/CaseWatcherUserRelationship"
@@ -23945,7 +23945,7 @@
       },
       "CaseWatcherResourceType": {
         "default": "watcher",
-        "description": "JSON:API resource type for case watchers.",
+        "description": "JSON:API resource type for work item watchers.",
         "enum": [
           "watcher"
         ],
@@ -23956,7 +23956,7 @@
         ]
       },
       "CaseWatcherUserRelationship": {
-        "description": "The user relationship for a case watcher.",
+        "description": "The user relationship for a work item watcher.",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/UserRelationshipData"
@@ -23968,10 +23968,10 @@
         "type": "object"
       },
       "CaseWatchersResponse": {
-        "description": "Response containing the list of users watching a case.",
+        "description": "Response containing the list of users watching a work item.",
         "properties": {
           "data": {
-            "description": "List of case watchers.",
+            "description": "List of work item watchers.",
             "items": {
               "$ref": "#/components/schemas/CaseWatcher"
             },
@@ -23984,10 +23984,10 @@
         "type": "object"
       },
       "CasesResponse": {
-        "description": "Response with cases",
+        "description": "Response with work items",
         "properties": {
           "data": {
-            "description": "Cases response data",
+            "description": "Work items response data",
             "items": {
               "$ref": "#/components/schemas/Case"
             },
@@ -24000,7 +24000,7 @@
         "type": "object"
       },
       "CasesResponseMeta": {
-        "description": "Cases response metadata",
+        "description": "Work items response metadata",
         "properties": {
           "page": {
             "$ref": "#/components/schemas/CasesResponseMetaPagination"
@@ -24017,7 +24017,7 @@
             "type": "integer"
           },
           "size": {
-            "description": "Number of cases in current page",
+            "description": "Number of work items in current page",
             "format": "int64",
             "type": "integer"
           },
@@ -38089,7 +38089,7 @@
         "type": "object"
       },
       "CustomAttributeConfig": {
-        "description": "A custom attribute configuration that defines an organization-specific metadata field on cases. Custom attributes are scoped to a case type and can hold text, URLs, numbers, or predefined select options.",
+        "description": "A custom attribute configuration that defines an organization-specific metadata field on work items. Custom attributes are scoped to a work item type and can hold text, URLs, numbers, or predefined select options.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/CustomAttributeConfigResourceAttributes"
@@ -38114,7 +38114,7 @@
             "type": "string"
           },
           "display_name": {
-            "description": "The human-readable label shown in the Case Management UI for this custom attribute.",
+            "description": "The human-readable label shown in the Work Management UI for this custom attribute.",
             "example": "AWS Region",
             "type": "string"
           },
@@ -38169,10 +38169,10 @@
         "type": "object"
       },
       "CustomAttributeConfigResourceAttributes": {
-        "description": "Attributes of a custom attribute configuration, defining an organization-specific metadata field that can be added to cases of a given type.",
+        "description": "Attributes of a custom attribute configuration, defining an organization-specific metadata field that can be added to work items of a given type.",
         "properties": {
           "case_type_id": {
-            "description": "The UUID of the case type this custom attribute belongs to.",
+            "description": "The UUID of the work item type this custom attribute belongs to.",
             "example": "aeadc05e-98a8-11ec-ac2c-da7ad0900001",
             "type": "string"
           },
@@ -38182,7 +38182,7 @@
             "type": "string"
           },
           "display_name": {
-            "description": "The human-readable label shown in the Case Management UI for this custom attribute.",
+            "description": "The human-readable label shown in the Work Management UI for this custom attribute.",
             "example": "AWS Region",
             "type": "string"
           },
@@ -38254,7 +38254,7 @@
             "type": "string"
           },
           "display_name": {
-            "description": "The human-readable label shown in the Case Management UI for this custom attribute.",
+            "description": "The human-readable label shown in the Work Management UI for this custom attribute.",
             "example": "AWS Region",
             "type": "string"
           },
@@ -38287,7 +38287,7 @@
         "description": "Response containing a list of custom attribute configurations.",
         "properties": {
           "data": {
-            "description": "List of custom attribute configs of case type",
+            "description": "List of custom attribute configs of work item type",
             "items": {
               "$ref": "#/components/schemas/CustomAttributeConfig"
             },
@@ -38367,7 +38367,7 @@
         "type": "object"
       },
       "CustomAttributeValue": {
-        "description": "A typed value for a custom attribute on a specific case.",
+        "description": "A typed value for a custom attribute on a specific work item.",
         "properties": {
           "is_multi": {
             "description": "If true, value must be an array",
@@ -56739,6 +56739,22 @@
           "CONCLUDE_EXPERIMENT_REQUEST"
         ]
       },
+      "ExperimentsConfidenceInterval": {
+        "description": "Lower and upper bounds of the reported statistical interval.",
+        "properties": {
+          "lower": {
+            "description": "Lower bound of the reported interval.",
+            "format": "double",
+            "type": "number"
+          },
+          "upper": {
+            "description": "Upper bound of the reported interval.",
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
       "ExperimentsCreateExperimentMetricGroupV2Request": {
         "description": "Request to create a metric group on an experiment.",
         "example": {
@@ -57236,7 +57252,7 @@
             "description": "Use an empty array when no targeting rules apply.",
             "example": [],
             "items": {
-              "$ref": "#/components/schemas/ExperimentsCreateExperimentV2RequestDataAttributesDatadogFlagConfigurationTargetingRulesItems"
+              "$ref": "#/components/schemas/ExperimentsTargetingRule"
             },
             "type": "array"
           }
@@ -57246,23 +57262,6 @@
           "environment_id",
           "feature_flag_id",
           "targeting_rules"
-        ],
-        "type": "object"
-      },
-      "ExperimentsCreateExperimentV2RequestDataAttributesDatadogFlagConfigurationTargetingRulesItems": {
-        "description": "Use an empty array when no targeting rules apply.",
-        "properties": {
-          "conditions": {
-            "description": "Conditions that must all match for this rule. Each condition must use exactly one shape: saved_filter_id alone or operator plus attribute plus value.",
-            "example": [],
-            "items": {
-              "$ref": "#/components/schemas/ExperimentsTargetingRuleCondition"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "conditions"
         ],
         "type": "object"
       },
@@ -57324,7 +57323,7 @@
             "type": "string"
           },
           "column_type": {
-            "$ref": "#/components/schemas/ExperimentsPatchExperimentV2ResponseDataAttributesDatadogFlagConfigurationEntryPointFiltersItemsItemsColumnType"
+            "$ref": "#/components/schemas/ExperimentsDatadogEntryPointFilterColumnType"
           },
           "name": {
             "description": "Optional display name. Defaults to column_name for a new property.",
@@ -57468,7 +57467,7 @@
         "nullable": true,
         "properties": {
           "entry_point": {
-            "$ref": "#/components/schemas/ExperimentsPatchExperimentV2ResponseDataAttributesWarehouseExposureConfigurationEntryPoint"
+            "$ref": "#/components/schemas/ExperimentsWarehouseEntryPoint"
           },
           "experiment_key": {
             "description": "Warehouse experiment key. Must not be blank.",
@@ -58183,21 +58182,6 @@
           }
         ]
       },
-      "ExperimentsCreateMetricV2RequestDataAttributesPercentileAggregationWarehouseMetricMeasure": {
-        "description": "Reference to a measure defined in a warehouse metric SQL model.",
-        "properties": {
-          "id": {
-            "description": "Identifier of the warehouse metric measure.",
-            "example": "550e8400-e29b-41d4-a716-446655440021",
-            "format": "uuid",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id"
-        ],
-        "type": "object"
-      },
       "ExperimentsCreateSubjectTypeV2Request": {
         "description": "Request to create a subject type for experiment assignments.",
         "example": {
@@ -58309,10 +58293,10 @@
             "type": "string"
           },
           "column_type": {
-            "$ref": "#/components/schemas/ExperimentsPatchExperimentV2ResponseDataAttributesDatadogFlagConfigurationEntryPointFiltersItemsItemsColumnType"
+            "$ref": "#/components/schemas/ExperimentsDatadogEntryPointFilterColumnType"
           },
           "operation": {
-            "$ref": "#/components/schemas/ExperimentsPatchExperimentV2ResponseDataAttributesDatadogFlagConfigurationEntryPointFiltersItemsItemsOperation"
+            "$ref": "#/components/schemas/ExperimentsDatadogEntryPointFilterOperation"
           },
           "values": {
             "description": "Comparison values used by the filter operation.",
@@ -58332,12 +58316,62 @@
         ],
         "type": "object"
       },
+      "ExperimentsDatadogEntryPointFilterColumnType": {
+        "description": "Data type of the column evaluated by the entry-point filter.",
+        "enum": [
+          "varchar",
+          "int",
+          "double",
+          "boolean",
+          "varchar_array",
+          "int_array",
+          "double_array",
+          "raw"
+        ],
+        "example": "varchar",
+        "type": "string",
+        "x-enum-varnames": [
+          "VARCHAR",
+          "INT",
+          "DOUBLE",
+          "BOOLEAN",
+          "VARCHAR_ARRAY",
+          "INT_ARRAY",
+          "DOUBLE_ARRAY",
+          "RAW"
+        ]
+      },
       "ExperimentsDatadogEntryPointFilterGroup": {
         "description": "Entry-point filters combined with AND.",
         "items": {
           "$ref": "#/components/schemas/ExperimentsDatadogEntryPointFilter"
         },
         "type": "array"
+      },
+      "ExperimentsDatadogEntryPointFilterOperation": {
+        "description": "Comparison applied by the Datadog entry-point filter.",
+        "enum": [
+          "eq",
+          "in",
+          "neq",
+          "not_in",
+          "gte",
+          "lte",
+          "gt",
+          "lt"
+        ],
+        "example": "eq",
+        "type": "string",
+        "x-enum-varnames": [
+          "EQ",
+          "IN",
+          "NEQ",
+          "NOT_IN",
+          "GTE",
+          "LTE",
+          "GT",
+          "LT"
+        ]
       },
       "ExperimentsDatadogMetricAggregationInput": {
         "description": "Settings for a metric aggregation that uses a Datadog measure. The other measure must be omitted or null.",
@@ -60077,7 +60111,7 @@
             "type": "string"
           },
           "operator": {
-            "$ref": "#/components/schemas/ExperimentsPatchExperimentV2ResponseDataAttributesDatadogFlagConfigurationTargetingRulesItemsConditionsItemsOperator"
+            "$ref": "#/components/schemas/ExperimentsTargetingRuleOperator"
           },
           "value": {
             "description": "Values used by the operator. Every operator requires at least one value.",
@@ -62094,7 +62128,7 @@
             "description": "Omit to keep the stored rules. Use an empty array to remove targeting rules.",
             "example": [],
             "items": {
-              "$ref": "#/components/schemas/ExperimentsCreateExperimentV2RequestDataAttributesDatadogFlagConfigurationTargetingRulesItems"
+              "$ref": "#/components/schemas/ExperimentsTargetingRule"
             },
             "type": "array"
           }
@@ -62567,7 +62601,7 @@
           "targeting_rules": {
             "description": "Rules that select subjects for the experiment.",
             "items": {
-              "$ref": "#/components/schemas/ExperimentsCreateExperimentV2RequestDataAttributesDatadogFlagConfigurationTargetingRulesItems"
+              "$ref": "#/components/schemas/ExperimentsTargetingRule"
             },
             "type": "array"
           }
@@ -62600,97 +62634,6 @@
           "measure_id"
         ],
         "type": "object"
-      },
-      "ExperimentsPatchExperimentV2ResponseDataAttributesDatadogFlagConfigurationEntryPointFiltersItemsItemsColumnType": {
-        "description": "Data type of the column evaluated by the entry-point filter.",
-        "enum": [
-          "varchar",
-          "int",
-          "double",
-          "boolean",
-          "varchar_array",
-          "int_array",
-          "double_array",
-          "raw"
-        ],
-        "example": "varchar",
-        "type": "string",
-        "x-enum-varnames": [
-          "VARCHAR",
-          "INT",
-          "DOUBLE",
-          "BOOLEAN",
-          "VARCHAR_ARRAY",
-          "INT_ARRAY",
-          "DOUBLE_ARRAY",
-          "RAW"
-        ]
-      },
-      "ExperimentsPatchExperimentV2ResponseDataAttributesDatadogFlagConfigurationEntryPointFiltersItemsItemsOperation": {
-        "description": "Comparison applied by the Datadog entry-point filter.",
-        "enum": [
-          "eq",
-          "in",
-          "neq",
-          "not_in",
-          "gte",
-          "lte",
-          "gt",
-          "lt"
-        ],
-        "example": "eq",
-        "type": "string",
-        "x-enum-varnames": [
-          "EQ",
-          "IN",
-          "NEQ",
-          "NOT_IN",
-          "GTE",
-          "LTE",
-          "GT",
-          "LT"
-        ]
-      },
-      "ExperimentsPatchExperimentV2ResponseDataAttributesDatadogFlagConfigurationTargetingRulesItemsConditionsItemsOperator": {
-        "description": "Required with attribute and value for an inline condition; omit when saved_filter_id is set.",
-        "enum": [
-          "LT",
-          "LTE",
-          "GT",
-          "GTE",
-          "MATCHES",
-          "NOT_MATCHES",
-          "ONE_OF",
-          "NOT_ONE_OF",
-          "IS_NULL",
-          "EQUALS",
-          "SEMVER_EQ",
-          "SEMVER_NEQ",
-          "SEMVER_LT",
-          "SEMVER_LTE",
-          "SEMVER_GT",
-          "SEMVER_GTE"
-        ],
-        "example": "LT",
-        "type": "string",
-        "x-enum-varnames": [
-          "LT",
-          "LTE",
-          "GT",
-          "GTE",
-          "MATCHES",
-          "NOT_MATCHES",
-          "ONE_OF",
-          "NOT_ONE_OF",
-          "IS_NULL",
-          "EQUALS",
-          "SEMVER_EQ",
-          "SEMVER_NEQ",
-          "SEMVER_LT",
-          "SEMVER_LTE",
-          "SEMVER_GT",
-          "SEMVER_GTE"
-        ]
       },
       "ExperimentsPatchExperimentV2ResponseDataAttributesSplitByPropertiesItemsColumnType": {
         "description": "Type of the Datadog exposure field or Warehouse column.",
@@ -62781,7 +62724,7 @@
         "nullable": true,
         "properties": {
           "entry_point": {
-            "$ref": "#/components/schemas/ExperimentsPatchExperimentV2ResponseDataAttributesWarehouseExposureConfigurationEntryPoint"
+            "$ref": "#/components/schemas/ExperimentsWarehouseEntryPoint"
           },
           "experiment_key": {
             "description": "Warehouse experiment key. Reads can return null for incomplete configuration; configuration writes require a value.",
@@ -62801,44 +62744,6 @@
           "exposure_sql_model_id"
         ],
         "type": "object"
-      },
-      "ExperimentsPatchExperimentV2ResponseDataAttributesWarehouseExposureConfigurationEntryPoint": {
-        "description": "Optional Warehouse measure that scopes analyzed subjects.",
-        "example": null,
-        "nullable": true,
-        "properties": {
-          "filters": {
-            "description": "Complete ordered Warehouse entry-point filter set.",
-            "example": [],
-            "items": {
-              "$ref": "#/components/schemas/ExperimentsWarehouseExposureFilter"
-            },
-            "type": "array"
-          },
-          "measure_id": {
-            "description": "Warehouse measure UUID.",
-            "example": "550e8400-e29b-41d4-a716-446655440000",
-            "type": "string"
-          }
-        },
-        "required": [
-          "filters",
-          "measure_id"
-        ],
-        "type": "object"
-      },
-      "ExperimentsPatchExperimentV2ResponseDataAttributesWarehouseExposureConfigurationEntryPointFiltersItemsOperation": {
-        "description": "Comparison applied by the warehouse entry-point filter.",
-        "enum": [
-          "IS",
-          "IS_NOT"
-        ],
-        "example": "IS",
-        "type": "string",
-        "x-enum-varnames": [
-          "IS",
-          "IS_NOT"
-        ]
       },
       "ExperimentsPatchExperimentV2ResponseDataType": {
         "default": "experiments",
@@ -63054,7 +62959,7 @@
             "type": "string"
           },
           "operation": {
-            "$ref": "#/components/schemas/ExperimentsPatchExperimentV2ResponseDataAttributesWarehouseExposureConfigurationEntryPointFiltersItemsOperation"
+            "$ref": "#/components/schemas/ExperimentsWarehouseEntryPointFilterOperation"
           },
           "property_id": {
             "description": "ID of the property on the aggregation source.",
@@ -64174,6 +64079,23 @@
           "SUBJECT_TYPES"
         ]
       },
+      "ExperimentsTargetingRule": {
+        "description": "Use an empty array when no targeting rules apply.",
+        "properties": {
+          "conditions": {
+            "description": "Conditions that must all match for this rule. Each condition must use exactly one shape: saved_filter_id alone or operator plus attribute plus value.",
+            "example": [],
+            "items": {
+              "$ref": "#/components/schemas/ExperimentsTargetingRuleCondition"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "conditions"
+        ],
+        "type": "object"
+      },
       "ExperimentsTargetingRuleCondition": {
         "description": "A saved-filter condition or a complete inline condition. The two forms cannot be combined.",
         "oneOf": [
@@ -64183,6 +64105,47 @@
           {
             "$ref": "#/components/schemas/ExperimentsInlineCondition"
           }
+        ]
+      },
+      "ExperimentsTargetingRuleOperator": {
+        "description": "Required with attribute and value for an inline condition; omit when saved_filter_id is set.",
+        "enum": [
+          "LT",
+          "LTE",
+          "GT",
+          "GTE",
+          "MATCHES",
+          "NOT_MATCHES",
+          "ONE_OF",
+          "NOT_ONE_OF",
+          "IS_NULL",
+          "EQUALS",
+          "SEMVER_EQ",
+          "SEMVER_NEQ",
+          "SEMVER_LT",
+          "SEMVER_LTE",
+          "SEMVER_GT",
+          "SEMVER_GTE"
+        ],
+        "example": "LT",
+        "type": "string",
+        "x-enum-varnames": [
+          "LT",
+          "LTE",
+          "GT",
+          "GTE",
+          "MATCHES",
+          "NOT_MATCHES",
+          "ONE_OF",
+          "NOT_ONE_OF",
+          "IS_NULL",
+          "EQUALS",
+          "SEMVER_EQ",
+          "SEMVER_NEQ",
+          "SEMVER_LT",
+          "SEMVER_LTE",
+          "SEMVER_GT",
+          "SEMVER_GTE"
         ]
       },
       "ExperimentsTrafficSummaryV2DTO": {
@@ -64900,7 +64863,7 @@
         "description": "One statistical comparison for a metric and variant.",
         "properties": {
           "confidence_interval": {
-            "$ref": "#/components/schemas/ExperimentsVariantResultsV2DTODataAttributesMetricsItemsAnalysesItemsConfidenceInterval"
+            "$ref": "#/components/schemas/ExperimentsConfidenceInterval"
           },
           "confidence_level": {
             "description": "Configured nominal confidence level. Interval bounds can use an adjusted level for multiple testing or hybrid methods.",
@@ -64992,22 +64955,6 @@
           },
           "z_score": {
             "description": "Standardized statistic used to compare the observed effect with zero.",
-            "format": "double",
-            "type": "number"
-          }
-        },
-        "type": "object"
-      },
-      "ExperimentsVariantResultsV2DTODataAttributesMetricsItemsAnalysesItemsConfidenceInterval": {
-        "description": "Lower and upper bounds of the reported statistical interval.",
-        "properties": {
-          "lower": {
-            "description": "Lower bound of the reported interval.",
-            "format": "double",
-            "type": "number"
-          },
-          "upper": {
-            "description": "Upper bound of the reported interval.",
             "format": "double",
             "type": "number"
           }
@@ -65118,11 +65065,49 @@
           "EXPERIMENT_VARIANT_RESULTS"
         ]
       },
+      "ExperimentsWarehouseEntryPoint": {
+        "description": "Optional Warehouse measure that scopes analyzed subjects.",
+        "example": null,
+        "nullable": true,
+        "properties": {
+          "filters": {
+            "description": "Complete ordered Warehouse entry-point filter set.",
+            "example": [],
+            "items": {
+              "$ref": "#/components/schemas/ExperimentsWarehouseExposureFilter"
+            },
+            "type": "array"
+          },
+          "measure_id": {
+            "description": "Warehouse measure UUID.",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          }
+        },
+        "required": [
+          "filters",
+          "measure_id"
+        ],
+        "type": "object"
+      },
+      "ExperimentsWarehouseEntryPointFilterOperation": {
+        "description": "Comparison applied by the warehouse entry-point filter.",
+        "enum": [
+          "IS",
+          "IS_NOT"
+        ],
+        "example": "IS",
+        "type": "string",
+        "x-enum-varnames": [
+          "IS",
+          "IS_NOT"
+        ]
+      },
       "ExperimentsWarehouseExposureFilter": {
         "description": "A comparison that selects warehouse exposure data by a property.",
         "properties": {
           "operation": {
-            "$ref": "#/components/schemas/ExperimentsPatchExperimentV2ResponseDataAttributesWarehouseExposureConfigurationEntryPointFiltersItemsOperation"
+            "$ref": "#/components/schemas/ExperimentsWarehouseEntryPointFilterOperation"
           },
           "property_id": {
             "description": "Warehouse property UUID.",
@@ -65269,7 +65254,7 @@
             "type": "string"
           },
           "warehouse_metric_measure": {
-            "$ref": "#/components/schemas/ExperimentsCreateMetricV2RequestDataAttributesPercentileAggregationWarehouseMetricMeasure"
+            "$ref": "#/components/schemas/ExperimentsWarehouseMetricMeasure"
           },
           "winsor_lower_fixed_value": {
             "description": "Fixed lower bound used to cap extreme measure values.",
@@ -65302,6 +65287,21 @@
         ],
         "type": "object"
       },
+      "ExperimentsWarehouseMetricMeasure": {
+        "description": "Reference to a measure defined in a warehouse metric SQL model.",
+        "properties": {
+          "id": {
+            "description": "Identifier of the warehouse metric measure.",
+            "example": "550e8400-e29b-41d4-a716-446655440021",
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
       "ExperimentsWarehousePercentileAggregationInput": {
         "description": "Settings for a percentile aggregation that uses a Warehouse measure. The other measure must be omitted or null.",
         "properties": {
@@ -65327,7 +65327,7 @@
             "type": "array"
           },
           "warehouse_metric_measure": {
-            "$ref": "#/components/schemas/ExperimentsCreateMetricV2RequestDataAttributesPercentileAggregationWarehouseMetricMeasure"
+            "$ref": "#/components/schemas/ExperimentsWarehouseMetricMeasure"
           }
         },
         "required": [
@@ -66142,6 +66142,9 @@
             "example": "ACTIVE",
             "type": "string"
           },
+          "staleness_status_override": {
+            "$ref": "#/components/schemas/FeatureFlagStalenessStatusOverride"
+          },
           "tags": {
             "description": "Tags associated with the feature flag.",
             "example": [],
@@ -66454,9 +66457,13 @@
             "$ref": "#/components/schemas/FeatureFlagStalenessDetails"
           },
           "staleness_status": {
-            "description": "Indicates the staleness status of the feature flag.",
+            "deprecated": true,
+            "description": "Legacy status retained for compatibility. This field is always `ACTIVE`; use `staleness_details.staleness_status` for the computed status.",
             "example": "ACTIVE",
             "type": "string"
+          },
+          "staleness_status_override": {
+            "$ref": "#/components/schemas/FeatureFlagStalenessStatusOverride"
           },
           "tags": {
             "description": "Tags associated with the feature flag.",
@@ -66492,6 +66499,21 @@
           "variants"
         ],
         "type": "object"
+      },
+      "FeatureFlagProductionStatus": {
+        "description": "The status of a feature flag across production environments.",
+        "enum": [
+          "ENABLED",
+          "DISABLED",
+          "OVERRIDDEN"
+        ],
+        "example": "ENABLED",
+        "type": "string",
+        "x-enum-varnames": [
+          "ENABLED",
+          "DISABLED",
+          "OVERRIDDEN"
+        ]
       },
       "FeatureFlagResponse": {
         "description": "Response containing a feature flag.",
@@ -66597,6 +66619,34 @@
         },
         "type": "object"
       },
+      "FeatureFlagStalenessStatus": {
+        "description": "The computed staleness status of a feature flag.",
+        "enum": [
+          "ACTIVE",
+          "STALE",
+          "PERMANENT"
+        ],
+        "example": "ACTIVE",
+        "type": "string",
+        "x-enum-varnames": [
+          "ACTIVE",
+          "STALE",
+          "PERMANENT"
+        ]
+      },
+      "FeatureFlagStalenessStatusOverride": {
+        "description": "An explicit staleness status override. Omitted when no override is set.",
+        "enum": [
+          "STALE",
+          "PERMANENT"
+        ],
+        "example": "PERMANENT",
+        "type": "string",
+        "x-enum-varnames": [
+          "STALE",
+          "PERMANENT"
+        ]
+      },
       "FeatureFlagStatus": {
         "description": "The status of a feature flag in an environment.",
         "enum": [
@@ -66610,6 +66660,37 @@
           "DISABLED"
         ]
       },
+      "FeatureFlagsPaginationLinks": {
+        "description": "Pagination links. Follow `next` with the same authentication to retrieve the next page. Links use `page[limit]` and `page[offset]` and preserve the filters. Navigation links are omitted when not applicable.",
+        "properties": {
+          "first": {
+            "description": "Link to the first page.",
+            "example": "https://api.datadoghq.com/api/v2/feature-flags?page%5Blimit%5D=25&page%5Boffset%5D=0",
+            "type": "string"
+          },
+          "last": {
+            "description": "Link to the last page.",
+            "example": "https://api.datadoghq.com/api/v2/feature-flags?page%5Blimit%5D=25&page%5Boffset%5D=75",
+            "type": "string"
+          },
+          "next": {
+            "description": "Link to the next page, when available.",
+            "example": "https://api.datadoghq.com/api/v2/feature-flags?page%5Blimit%5D=25&page%5Boffset%5D=25",
+            "type": "string"
+          },
+          "prev": {
+            "description": "Link to the previous page, when available.",
+            "example": "https://api.datadoghq.com/api/v2/feature-flags?page%5Blimit%5D=25&page%5Boffset%5D=0",
+            "type": "string"
+          },
+          "self": {
+            "description": "Link to the current page.",
+            "example": "https://api.datadoghq.com/api/v2/feature-flags?page%5Blimit%5D=25&page%5Boffset%5D=0",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "FeatureFlagsPaginationMeta": {
         "description": "Pagination metadata for feature flags.",
         "properties": {
@@ -66622,17 +66703,69 @@
       "FeatureFlagsPaginationMetaPage": {
         "description": "Pagination metadata for feature flags list responses.",
         "properties": {
+          "first_offset": {
+            "description": "Offset of the first page.",
+            "example": 0,
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_offset": {
+            "description": "Offset of the last page.",
+            "example": 75,
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "limit": {
+            "description": "Maximum number of flags returned on this page.",
+            "example": 25,
+            "format": "int64",
+            "type": "integer"
+          },
+          "next_offset": {
+            "description": "Offset of the next page, or null when there is no next page.",
+            "example": 25,
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "offset": {
+            "description": "Number of matching flags skipped before this page.",
+            "example": 0,
+            "format": "int64",
+            "type": "integer"
+          },
+          "prev_offset": {
+            "description": "Offset of the previous page, or null when there is no previous page.",
+            "example": 0,
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "total": {
+            "description": "Total number of flags matching the filters, independent of the page size.",
+            "example": 100,
+            "format": "int64",
+            "type": "integer"
+          },
           "total_count": {
-            "description": "Total number of items.",
+            "deprecated": true,
+            "description": "Legacy count field. Use `total` for the number of matching flags.",
             "example": 100,
             "format": "int64",
             "type": "integer"
           },
           "total_filtered_count": {
-            "description": "Total number of items matching the filter.",
+            "deprecated": true,
+            "description": "Legacy filtered count field. Use `total` for the number of matching flags.",
             "example": 25,
             "format": "int64",
             "type": "integer"
+          },
+          "type": {
+            "description": "The pagination method. Always `offset_limit`.",
+            "example": "offset_limit",
+            "type": "string"
           }
         },
         "type": "object"
@@ -86801,7 +86934,7 @@
             "type": "boolean"
           },
           "field_mappings": {
-            "description": "List of mappings between incident fields and case fields.",
+            "description": "List of mappings between incident fields and work item fields.",
             "items": {
               "$ref": "#/components/schemas/IntegrationIncidentFieldMappingsItems"
             },
@@ -86818,10 +86951,10 @@
         "type": "object"
       },
       "IntegrationIncidentFieldMappingsItems": {
-        "description": "Mapping between an incident user-defined field and a case field.",
+        "description": "Mapping between an incident user-defined field and a work item field.",
         "properties": {
           "case_field": {
-            "description": "The case field to map the incident field value to.",
+            "description": "The work item field to map the incident field value to.",
             "type": "string"
           },
           "incident_user_defined_field_id": {
@@ -86832,13 +86965,13 @@
         "type": "object"
       },
       "IntegrationIncidentSeverityConfig": {
-        "description": "Severity configuration for mapping incident priorities to case priorities.",
+        "description": "Severity configuration for mapping incident priorities to work item priorities.",
         "properties": {
           "priority_mapping": {
             "additionalProperties": {
               "type": "string"
             },
-            "description": "Mapping of incident severity values to case priority values.",
+            "description": "Mapping of incident severity values to work item priority values.",
             "type": "object"
           }
         },
@@ -86864,7 +86997,7 @@
         "type": "object"
       },
       "IntegrationJiraAutoCreation": {
-        "description": "Auto-creation settings for Jira issues from cases.",
+        "description": "Auto-creation settings for Jira issues from work items.",
         "properties": {
           "enabled": {
             "description": "Whether automatic Jira issue creation is enabled.",
@@ -86874,7 +87007,7 @@
         "type": "object"
       },
       "IntegrationJiraMetadata": {
-        "description": "Metadata for connecting a case management project to a Jira project.",
+        "description": "Metadata for connecting a Work Management project to a Jira project.",
         "properties": {
           "account_id": {
             "description": "The Jira account identifier.",
@@ -86885,7 +87018,7 @@
             "type": "string"
           },
           "project_id": {
-            "description": "The Jira project identifier to associate with this case project.",
+            "description": "The Jira project identifier to associate with this Work Management project.",
             "type": "string"
           }
         },
@@ -86984,7 +87117,7 @@
             "type": "boolean"
           },
           "case_type_id": {
-            "description": "Case type ID for monitor integration.",
+            "description": "Work item type ID for monitor integration.",
             "type": "string"
           },
           "enabled": {
@@ -87010,7 +87143,7 @@
             "type": "boolean"
           },
           "escalation_queries": {
-            "description": "List of escalation queries for routing cases to on-call responders.",
+            "description": "List of escalation queries for routing work items to on-call responders.",
             "items": {
               "$ref": "#/components/schemas/IntegrationOnCallEscalationQueriesItems"
             },
@@ -87020,7 +87153,7 @@
         "type": "object"
       },
       "IntegrationOnCallEscalationQueriesItems": {
-        "description": "An On-Call escalation query entry used to route cases to on-call responders.",
+        "description": "An On-Call escalation query entry used to route work items to on-call responders.",
         "properties": {
           "enabled": {
             "description": "Whether this escalation query is enabled.",
@@ -87031,7 +87164,7 @@
             "type": "string"
           },
           "query": {
-            "description": "The query used to match cases for escalation.",
+            "description": "The query used to match work items for escalation.",
             "type": "string"
           },
           "target": {
@@ -87083,7 +87216,7 @@
         "type": "object"
       },
       "IntegrationServiceNowAutoCreation": {
-        "description": "Auto-creation settings for ServiceNow incidents from cases.",
+        "description": "Auto-creation settings for ServiceNow incidents from work items.",
         "properties": {
           "enabled": {
             "description": "Whether automatic ServiceNow incident creation is enabled.",
@@ -87127,7 +87260,7 @@
             "additionalProperties": {
               "type": "string"
             },
-            "description": "Mapping of case priority values to ServiceNow impact values.",
+            "description": "Mapping of work item priority values to ServiceNow impact values.",
             "type": "object"
           },
           "sync_type": {
@@ -87138,7 +87271,7 @@
             "additionalProperties": {
               "type": "string"
             },
-            "description": "Mapping of case priority values to ServiceNow urgency values.",
+            "description": "Mapping of work item priority values to ServiceNow urgency values.",
             "type": "object"
           }
         },
@@ -89539,7 +89672,7 @@
         "type": "object"
       },
       "JiraIssue": {
-        "description": "Jira issue attached to case",
+        "description": "Jira issue attached to work item",
         "nullable": true,
         "properties": {
           "result": {
@@ -101138,6 +101271,9 @@
             },
             "type": "array"
           },
+          "links": {
+            "$ref": "#/components/schemas/FeatureFlagsPaginationLinks"
+          },
           "meta": {
             "$ref": "#/components/schemas/FeatureFlagsPaginationMeta"
           }
@@ -104528,7 +104664,7 @@
         "type": "object"
       },
       "MaintenanceWindow": {
-        "description": "A maintenance window that defines a scheduled time period during which case-related notifications and automation rules are suppressed. Each maintenance window applies to cases matching a specified query.",
+        "description": "A maintenance window that defines a scheduled time period during which notifications and automation rules related to work items are suppressed. Each maintenance window applies to work items matching a specified query.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/MaintenanceWindowAttributes"
@@ -104550,7 +104686,7 @@
         "type": "object"
       },
       "MaintenanceWindowAttributes": {
-        "description": "Attributes of a maintenance window, including its schedule and the query that determines which cases are affected.",
+        "description": "Attributes of a maintenance window, including its schedule and the query that determines which work items are affected.",
         "properties": {
           "created_by": {
             "description": "The UUID of the user who created this maintenance window. Read-only.",
@@ -104569,7 +104705,7 @@
             "type": "string"
           },
           "query": {
-            "description": "A case search query that determines which cases are affected during the maintenance window. Uses the same syntax as the Case Management search bar.",
+            "description": "A work item search query that determines which work items are affected during the maintenance window. Uses the same syntax as the Work Management search bar.",
             "example": "project:SEC",
             "type": "string"
           },
@@ -104624,7 +104760,7 @@
             "type": "string"
           },
           "query": {
-            "description": "The query to filter event management cases for this maintenance window.",
+            "description": "The query to filter event management work items for this maintenance window.",
             "example": "project:SEC",
             "type": "string"
           },
@@ -104707,7 +104843,7 @@
             "type": "string"
           },
           "query": {
-            "description": "The query to filter event management cases for this maintenance window.",
+            "description": "The query to filter event management work items for this maintenance window.",
             "type": "string"
           },
           "start_at": {
@@ -115982,6 +116118,12 @@
           },
           "enabled": {
             "description": "Indicates whether the processor is enabled.",
+            "example": true,
+            "type": "boolean"
+          },
+          "enabled_metric_aggregation": {
+            "default": true,
+            "description": "[Recommended] Indicates whether generated metrics are automatically aggregated and enriched with the `worker_uuid` tag before being sent to the metric destination.",
             "example": true,
             "type": "boolean"
           },
@@ -134370,9 +134512,9 @@
             "$ref": "#/components/schemas/ProjectColumnsConfig"
           },
           "enabled_custom_case_types": {
-            "description": "List of enabled custom case type IDs.",
+            "description": "List of enabled custom work item type IDs.",
             "items": {
-              "description": "A custom case type identifier.",
+              "description": "A custom work item type identifier.",
               "type": "string"
             },
             "type": "array"
@@ -134462,9 +134604,9 @@
         "description": "Project creation attributes.",
         "properties": {
           "enabled_custom_case_types": {
-            "description": "List of enabled custom case type IDs.",
+            "description": "List of enabled custom work item type IDs.",
             "items": {
-              "description": "A custom case type identifier.",
+              "description": "A custom work item type identifier.",
               "type": "string"
             },
             "type": "array"
@@ -134503,7 +134645,7 @@
         "type": "object"
       },
       "ProjectFavorite": {
-        "description": "Represents a case project that the current user has bookmarked for quick access. Favorited projects appear prominently in the Case Management UI.",
+        "description": "Represents a Work Management project that the current user has bookmarked for quick access. Favorited projects appear prominently in the Work Management UI.",
         "properties": {
           "id": {
             "description": "The UUID of the favorited project.",
@@ -134565,31 +134707,31 @@
             "type": "boolean"
           },
           "notify_on_case_assignment": {
-            "description": "Whether to send a notification when a case is assigned.",
+            "description": "Whether to send a notification when a work item is assigned.",
             "type": "boolean"
           },
           "notify_on_case_closed": {
-            "description": "Whether to send a notification when a case is closed.",
+            "description": "Whether to send a notification when a work item is closed.",
             "type": "boolean"
           },
           "notify_on_case_comment": {
-            "description": "Whether to send a notification when a comment is added to a case.",
+            "description": "Whether to send a notification when a comment is added to a work item.",
             "type": "boolean"
           },
           "notify_on_case_comment_mention": {
-            "description": "Whether to send a notification when a user is mentioned in a case comment.",
+            "description": "Whether to send a notification when a user is mentioned in a work item comment.",
             "type": "boolean"
           },
           "notify_on_case_priority_change": {
-            "description": "Whether to send a notification when a case's priority changes.",
+            "description": "Whether to send a notification when a work item's priority changes.",
             "type": "boolean"
           },
           "notify_on_case_status_change": {
-            "description": "Whether to send a notification when a case's status changes.",
+            "description": "Whether to send a notification when a work item's status changes.",
             "type": "boolean"
           },
           "notify_on_case_unassignment": {
-            "description": "Whether to send a notification when a case is unassigned.",
+            "description": "Whether to send a notification when a work item is unassigned.",
             "type": "boolean"
           }
         },
@@ -134710,9 +134852,9 @@
             "$ref": "#/components/schemas/ProjectColumnsConfig"
           },
           "enabled_custom_case_types": {
-            "description": "List of enabled custom case type IDs.",
+            "description": "List of enabled custom work item type IDs.",
             "items": {
-              "description": "A custom case type identifier.",
+              "description": "A custom work item type identifier.",
               "type": "string"
             },
             "type": "array"
@@ -161331,7 +161473,7 @@
         "type": "object"
       },
       "ServiceNowTicket": {
-        "description": "ServiceNow ticket attached to case",
+        "description": "ServiceNow ticket attached to work item",
         "nullable": true,
         "properties": {
           "result": {
@@ -180001,7 +180143,7 @@
         "type": "object"
       },
       "TimelineCell": {
-        "description": "Attributes of a timeline cell, representing a single event in a case's chronological activity log (for example, a comment, status change, or assignment update).",
+        "description": "Attributes of a timeline cell, representing a single event in a work item's chronological activity log (for example, a comment, status change, or assignment update).",
         "properties": {
           "author": {
             "$ref": "#/components/schemas/TimelineCellAuthor"
@@ -180105,7 +180247,7 @@
         "type": "object"
       },
       "TimelineCellResource": {
-        "description": "A timeline cell resource representing a single entry in a case's activity timeline.",
+        "description": "A timeline cell resource representing a single entry in a work item's activity timeline.",
         "properties": {
           "attributes": {
             "$ref": "#/components/schemas/TimelineCell"
@@ -180150,7 +180292,7 @@
         ]
       },
       "TimelineResponse": {
-        "description": "Response containing the chronological list of timeline cells for a case.",
+        "description": "Response containing the chronological list of timeline cells for a work item.",
         "properties": {
           "data": {
             "description": "The `TimelineResponse` `data`.",
@@ -194851,7 +194993,7 @@
         ],
         "summary": "Send AI tool user activity",
         "tags": [
-          "DORA Metrics"
+          "Delivery Performance"
         ],
         "x-codegen-request-body-name": "body"
       }
@@ -200631,7 +200773,7 @@
     },
     "/api/v2/cases": {
       "get": {
-        "description": "Search cases.",
+        "description": "Search work items.",
         "operationId": "SearchCases",
         "parameters": [
           {
@@ -200749,7 +200891,7 @@
         }
       },
       "post": {
-        "description": "Create a Case",
+        "description": "Create a work item",
         "operationId": "CreateCase",
         "requestBody": {
           "content": {
@@ -200788,7 +200930,7 @@
               }
             }
           },
-          "description": "Case payload",
+          "description": "Work item payload",
           "required": true
         },
         "responses": {
@@ -200863,7 +201005,7 @@
     },
     "/api/v2/cases/aggregate": {
       "post": {
-        "description": "Performs an aggregation query over cases, grouping results by specified fields and returning counts per group along with a total. Useful for dashboards and analytics.",
+        "description": "Performs an aggregation query over work items, grouping results by specified fields and returning counts per group along with a total. Useful for dashboards and analytics.",
         "operationId": "AggregateCases",
         "requestBody": {
           "content": {
@@ -200891,7 +201033,7 @@
               }
             }
           },
-          "description": "Case aggregate request payload.",
+          "description": "Work item aggregate request payload.",
           "required": true
         },
         "responses": {
@@ -200961,7 +201103,7 @@
     },
     "/api/v2/cases/bulk": {
       "post": {
-        "description": "Applies a single action (such as changing priority, status, assignment, or archiving) to multiple cases at once. The list of case IDs and the action type with its payload are specified in the request body.",
+        "description": "Applies a single action (such as changing priority, status, assignment, or archiving) to multiple work items at once. The list of work item IDs and the action type with its payload are specified in the request body.",
         "operationId": "BulkUpdateCases",
         "requestBody": {
           "content": {
@@ -200990,7 +201132,7 @@
               }
             }
           },
-          "description": "Case bulk update request payload.",
+          "description": "Work item bulk update request payload.",
           "required": true
         },
         "responses": {
@@ -201032,11 +201174,11 @@
     },
     "/api/v2/cases/count": {
       "get": {
-        "description": "Returns case counts, optionally grouped by one or more fields (for example, status, priority). Supports a query filter to narrow the scope.",
+        "description": "Returns work item counts, optionally grouped by one or more fields (for example, status, priority). Supports a query filter to narrow the scope.",
         "operationId": "CountCases",
         "parameters": [
           {
-            "description": "Filter query for cases.",
+            "description": "Filter query for work items.",
             "in": "query",
             "name": "query_filter",
             "required": false,
@@ -201134,11 +201276,11 @@
     },
     "/api/v2/cases/link": {
       "get": {
-        "description": "Returns all links associated with a case. Links define relationships (for example, BLOCKS) between cases. Requires entity_type and entity_id query parameters.",
+        "description": "Returns all links associated with a work item. Links define relationships (for example, BLOCKS) between work items. Requires entity_type and entity_id query parameters.",
         "operationId": "ListCaseLinks",
         "parameters": [
           {
-            "description": "The entity type to look up links for. Use `CASE` to find links for a specific case.",
+            "description": "The entity type to look up links for. Use `CASE` to find links for a specific work item.",
             "in": "query",
             "name": "entity_type",
             "required": true,
@@ -201231,7 +201373,7 @@
         ]
       },
       "post": {
-        "description": "Creates a directional link between two cases (for example, case A blocks case B). The parent and child cases and their relationship type must be specified.",
+        "description": "Creates a directional link between two work items (for example, work item A blocks work item B). The parent and child work items and their relationship type must be specified.",
         "operationId": "CreateCaseLink",
         "requestBody": {
           "content": {
@@ -201257,7 +201399,7 @@
               }
             }
           },
-          "description": "Case link create request.",
+          "description": "Work item link create request.",
           "required": true
         },
         "responses": {
@@ -201323,7 +201465,7 @@
     },
     "/api/v2/cases/link/{link_id}": {
       "delete": {
-        "description": "Deletes an existing link between cases by link ID.",
+        "description": "Deletes an existing link between work items by link ID.",
         "operationId": "DeleteCaseLink",
         "parameters": [
           {
@@ -201517,7 +201659,7 @@
     },
     "/api/v2/cases/projects/favorites": {
       "get": {
-        "description": "Returns the list of case projects that the current authenticated user has marked as favorites.",
+        "description": "Returns the list of Work Management projects that the current authenticated user has marked as favorites.",
         "operationId": "ListUserCaseProjectFavorites",
         "responses": {
           "200": {
@@ -201774,7 +201916,7 @@
     },
     "/api/v2/cases/projects/{project_id}/favorites": {
       "delete": {
-        "description": "Removes a case project from the current user's favorites list.",
+        "description": "Removes a Work Management project from the current user's favorites list.",
         "operationId": "UnfavoriteCaseProject",
         "parameters": [
           {
@@ -201818,7 +201960,7 @@
         ]
       },
       "post": {
-        "description": "Marks a case project as a favorite for the current authenticated user.",
+        "description": "Marks a Work Management project as a favorite for the current authenticated user.",
         "operationId": "FavoriteCaseProject",
         "parameters": [
           {
@@ -202215,7 +202357,7 @@
     },
     "/api/v2/cases/projects/{project_id}/rules": {
       "get": {
-        "description": "Returns all automation rules configured for a project. Automation rules allow automatic actions to be triggered by case events like creation, status transitions, or attribute changes.",
+        "description": "Returns all automation rules configured for a project. Automation rules allow automatic actions to be triggered by work item events like creation, status transitions, or attribute changes.",
         "operationId": "ListCaseAutomationRules",
         "parameters": [
           {
@@ -202299,7 +202441,7 @@
         ]
       },
       "post": {
-        "description": "Creates an automation rule for a project. The rule defines a trigger event (for example, case created, status transitioned) and an action to execute.",
+        "description": "Creates an automation rule for a project. The rule defines a trigger event (for example, work item created, status transitioned) and an action to execute.",
         "operationId": "CreateCaseAutomationRule",
         "parameters": [
           {
@@ -202669,7 +202811,7 @@
     },
     "/api/v2/cases/projects/{project_id}/rules/{rule_id}/disable": {
       "post": {
-        "description": "Disables an automation rule so it no longer triggers on case events. The rule configuration is preserved.",
+        "description": "Disables an automation rule so it no longer triggers on work item events. The rule configuration is preserved.",
         "operationId": "DisableCaseAutomationRule",
         "parameters": [
           {
@@ -202756,7 +202898,7 @@
     },
     "/api/v2/cases/projects/{project_id}/rules/{rule_id}/enable": {
       "post": {
-        "description": "Enables a previously disabled automation rule so it triggers on matching case events.",
+        "description": "Enables a previously disabled automation rule so it triggers on matching work item events.",
         "operationId": "EnableCaseAutomationRule",
         "parameters": [
           {
@@ -202843,7 +202985,7 @@
     },
     "/api/v2/cases/types": {
       "get": {
-        "description": "Get all case types",
+        "description": "Get all work item types",
         "operationId": "GetAllCaseTypes",
         "responses": {
           "200": {
@@ -202889,7 +203031,7 @@
         ]
       },
       "post": {
-        "description": "Create a Case Type",
+        "description": "Create a work item type.",
         "operationId": "CreateCaseType",
         "requestBody": {
           "content": {
@@ -202913,7 +203055,7 @@
               }
             }
           },
-          "description": "Case type payload",
+          "description": "Work item type payload",
           "required": true
         },
         "responses": {
@@ -203014,7 +203156,7 @@
     },
     "/api/v2/cases/types/{case_type_id}": {
       "delete": {
-        "description": "Delete a case type",
+        "description": "Delete a work item type",
         "operationId": "DeleteCaseType",
         "parameters": [
           {
@@ -203041,7 +203183,7 @@
         ]
       },
       "put": {
-        "description": "Updates the name, emoji, or description of an existing case type.",
+        "description": "Updates the name, emoji, or description of an existing work item type.",
         "operationId": "UpdateCaseType",
         "parameters": [
           {
@@ -203070,7 +203212,7 @@
               }
             }
           },
-          "description": "Case type payload.",
+          "description": "Work item type payload.",
           "required": true
         },
         "responses": {
@@ -203134,7 +203276,7 @@
     },
     "/api/v2/cases/types/{case_type_id}/custom_attributes": {
       "get": {
-        "description": "Get all custom attribute config of case type",
+        "description": "Get custom attribute configurations for a work item type.",
         "operationId": "GetAllCustomAttributeConfigsByCaseType",
         "parameters": [
           {
@@ -203191,7 +203333,7 @@
         ]
       },
       "post": {
-        "description": "Create custom attribute config for a case type",
+        "description": "Create a custom attribute configuration for a work item type.",
         "operationId": "CreateCustomAttributeConfig",
         "parameters": [
           {
@@ -203311,7 +203453,7 @@
         ]
       },
       "put": {
-        "description": "Updates the display name, description, type, or options of an existing custom attribute configuration for a case type.",
+        "description": "Updates the display name, description, type, or options of an existing custom attribute configuration for a work item type.",
         "operationId": "UpdateCustomAttributeConfig",
         "parameters": [
           {
@@ -203409,7 +203551,7 @@
     },
     "/api/v2/cases/views": {
       "get": {
-        "description": "Returns all saved case views for a given project. Views are saved search queries that allow quick access to filtered lists of cases.",
+        "description": "Returns all saved work item views for a given project. Views are saved search queries that allow quick access to filtered lists of work items.",
         "operationId": "ListCaseViews",
         "parameters": [
           {
@@ -203484,7 +203626,7 @@
         ]
       },
       "post": {
-        "description": "Creates a new saved case view with a name, filter query, and associated project. Optionally, a notification rule can be linked to the view.",
+        "description": "Creates a new saved work item view with a name, filter query, and associated project. Optionally, a notification rule can be linked to the view.",
         "operationId": "CreateCaseView",
         "requestBody": {
           "content": {
@@ -203508,7 +203650,7 @@
               }
             }
           },
-          "description": "Case view payload.",
+          "description": "Work item view payload.",
           "required": true
         },
         "responses": {
@@ -203572,7 +203714,7 @@
     },
     "/api/v2/cases/views/{view_id}": {
       "delete": {
-        "description": "Permanently deletes a saved case view.",
+        "description": "Permanently deletes a saved work item view.",
         "operationId": "DeleteCaseView",
         "parameters": [
           {
@@ -203616,7 +203758,7 @@
         ]
       },
       "get": {
-        "description": "Returns a single saved case view identified by its UUID, including its query, associated project, and timestamps.",
+        "description": "Returns a single saved work item view identified by its UUID, including its query, associated project, and timestamps.",
         "operationId": "GetCaseView",
         "parameters": [
           {
@@ -203682,7 +203824,7 @@
         ]
       },
       "put": {
-        "description": "Updates the name, query, or notification rule of an existing case view.",
+        "description": "Updates the name, query, or notification rule of an existing work item view.",
         "operationId": "UpdateCaseView",
         "parameters": [
           {
@@ -203709,7 +203851,7 @@
               }
             }
           },
-          "description": "Case view payload.",
+          "description": "Work item view payload.",
           "required": true
         },
         "responses": {
@@ -203773,7 +203915,7 @@
     },
     "/api/v2/cases/{case_id}": {
       "get": {
-        "description": "Get the details of case by `case_id`",
+        "description": "Get the details of a work item by `case_id`.",
         "operationId": "GetCase",
         "parameters": [
           {
@@ -203852,7 +203994,7 @@
     },
     "/api/v2/cases/{case_id}/archive": {
       "post": {
-        "description": "Archive case",
+        "description": "Archive work item",
         "operationId": "ArchiveCase",
         "parameters": [
           {
@@ -203876,7 +204018,7 @@
               }
             }
           },
-          "description": "Archive case payload",
+          "description": "Archive work item payload",
           "required": true
         },
         "responses": {
@@ -203951,7 +204093,7 @@
     },
     "/api/v2/cases/{case_id}/assign": {
       "post": {
-        "description": "Assign case to a user",
+        "description": "Assign work item to a user",
         "operationId": "AssignCase",
         "parameters": [
           {
@@ -203978,7 +204120,7 @@
               }
             }
           },
-          "description": "Assign case payload",
+          "description": "Assign work item payload",
           "required": true
         },
         "responses": {
@@ -204053,7 +204195,7 @@
     },
     "/api/v2/cases/{case_id}/attributes": {
       "post": {
-        "description": "Update case attributes",
+        "description": "Update work item attributes",
         "operationId": "UpdateAttributes",
         "parameters": [
           {
@@ -204091,7 +204233,7 @@
               }
             }
           },
-          "description": "Case attributes update payload",
+          "description": "Work item attributes update payload",
           "required": true
         },
         "responses": {
@@ -204166,7 +204308,7 @@
     },
     "/api/v2/cases/{case_id}/comment": {
       "post": {
-        "description": "Comment case",
+        "description": "Add a comment to a work item.",
         "operationId": "CommentCase",
         "parameters": [
           {
@@ -204193,7 +204335,7 @@
               }
             }
           },
-          "description": "Case comment payload",
+          "description": "Work item comment payload",
           "required": true
         },
         "responses": {
@@ -204250,7 +204392,7 @@
     },
     "/api/v2/cases/{case_id}/comment/{cell_id}": {
       "delete": {
-        "description": "Delete case comment",
+        "description": "Delete work item comment",
         "operationId": "DeleteCaseComment",
         "parameters": [
           {
@@ -204286,7 +204428,7 @@
         ]
       },
       "put": {
-        "description": "Updates the text content of an existing comment on a case timeline. The comment is identified by its cell ID.",
+        "description": "Updates the text content of an existing comment on a work item timeline. The comment is identified by its cell ID.",
         "operationId": "UpdateCaseComment",
         "parameters": [
           {
@@ -204316,7 +204458,7 @@
               }
             }
           },
-          "description": "Case update comment payload.",
+          "description": "Work item update comment payload.",
           "required": true
         },
         "responses": {
@@ -204358,7 +204500,7 @@
     },
     "/api/v2/cases/{case_id}/custom_attributes/{custom_attribute_key}": {
       "delete": {
-        "description": "Delete custom attribute from case",
+        "description": "Delete custom attribute from work item",
         "operationId": "DeleteCaseCustomAttribute",
         "parameters": [
           {
@@ -204435,7 +204577,7 @@
         ]
       },
       "post": {
-        "description": "Update case custom attribute",
+        "description": "Update work item custom attribute",
         "operationId": "UpdateCaseCustomAttribute",
         "parameters": [
           {
@@ -204467,7 +204609,7 @@
               }
             }
           },
-          "description": "Update case custom attribute payload",
+          "description": "Update work item custom attribute payload",
           "required": true
         },
         "responses": {
@@ -204542,7 +204684,7 @@
     },
     "/api/v2/cases/{case_id}/description": {
       "post": {
-        "description": "Update case description",
+        "description": "Update work item description",
         "operationId": "UpdateCaseDescription",
         "parameters": [
           {
@@ -204569,7 +204711,7 @@
               }
             }
           },
-          "description": "Case description update payload",
+          "description": "Work item description update payload",
           "required": true
         },
         "responses": {
@@ -204644,7 +204786,7 @@
     },
     "/api/v2/cases/{case_id}/due_date": {
       "post": {
-        "description": "Sets or updates the due date for a case. The due date is a calendar date (without a time component) indicating when the case should be resolved.",
+        "description": "Sets or updates the due date for a work item. The due date is a calendar date (without a time component) indicating when the work item should be resolved.",
         "operationId": "UpdateCaseDueDate",
         "parameters": [
           {
@@ -204671,7 +204813,7 @@
               }
             }
           },
-          "description": "Case due date update payload.",
+          "description": "Work item due date update payload.",
           "required": true
         },
         "responses": {
@@ -204746,7 +204888,7 @@
     },
     "/api/v2/cases/{case_id}/insights": {
       "delete": {
-        "description": "Removes one or more previously added insights from a case by specifying their type and resource identifier in the request body.",
+        "description": "Removes one or more previously added insights from a work item by specifying their type and resource identifier in the request body.",
         "operationId": "RemoveCaseInsights",
         "parameters": [
           {
@@ -204779,7 +204921,7 @@
               }
             }
           },
-          "description": "Case insights request.",
+          "description": "Work item insights request.",
           "required": true
         },
         "responses": {
@@ -204880,7 +205022,7 @@
         ]
       },
       "put": {
-        "description": "Adds one or more insights to a case. Insights are references to related Datadog resources (such as monitors, security signals, incidents, or error tracking issues) that provide investigative context. Up to 100 insights can be added per request. Each insight requires a type (see `CaseInsightType` for allowed values), a ref (URL path to the resource), and a resource_id.",
+        "description": "Adds one or more insights to a work item. Insights are references to related Datadog resources (such as monitors, security signals, incidents, or error tracking issues) that provide investigative context. Up to 100 insights can be added per request. Each insight requires a type (see `CaseInsightType` for allowed values), a ref (URL path to the resource), and a resource_id.",
         "operationId": "AddCaseInsights",
         "parameters": [
           {
@@ -204913,7 +205055,7 @@
               }
             }
           },
-          "description": "Case insights request.",
+          "description": "Work item insights request.",
           "required": true
         },
         "responses": {
@@ -205016,7 +205158,7 @@
     },
     "/api/v2/cases/{case_id}/priority": {
       "post": {
-        "description": "Update case priority",
+        "description": "Update work item priority",
         "operationId": "UpdatePriority",
         "parameters": [
           {
@@ -205043,7 +205185,7 @@
               }
             }
           },
-          "description": "Case priority update payload",
+          "description": "Work item priority update payload",
           "required": true
         },
         "responses": {
@@ -205118,7 +205260,7 @@
     },
     "/api/v2/cases/{case_id}/relationships/incidents": {
       "post": {
-        "description": "Link an incident to a case",
+        "description": "Link an incident to a work item",
         "operationId": "LinkIncident",
         "parameters": [
           {
@@ -205236,7 +205378,7 @@
     },
     "/api/v2/cases/{case_id}/relationships/jira_issues": {
       "delete": {
-        "description": "Remove the link between a Jira issue and a case",
+        "description": "Remove the link between a Jira issue and a work item",
         "operationId": "UnlinkJiraIssue",
         "parameters": [
           {
@@ -205308,7 +205450,7 @@
         ]
       },
       "patch": {
-        "description": "Link an existing Jira issue to a case",
+        "description": "Link an existing Jira issue to a work item",
         "operationId": "LinkJiraIssueToCase",
         "parameters": [
           {
@@ -205413,7 +205555,7 @@
         ]
       },
       "post": {
-        "description": "Create a new Jira issue and link it to a case",
+        "description": "Create a new Jira issue and link it to a work item",
         "operationId": "CreateCaseJiraIssue",
         "parameters": [
           {
@@ -205513,7 +205655,7 @@
     },
     "/api/v2/cases/{case_id}/relationships/notebook": {
       "post": {
-        "description": "Create a new investigation notebook and link it to a case",
+        "description": "Create a new investigation notebook and link it to a work item",
         "operationId": "CreateCaseNotebook",
         "parameters": [
           {
@@ -205607,7 +205749,7 @@
     },
     "/api/v2/cases/{case_id}/relationships/project": {
       "patch": {
-        "description": "Update the project associated with a case",
+        "description": "Update the project associated with a work item",
         "operationId": "MoveCaseToProject",
         "parameters": [
           {
@@ -205725,7 +205867,7 @@
     },
     "/api/v2/cases/{case_id}/relationships/servicenow_tickets": {
       "post": {
-        "description": "Create a new ServiceNow incident ticket and link it to a case",
+        "description": "Create a new ServiceNow incident ticket and link it to a work item",
         "operationId": "CreateCaseServiceNowTicket",
         "parameters": [
           {
@@ -205823,7 +205965,7 @@
     },
     "/api/v2/cases/{case_id}/resolved_reason": {
       "post": {
-        "description": "Sets the resolved reason for a security case (for example, FALSE_POSITIVE, TRUE_POSITIVE). Applicable to security-type cases.",
+        "description": "Sets the resolved reason for a security work item (for example, FALSE_POSITIVE, TRUE_POSITIVE). Applicable to security-type work items.",
         "operationId": "UpdateCaseResolvedReason",
         "parameters": [
           {
@@ -205850,7 +205992,7 @@
               }
             }
           },
-          "description": "Case resolved reason update payload.",
+          "description": "Work item resolved reason update payload.",
           "required": true
         },
         "responses": {
@@ -205925,7 +206067,7 @@
     },
     "/api/v2/cases/{case_id}/status": {
       "post": {
-        "description": "Update case status",
+        "description": "Update work item status",
         "operationId": "UpdateStatus",
         "parameters": [
           {
@@ -205953,7 +206095,7 @@
               }
             }
           },
-          "description": "Case status update payload",
+          "description": "Work item status update payload",
           "required": true
         },
         "responses": {
@@ -206028,7 +206170,7 @@
     },
     "/api/v2/cases/{case_id}/timelines": {
       "get": {
-        "description": "Returns the timeline of events for a case, including comments, status changes, and other activity. Supports pagination and sort order.",
+        "description": "Returns the timeline of events for a work item, including comments, status changes, and other activity. Supports pagination and sort order.",
         "operationId": "ListCaseTimeline",
         "parameters": [
           {
@@ -206132,7 +206274,7 @@
     },
     "/api/v2/cases/{case_id}/title": {
       "post": {
-        "description": "Update case title",
+        "description": "Update work item title",
         "operationId": "UpdateCaseTitle",
         "parameters": [
           {
@@ -206159,7 +206301,7 @@
               }
             }
           },
-          "description": "Case title update payload",
+          "description": "Work item title update payload",
           "required": true
         },
         "responses": {
@@ -206234,7 +206376,7 @@
     },
     "/api/v2/cases/{case_id}/unarchive": {
       "post": {
-        "description": "Unarchive case",
+        "description": "Unarchive work item",
         "operationId": "UnarchiveCase",
         "parameters": [
           {
@@ -206258,7 +206400,7 @@
               }
             }
           },
-          "description": "Unarchive case payload",
+          "description": "Unarchive work item payload",
           "required": true
         },
         "responses": {
@@ -206333,7 +206475,7 @@
     },
     "/api/v2/cases/{case_id}/unassign": {
       "post": {
-        "description": "Unassign case",
+        "description": "Unassign work item",
         "operationId": "UnassignCase",
         "parameters": [
           {
@@ -206357,7 +206499,7 @@
               }
             }
           },
-          "description": "Unassign case payload",
+          "description": "Unassign work item payload",
           "required": true
         },
         "responses": {
@@ -206432,7 +206574,7 @@
     },
     "/api/v2/cases/{case_id}/watchers": {
       "get": {
-        "description": "Returns the list of users who are watching a case. Watchers receive notifications about updates to the case.",
+        "description": "Returns the list of users who are watching a work item. Watchers receive notifications about updates to the work item.",
         "operationId": "ListCaseWatchers",
         "parameters": [
           {
@@ -206505,7 +206647,7 @@
     },
     "/api/v2/cases/{case_id}/watchers/{user_uuid}": {
       "delete": {
-        "description": "Removes a user from the watchers list of a case. The user no longer receives notifications about updates to the case.",
+        "description": "Removes a user from the watchers list of a work item. The user no longer receives notifications about updates to the work item.",
         "operationId": "UnwatchCase",
         "parameters": [
           {
@@ -206552,7 +206694,7 @@
         ]
       },
       "post": {
-        "description": "Adds a user (identified by their UUID) as a watcher of a case. The user receives notifications about subsequent updates to the case.",
+        "description": "Adds a user (identified by their UUID) as a watcher of a work item. The user receives notifications about subsequent updates to the work item.",
         "operationId": "WatchCase",
         "parameters": [
           {
@@ -227879,7 +228021,7 @@
         ],
         "summary": "Send a deployment event",
         "tags": [
-          "DORA Metrics"
+          "Delivery Performance"
         ],
         "x-codegen-request-body-name": "body"
       }
@@ -227931,7 +228073,7 @@
         ],
         "summary": "Delete a deployment event",
         "tags": [
-          "DORA Metrics"
+          "Delivery Performance"
         ],
         "x-permission": {
           "operator": "OR",
@@ -228002,7 +228144,7 @@
         ],
         "summary": "Mark a deployment as failed by version",
         "tags": [
-          "DORA Metrics"
+          "Delivery Performance"
         ],
         "x-codegen-request-body-name": "body",
         "x-permission": {
@@ -228099,7 +228241,7 @@
         ],
         "summary": "Get a list of deployment events",
         "tags": [
-          "DORA Metrics"
+          "Delivery Performance"
         ],
         "x-codegen-request-body-name": "body",
         "x-permission": {
@@ -228181,7 +228323,7 @@
         ],
         "summary": "Get a deployment event",
         "tags": [
-          "DORA Metrics"
+          "Delivery Performance"
         ],
         "x-codegen-request-body-name": "body",
         "x-permission": {
@@ -228264,7 +228406,7 @@
         ],
         "summary": "Mark a deployment as failed by ID",
         "tags": [
-          "DORA Metrics"
+          "Delivery Performance"
         ],
         "x-codegen-request-body-name": "body",
         "x-permission": {
@@ -228382,7 +228524,7 @@
         ],
         "summary": "Send an incident event",
         "tags": [
-          "DORA Metrics"
+          "Delivery Performance"
         ],
         "x-codegen-request-body-name": "body"
       }
@@ -228434,7 +228576,7 @@
         ],
         "summary": "Delete an incident event",
         "tags": [
-          "DORA Metrics"
+          "Delivery Performance"
         ],
         "x-permission": {
           "operator": "OR",
@@ -228535,7 +228677,7 @@
         ],
         "summary": "Get a list of incident events",
         "tags": [
-          "DORA Metrics"
+          "Delivery Performance"
         ],
         "x-codegen-request-body-name": "body",
         "x-permission": {
@@ -228620,7 +228762,7 @@
         ],
         "summary": "Get an incident event",
         "tags": [
-          "DORA Metrics"
+          "Delivery Performance"
         ],
         "x-codegen-request-body-name": "body",
         "x-permission": {
@@ -228739,7 +228881,7 @@
         ],
         "summary": "Send an incident event (legacy)",
         "tags": [
-          "DORA Metrics"
+          "Delivery Performance"
         ],
         "x-codegen-request-body-name": "body"
       }
@@ -237433,12 +237575,12 @@
     },
     "/api/v2/feature-flags": {
       "get": {
-        "description": "Returns a list of feature flags for the organization.\nSupports filtering by key and archived status.",
+        "description": "Returns a paginated list of feature flags for the organization.\nSupports filtering by key, tags, teams, SDK availability, production status, and other flag properties.\nUse `page[limit]` and `page[offset]` to paginate, or follow the `next` link in the response.",
         "operationId": "ListFeatureFlags",
         "parameters": [
           {
-            "description": "Filter feature flags by key (partial matching).",
-            "example": "flag-search-term",
+            "description": "Filter feature flags by an exact, case-sensitive key. Use `search` for partial matching.",
+            "example": "example-feature-flag",
             "in": "query",
             "name": "key",
             "schema": {
@@ -237446,7 +237588,7 @@
             }
           },
           {
-            "description": "Filter by archived status.",
+            "description": "Filter by archived status. If `true`, return only archived flags. If `false`, return only flags that are not archived. If omitted, return both.",
             "example": false,
             "in": "query",
             "name": "is_archived",
@@ -237455,7 +237597,7 @@
             }
           },
           {
-            "description": "Maximum number of results to return.",
+            "description": "Deprecated alias for `page[limit]`. Use `page[limit]` for new requests. Used only when `page[limit]` is absent. When both parameters are omitted, the server defaults to `25`. Values that exceed `50` are set to `50`; non-positive or empty values use the server default.",
             "example": 10,
             "in": "query",
             "name": "limit",
@@ -237468,10 +237610,183 @@
             }
           },
           {
-            "description": "Number of results to skip.",
+            "description": "Deprecated alias for `page[offset]`. Used only when `page[offset]` is absent. Defaults to `0`. Negative or empty values are set to `0`.",
             "example": 0,
             "in": "query",
             "name": "offset",
+            "schema": {
+              "default": 0,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Filter by exact tag values using repeated parameters, such as `tags=env:prod&tags=purpose:sitemap`. A flag must have all ordinary tags. Values of the form `team:<handle>` match any selected team and are combined with `teams` into one set. The result must match all ordinary tags, any selected team, and all other filters. Empty values are ignored.",
+            "example": [
+              "env:prod",
+              "purpose:sitemap"
+            ],
+            "explode": true,
+            "in": "query",
+            "name": "tags",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Filter by team handles without the `team:` prefix. Use repeated parameters to filter by multiple team handles, such as `teams=checkout&teams=payments`. A flag must belong to at least one selected team. Team handles from `teams` and `team:<handle>` values from tags are treated as a single set and combined with ordinary tags and other filters using AND logic. Duplicate handles do not duplicate results. Unknown handles do not match any flags. Empty handles, surrounding white space, or using the `team:` prefix return a bad request error. Response tags are unchanged.",
+            "example": [
+              "checkout",
+              "payments"
+            ],
+            "explode": true,
+            "in": "query",
+            "name": "teams",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Filter by status across production environments. Use repeated parameters to match any selected status. `ENABLED` matches at least one enabled production environment without a variant override. `OVERRIDDEN` matches at least one enabled production environment with a variant override. `DISABLED` matches flags whose associated production environments are all disabled. A flag can match both `ENABLED` and `OVERRIDDEN` in different environments. Flags without associated production environments do not match. This does not filter by a specific environment. Unknown values do not match any status.",
+            "example": [
+              "ENABLED",
+              "OVERRIDDEN"
+            ],
+            "explode": true,
+            "in": "query",
+            "name": "production_status",
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/FeatureFlagProductionStatus"
+              },
+              "type": "array"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Filter by SDK availability. `CLIENT` returns flags with channel `CLIENT` or `ALL`. `SERVER` returns flags with channel `SERVER` or `ALL`. `ALL`, an empty value, or omission applies no channel restriction; it does not select only flags whose channel is `ALL`. Values are case-insensitive and surrounding white space is ignored. Invalid values return a bad request error.",
+            "example": "CLIENT",
+            "in": "query",
+            "name": "distribution_channel",
+            "schema": {
+              "$ref": "#/components/schemas/FeatureFlagDistributionChannel"
+            }
+          },
+          {
+            "description": "Case-insensitive substring search on flag names, keys, and tag names. Combined with all other filters. An empty value applies no search restriction.",
+            "example": "checkout",
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by variant value types using repeated parameters. A flag must match at least one selected type. Empty values are ignored. Invalid types return a bad request error.",
+            "example": [
+              "BOOLEAN",
+              "STRING"
+            ],
+            "explode": true,
+            "in": "query",
+            "name": "value_type",
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/ValueType"
+              },
+              "type": "array"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Filter by creator UUIDs using repeated parameters. A flag must match at least one creator. Empty values are ignored. Invalid UUIDs return a bad request error.",
+            "example": [
+              "550e8400-e29b-41d4-a716-446655440010"
+            ],
+            "explode": true,
+            "in": "query",
+            "name": "created_by",
+            "schema": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Filter by feature flag UUIDs using repeated parameters. A flag must match at least one ID and all other filters. Duplicate IDs return each flag once. Unknown IDs and IDs from other organizations do not match any flags. Empty or invalid UUIDs return a bad request error. Pagination still applies.",
+            "example": [
+              "550e8400-e29b-41d4-a716-446655440000"
+            ],
+            "explode": true,
+            "in": "query",
+            "name": "flag_ids",
+            "schema": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Filter by the computed staleness status: `ACTIVE`, `STALE`, or `PERMANENT`. Values are case-insensitive and surrounding white space is ignored. An empty value or omission applies no restriction. Invalid values return a bad request error. Read the computed result from `staleness_details.staleness_status`, not the legacy `staleness_status` response field.",
+            "example": "STALE",
+            "in": "query",
+            "name": "staleness_status",
+            "schema": {
+              "$ref": "#/components/schemas/FeatureFlagStalenessStatus"
+            }
+          },
+          {
+            "description": "Filter to flags that reference this saved filter in their targeting conditions. An empty value or omission applies no restriction. An invalid UUID returns a bad request error.",
+            "example": "550e8400-e29b-41d4-a716-446655440020",
+            "in": "query",
+            "name": "saved_filter_id",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sort by `name`, `updated_at`, `created_at`, or `evaluations`. Use a comma-separated list for multiple sort fields and prefix a field with `-` for descending order. The default is `updated_at` descending. When favorites are enabled, the authenticated user's favorite flags take precedence over the selected ordering. Unknown fields return a bad request error.",
+            "example": "-updated_at",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Maximum number of flags to return. Defaults to `25` and is capped at `50`. Values that exceed `50` are set to `50`. Non-positive or empty values use the default. A non-integer value returns a bad request error. Takes precedence over `limit` when both are present. Pagination applies even when no pagination parameters are supplied.",
+            "example": 25,
+            "in": "query",
+            "name": "page[limit]",
+            "schema": {
+              "default": 25,
+              "format": "int64",
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Number of matching flags to skip before returning results. Defaults to `0`. Negative or empty values are set to `0`. A non-integer value returns a bad request error. Takes precedence over `offset` when both are present.",
+            "example": 0,
+            "in": "query",
+            "name": "page[offset]",
             "schema": {
               "default": 0,
               "format": "int64",
@@ -237487,7 +237802,24 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "data": []
+                      "data": [],
+                      "links": {
+                        "first": "https://api.datadoghq.com/api/v2/feature-flags?page%5Blimit%5D=25&page%5Boffset%5D=0",
+                        "last": "https://api.datadoghq.com/api/v2/feature-flags?page%5Blimit%5D=25&page%5Boffset%5D=0",
+                        "self": "https://api.datadoghq.com/api/v2/feature-flags?page%5Blimit%5D=25&page%5Boffset%5D=0"
+                      },
+                      "meta": {
+                        "page": {
+                          "first_offset": 0,
+                          "last_offset": 0,
+                          "limit": 25,
+                          "next_offset": null,
+                          "offset": 0,
+                          "prev_offset": null,
+                          "total": 0,
+                          "type": "offset_limit"
+                        }
+                      }
                     }
                   }
                 },
@@ -237497,6 +237829,16 @@
               }
             },
             "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
           },
           "403": {
             "content": {
@@ -277471,7 +277813,7 @@
     },
     "/api/v2/maintenance_windows": {
       "get": {
-        "description": "Returns all configured maintenance windows for event management cases. Maintenance windows define time periods during which case notifications and automation rules are suppressed for cases matching a given query.",
+        "description": "Returns all configured maintenance windows for event management work items. Maintenance windows define time periods during which work item notifications and automation rules are suppressed for work items matching a given query.",
         "operationId": "ListMaintenanceWindows",
         "responses": {
           "200": {
@@ -277535,7 +277877,7 @@
         ]
       },
       "post": {
-        "description": "Creates a maintenance window for event management cases with a name, case filter query, and time range (start and end).",
+        "description": "Creates a maintenance window for event management work items with a name, work item filter query, and time range (start and end).",
         "operationId": "CreateMaintenanceWindow",
         "requestBody": {
           "content": {
@@ -307111,6 +307453,45 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "application_id": "abc12345-1234-5678-abcd-ef1234567890",
+                        "category": "conversion",
+                        "description": "Tracks users completing the checkout flow.",
+                        "display_name": "Checkout completed",
+                        "journey_rum": {
+                          "rum_steps": [
+                            {
+                              "nodes": [
+                                {
+                                  "query": "@type:action @action.type:click @action.target.name:\"Checkout\""
+                                }
+                              ],
+                              "type": "start"
+                            },
+                            {
+                              "nodes": [
+                                {
+                                  "query": "@type:action @action.type:click @action.target.name:\"Confirm order\""
+                                }
+                              ],
+                              "type": "stop"
+                            }
+                          ]
+                        },
+                        "name": "checkout_completed",
+                        "tags": [
+                          "team:checkout"
+                        ]
+                      },
+                      "type": "operations"
+                    }
+                  }
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/RUMOperationCreateRequest"
               }
@@ -307211,8 +307592,7 @@
         "summary": "Create a RUM operation",
         "tags": [
           "RUM Operations"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        ]
       }
     },
     "/api/v2/rum/operations/by-name/{name}": {
@@ -307323,8 +307703,7 @@
         "summary": "Get a RUM operation by name",
         "tags": [
           "RUM Operations"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        ]
       }
     },
     "/api/v2/rum/operations/search": {
@@ -307505,8 +307884,7 @@
         "summary": "Search RUM operations",
         "tags": [
           "RUM Operations"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        ]
       }
     },
     "/api/v2/rum/operations/strong_links": {
@@ -307622,6 +308000,24 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "description": "Confirmed link between checkout_completed and journey-123.",
+                        "feature_id": "journey-123",
+                        "operation_id": "abc12345-1234-5678-abcd-ef1234567890",
+                        "status": "CONFIRMED",
+                        "tags": [
+                          "team:checkout"
+                        ]
+                      },
+                      "type": "strong_links"
+                    }
+                  }
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/RUMOperationStrongLinkCreateRequest"
               }
@@ -307698,8 +308094,7 @@
         "summary": "Create a RUM operation link",
         "tags": [
           "RUM Operations"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        ]
       }
     },
     "/api/v2/rum/operations/strong_links/{rum_operation_id}/{feature_id}": {
@@ -307747,8 +308142,7 @@
         "summary": "Delete a RUM operation link",
         "tags": [
           "RUM Operations"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        ]
       },
       "put": {
         "description": "Update the status of a link between a RUM operation and a journey.",
@@ -307776,6 +308170,18 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "status": "CONFIRMED"
+                      },
+                      "type": "strong_links"
+                    }
+                  }
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/RUMOperationStrongLinkUpdateRequest"
               }
@@ -307842,8 +308248,7 @@
         "summary": "Update a RUM operation link",
         "tags": [
           "RUM Operations"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        ]
       }
     },
     "/api/v2/rum/operations/{rum_operation_id}": {
@@ -307882,8 +308287,7 @@
         "summary": "Delete a RUM operation",
         "tags": [
           "RUM Operations"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        ]
       },
       "get": {
         "description": "Retrieve a specific RUM operation by its unique identifier.",
@@ -307982,8 +308386,7 @@
         "summary": "Get a RUM operation",
         "tags": [
           "RUM Operations"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        ]
       },
       "put": {
         "description": "Update an existing RUM operation. Fields omitted from the request body keep their existing value,\nwith the exception of `journey_rum`, which is required and fully replaced on every update.",
@@ -308002,6 +308405,46 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "application_id": "abc12345-1234-5678-abcd-ef1234567890",
+                        "category": "conversion",
+                        "description": "Tracks users completing the checkout flow.",
+                        "display_name": "Checkout completed",
+                        "journey_rum": {
+                          "rum_steps": [
+                            {
+                              "nodes": [
+                                {
+                                  "query": "@type:action @action.type:click @action.target.name:\"Checkout\""
+                                }
+                              ],
+                              "type": "start"
+                            },
+                            {
+                              "nodes": [
+                                {
+                                  "query": "@type:action @action.type:click @action.target.name:\"Confirm order\""
+                                }
+                              ],
+                              "type": "stop"
+                            }
+                          ]
+                        },
+                        "name": "checkout_completed",
+                        "tags": [
+                          "team:checkout"
+                        ]
+                      },
+                      "id": "abc12345-1234-5678-abcd-ef1234567890",
+                      "type": "operations"
+                    }
+                  }
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/RUMOperationUpdateRequest"
               }
@@ -308117,8 +308560,7 @@
         "summary": "Update a RUM operation",
         "tags": [
           "RUM Operations"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        ]
       }
     },
     "/api/v2/rum/query/insight/aggregated_long_tasks": {
@@ -332462,34 +332904,41 @@
         "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "get": {
-        "description": "Retrieves the content of a specific JavaScript source map file by its\nfilename, service name, and version.",
+        "description": "Retrieves the content of a specific JavaScript source map file. Provide either\n`debug_id` with a UUID, or all three of `filename`, `service`, and `version`.\nWhen `debug_id` is provided, filename, service, and version are not required\nand are ignored.\n\n**Examples:** the following commands use the US1 API host. Replace the host\nwith the API host for your site, and the filename, service, version, and\ndebug ID with values from your organization. Use `--get` so curl sends the\nparameters in the query string.\n\n**1. Retrieve a source map by debug ID**\n\nProvide `debug_id` with a UUID. No filename, service, or version is required.\n\n```bash\ncurl -sS --get \"https://api.datadoghq.com/api/v2/sourcemaps\" \\\n  -H \"Accept: application/json\" \\\n  -H \"Authorization: Bearer ${DD_BEARER_TOKEN}\" \\\n  --data-urlencode \"debug_id=00000000-0000-4000-8000-000000000001\"\n```\n\n**2. Retrieve a source map by service and version**\n\nProvide `filename` together with `service` and `version`.\n\n```bash\ncurl -sS --get \"https://api.datadoghq.com/api/v2/sourcemaps\" \\\n  -H \"Accept: application/json\" \\\n  -H \"Authorization: Bearer ${DD_BEARER_TOKEN}\" \\\n  --data-urlencode \"filename=js/bundle.min.js.map\" \\\n  --data-urlencode \"service=my-web-service\" \\\n  --data-urlencode \"version=1.0.0\"\n```",
         "operationId": "GetSourcemaps",
         "parameters": [
           {
-            "description": "The path to the source map file.",
+            "description": "The debug ID of the JavaScript source map, in UUID format. When provided,\nfilename, service, and version are not required and are ignored.",
+            "in": "query",
+            "name": "debug_id",
+            "schema": {
+              "example": "00000000-0000-4000-8000-000000000001",
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The path to the source map file. Required when `debug_id` is omitted.",
             "in": "query",
             "name": "filename",
-            "required": true,
             "schema": {
               "example": "js/bundle.min.js.map",
               "type": "string"
             }
           },
           {
-            "description": "The service name associated with the source map.",
+            "description": "The service name associated with the source map. Required when `debug_id` is omitted.",
             "in": "query",
             "name": "service",
-            "required": true,
             "schema": {
               "example": "my-web-service",
               "type": "string"
             }
           },
           {
-            "description": "The version of the service associated with the source map.",
+            "description": "The version of the service associated with the source map. Required when `debug_id` is omitted.",
             "in": "query",
             "name": "version",
-            "required": true,
             "schema": {
               "example": "1.0.0",
               "type": "string"
@@ -355185,15 +355634,15 @@
       "name": "CSM Threats"
     },
     {
-      "description": "**Note**: Work Management is the UI name for Case Management. These API endpoints and permissions use `case` terminology.\n\nView and manage work items and projects within Work Management. For more information, see [Work Management](https://docs.datadoghq.com/incident_response/work_management/).",
+      "description": "View and manage work items and projects within Work Management. API paths, resource types, and permissions retain `case` terminology. For more information, see [Work Management](https://docs.datadoghq.com/incident_response/work_management/).",
       "name": "Case Management"
     },
     {
-      "description": "View and configure custom attributes within Case Management. See the [Case Management page](https://docs.datadoghq.com/service_management/case_management/) for more information.",
+      "description": "View and configure custom attributes within Work Management. See the [Work Management page](https://docs.datadoghq.com/incident_response/work_management/) for more information.",
       "name": "Case Management Attribute"
     },
     {
-      "description": "View and configure case types within Case Management. See the [Case Management page](https://docs.datadoghq.com/service_management/case_management/) for more information.",
+      "description": "View and configure work item types within Work Management. See the [Work Management page](https://docs.datadoghq.com/incident_response/work_management/) for more information.",
       "name": "Case Management Type"
     },
     {
@@ -355249,10 +355698,6 @@
       "name": "DEM"
     },
     {
-      "description": "Search, send, or delete events for DORA Metrics to measure and improve your software delivery performance. See the [DORA Metrics page](https://docs.datadoghq.com/dora_metrics/) for more information.\n\n**Note**: DORA Metrics are not available in the US1-FED site.",
-      "name": "DORA Metrics"
-    },
-    {
       "description": "Interact with your dashboard lists through the API to\norganize, find, and share all of your dashboards with your team and\norganization.",
       "name": "Dashboard Lists"
     },
@@ -355287,6 +355732,10 @@
     {
       "description": "Data Access Controls in Datadog is a feature that allows administrators and access managers to regulate\naccess to sensitive data. By defining Restricted Datasets, you can ensure that only specific teams or roles can\nview certain types of telemetry (for example, logs, traces, metrics, and RUM data).",
       "name": "Datasets"
+    },
+    {
+      "description": "Search, send, or delete events for Delivery Performance (formerly DORA Metrics) to measure and improve your software delivery performance. See the [Delivery Performance page](https://docs.datadoghq.com/dora_metrics/) for more information.\n\n**Note**: Delivery Performance is not available in the US1-FED site.",
+      "name": "Delivery Performance"
     },
     {
       "description": "Manage Deployment Gates using this API to reduce the likelihood and impact of incidents caused by deployments. See the [Deployment Gates documentation](https://docs.datadoghq.com/deployment_gates/) for more information.",
