@@ -49638,6 +49638,148 @@
           }
         ]
       },
+      "DerivedMetricAttributes": {
+        "description": "Attributes of a derived metric.",
+        "properties": {
+          "definition": {
+            "$ref": "#/components/schemas/DerivedMetricDefinition"
+          }
+        },
+        "required": [
+          "definition"
+        ],
+        "type": "object"
+      },
+      "DerivedMetricCreateData": {
+        "description": "Data object for creating or updating a derived metric.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/DerivedMetricAttributes"
+          },
+          "id": {
+            "description": "The derived metric name used as the resource ID.",
+            "example": "my.derived.metric",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DerivedMetricsType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "DerivedMetricCreateRequest": {
+        "description": "Request body for creating or updating a derived metric.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DerivedMetricCreateData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "DerivedMetricData": {
+        "description": "A derived metric resource object.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/DerivedMetricAttributes"
+          },
+          "id": {
+            "description": "The derived metric name used as the resource ID.",
+            "example": "my.derived.metric",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DerivedMetricsType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "DerivedMetricDefinition": {
+        "description": "The definition of a derived metric as a formula over one or more queries.",
+        "properties": {
+          "formula": {
+            "description": "The formula that combines the queries into the value of the derived metric.",
+            "example": "a",
+            "type": "string"
+          },
+          "queries": {
+            "description": "The list of queries referenced by the formula.",
+            "items": {
+              "$ref": "#/components/schemas/DerivedMetricQuery"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "formula",
+          "queries"
+        ],
+        "type": "object"
+      },
+      "DerivedMetricQuery": {
+        "description": "A single query used in the definition of a derived metric.",
+        "properties": {
+          "data_source": {
+            "description": "The data source that the query is run against.",
+            "example": "metrics",
+            "type": "string"
+          },
+          "name": {
+            "description": "The name used to reference this query from the formula.",
+            "example": "a",
+            "type": "string"
+          },
+          "query": {
+            "description": "The query string executed against the data source.",
+            "example": "avg:system.cpu.user{*}",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data_source",
+          "name",
+          "query"
+        ],
+        "type": "object"
+      },
+      "DerivedMetricResponse": {
+        "description": "Response containing a single derived metric.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DerivedMetricData"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "DerivedMetricsType": {
+        "default": "derived_metrics",
+        "description": "The derived metric resource type.",
+        "enum": [
+          "derived_metrics"
+        ],
+        "example": "derived_metrics",
+        "type": "string",
+        "x-enum-varnames": [
+          "DERIVED_METRICS"
+        ]
+      },
       "DetachCaseRequest": {
         "description": "Request for detaching security findings from their case.",
         "properties": {
@@ -51239,9 +51381,7 @@
             "type": "string"
           },
           "mapkind": {
-            "description": "The type of source map.",
-            "example": "elf",
-            "type": "string"
+            "$ref": "#/components/schemas/ELFSourcemapMapKind"
           },
           "origin": {
             "description": "The origin of the ELF file.",
@@ -51293,6 +51433,17 @@
           "attributes"
         ],
         "type": "object"
+      },
+      "ELFSourcemapMapKind": {
+        "description": "The type of source map. Always `elf` for ELF source maps.",
+        "enum": [
+          "elf"
+        ],
+        "example": "elf",
+        "type": "string",
+        "x-enum-varnames": [
+          "ELF"
+        ]
       },
       "EPSS": {
         "description": "Vulnerability EPSS severity.",
@@ -70731,9 +70882,7 @@
             "type": "string"
           },
           "mapkind": {
-            "description": "The type of source map.",
-            "example": "flutter",
-            "type": "string"
+            "$ref": "#/components/schemas/FlutterSourcemapMapKind"
           },
           "service": {
             "description": "The service name associated with the symbol file.",
@@ -70785,6 +70934,17 @@
           "attributes"
         ],
         "type": "object"
+      },
+      "FlutterSourcemapMapKind": {
+        "description": "The type of source map. Always `flutter` for Flutter source maps.",
+        "enum": [
+          "flutter"
+        ],
+        "example": "flutter",
+        "type": "string",
+        "x-enum-varnames": [
+          "FLUTTER"
+        ]
       },
       "FormData": {
         "description": "A form resource object.",
@@ -78668,9 +78828,7 @@
             "type": "string"
           },
           "mapkind": {
-            "description": "The type of source map.",
-            "example": "il2cpp",
-            "type": "string"
+            "$ref": "#/components/schemas/IL2CPPSourcemapMapKind"
           },
           "size": {
             "description": "The size of the mapping file in bytes.",
@@ -78708,6 +78866,17 @@
         ],
         "type": "object"
       },
+      "IL2CPPSourcemapMapKind": {
+        "description": "The type of source map. Always `il2cpp` for IL2CPP source maps.",
+        "enum": [
+          "il2cpp"
+        ],
+        "example": "il2cpp",
+        "type": "string",
+        "x-enum-varnames": [
+          "IL2CPP"
+        ]
+      },
       "IOSSourcemapAttributes": {
         "description": "Attributes of an iOS dSYM source map.",
         "properties": {
@@ -78718,9 +78887,7 @@
             "type": "string"
           },
           "mapkind": {
-            "description": "The type of source map.",
-            "example": "ios",
-            "type": "string"
+            "$ref": "#/components/schemas/IOSSourcemapMapKind"
           },
           "size": {
             "description": "The size of the dSYM file in bytes.",
@@ -78762,6 +78929,17 @@
           "attributes"
         ],
         "type": "object"
+      },
+      "IOSSourcemapMapKind": {
+        "description": "The type of source map. Always `ios` for iOS dSYM source maps.",
+        "enum": [
+          "ios"
+        ],
+        "example": "ios",
+        "type": "string",
+        "x-enum-varnames": [
+          "IOS"
+        ]
       },
       "IPAllowlistAttributes": {
         "description": "Attributes of the IP allowlist.",
@@ -89490,9 +89668,7 @@
             "type": "string"
           },
           "mapkind": {
-            "description": "The type of source map.",
-            "example": "js",
-            "type": "string"
+            "$ref": "#/components/schemas/JSSourcemapMapKind"
           },
           "service": {
             "description": "The service name associated with the source map.",
@@ -89550,6 +89726,17 @@
         ],
         "type": "object"
       },
+      "JSSourcemapMapKind": {
+        "description": "The type of source map. Always `js` for JavaScript source maps.",
+        "enum": [
+          "js"
+        ],
+        "example": "js",
+        "type": "string",
+        "x-enum-varnames": [
+          "JS"
+        ]
+      },
       "JVMSourcemapAttributes": {
         "description": "Attributes of a JVM mapping file.",
         "properties": {
@@ -89565,9 +89752,7 @@
             "type": "string"
           },
           "mapkind": {
-            "description": "The type of source map.",
-            "example": "jvm",
-            "type": "string"
+            "$ref": "#/components/schemas/JVMSourcemapMapKind"
           },
           "service": {
             "description": "The service name associated with the mapping file.",
@@ -89624,6 +89809,17 @@
           "attributes"
         ],
         "type": "object"
+      },
+      "JVMSourcemapMapKind": {
+        "description": "The type of source map. Always `jvm` for JVM source maps.",
+        "enum": [
+          "jvm"
+        ],
+        "example": "jvm",
+        "type": "string",
+        "x-enum-varnames": [
+          "JVM"
+        ]
       },
       "JiraAccountAttributes": {
         "description": "Attributes of a Jira account",
@@ -93480,7 +93676,7 @@
             "$ref": "#/components/schemas/LLMObsDatasetRecordsDataAttributesRequest"
           },
           "type": {
-            "$ref": "#/components/schemas/LLMObsRecordType"
+            "$ref": "#/components/schemas/LLMObsDatasetType"
           }
         },
         "required": [
@@ -93575,7 +93771,7 @@
             "$ref": "#/components/schemas/LLMObsDatasetRecordsUpdateDataAttributesRequest"
           },
           "type": {
-            "$ref": "#/components/schemas/LLMObsRecordType"
+            "$ref": "#/components/schemas/LLMObsDatasetType"
           }
         },
         "required": [
@@ -94047,7 +94243,7 @@
             "$ref": "#/components/schemas/LLMObsDeleteDatasetRecordsDataAttributesRequest"
           },
           "type": {
-            "$ref": "#/components/schemas/LLMObsRecordType"
+            "$ref": "#/components/schemas/LLMObsDatasetType"
           }
         },
         "required": [
@@ -94380,17 +94576,6 @@
           "DISPLAY_BLOCK"
         ]
       },
-      "LLMObsEventType": {
-        "description": "Resource type for Agent Observability experiment events.",
-        "enum": [
-          "events"
-        ],
-        "example": "events",
-        "type": "string",
-        "x-enum-varnames": [
-          "EVENTS"
-        ]
-      },
       "LLMObsExperimentDataAttributesRequest": {
         "description": "Attributes for creating an Agent Observability experiment.",
         "properties": {
@@ -94714,7 +94899,7 @@
             "$ref": "#/components/schemas/LLMObsExperimentEventsDataAttributesRequest"
           },
           "type": {
-            "$ref": "#/components/schemas/LLMObsEventType"
+            "$ref": "#/components/schemas/LLMObsExperimentType"
           }
         },
         "required": [
@@ -99397,17 +99582,6 @@
           "data"
         ],
         "type": "object"
-      },
-      "LLMObsRecordType": {
-        "description": "Resource type of Agent Observability dataset records.",
-        "enum": [
-          "records"
-        ],
-        "example": "records",
-        "type": "string",
-        "x-enum-varnames": [
-          "RECORDS"
-        ]
       },
       "LLMObsSearchSpansRequest": {
         "description": "Request body for searching Agent Observability spans.",
@@ -110880,9 +111054,7 @@
             "type": "string"
           },
           "mapkind": {
-            "description": "The type of source map.",
-            "example": "ndk",
-            "type": "string"
+            "$ref": "#/components/schemas/NDKSourcemapMapKind"
           },
           "size": {
             "description": "The size of the symbol file in bytes.",
@@ -110919,6 +111091,17 @@
           "attributes"
         ],
         "type": "object"
+      },
+      "NDKSourcemapMapKind": {
+        "description": "The type of source map. Always `ndk` for Android NDK source maps.",
+        "enum": [
+          "ndk"
+        ],
+        "example": "ndk",
+        "type": "string",
+        "x-enum-varnames": [
+          "NDK"
+        ]
       },
       "NetworkHealthInsight": {
         "description": "A single network health insight describing a service-to-service connectivity issue.",
@@ -129622,6 +129805,73 @@
         },
         "type": "object"
       },
+      "PortablePdbSourcemapAttributes": {
+        "description": "Attributes of a Portable PDB file.",
+        "properties": {
+          "build_id": {
+            "description": "The build identifier.",
+            "example": "550e8400e29b41d4a71644665544000012345678",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "The timestamp when the symbol file was created.",
+            "example": "2024-01-01T00:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "file_name": {
+            "description": "The file name of the symbol file.",
+            "example": "MyApplication.pdb",
+            "type": "string"
+          },
+          "mapkind": {
+            "$ref": "#/components/schemas/PortablePdbSourcemapMapKind"
+          },
+          "size": {
+            "description": "The size of the symbol file in bytes.",
+            "example": 4096,
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mapkind"
+        ],
+        "type": "object"
+      },
+      "PortablePdbSourcemapData": {
+        "description": "Portable PDB file data object.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/PortablePdbSourcemapAttributes"
+          },
+          "id": {
+            "description": "The unique identifier of the source map.",
+            "example": "10",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SourcemapDataType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "PortablePdbSourcemapMapKind": {
+        "description": "The type of source map. Always `portable_pdb` for Portable PDB files.",
+        "enum": [
+          "portable_pdb"
+        ],
+        "example": "portable_pdb",
+        "type": "string",
+        "x-enum-varnames": [
+          "PORTABLE_PDB"
+        ]
+      },
       "PostmortemAttachmentRequest": {
         "description": "Request body for creating a postmortem attachment.",
         "properties": {
@@ -130762,9 +131012,21 @@
             "description": "Process command line.",
             "type": "string"
           },
+          "executable": {
+            "description": "Path to the process executable.",
+            "type": "string"
+          },
           "host": {
             "description": "Host running the process.",
             "type": "string"
+          },
+          "identifying_tags": {
+            "description": "Tags that uniquely identify the process: a host identity tag (`host`, `task_arn`,\nor `eks_fargate_node`) and a `pid` tag. Omitted if either tag is unavailable.",
+            "items": {
+              "description": "A tag identifying the process.",
+              "type": "string"
+            },
+            "type": "array"
           },
           "pid": {
             "description": "Process ID.",
@@ -137909,9 +138171,7 @@
             "type": "string"
           },
           "mapkind": {
-            "description": "The type of source map.",
-            "example": "react",
-            "type": "string"
+            "$ref": "#/components/schemas/ReactNativeSourcemapMapKind"
           },
           "platform": {
             "description": "The platform the source map was built for (e.g., `ios`, `android`).",
@@ -137963,6 +138223,17 @@
           "attributes"
         ],
         "type": "object"
+      },
+      "ReactNativeSourcemapMapKind": {
+        "description": "The type of source map. Always `react` for React Native source maps.",
+        "enum": [
+          "react"
+        ],
+        "example": "react",
+        "type": "string",
+        "x-enum-varnames": [
+          "REACT"
+        ]
       },
       "ReadinessGate": {
         "additionalProperties": false,
@@ -166833,6 +167104,12 @@
           },
           {
             "$ref": "#/components/schemas/IL2CPPSourcemapData"
+          },
+          {
+            "$ref": "#/components/schemas/WASMSourcemapData"
+          },
+          {
+            "$ref": "#/components/schemas/PortablePdbSourcemapData"
           }
         ]
       },
@@ -190046,6 +190323,73 @@
           "X_CONTENT_TYPE_HEADER_MISSING",
           "X_PATH_INJECTION",
           "XSS"
+        ]
+      },
+      "WASMSourcemapAttributes": {
+        "description": "Attributes of a WebAssembly symbol file.",
+        "properties": {
+          "build_id": {
+            "description": "The build identifier.",
+            "example": "wasm-build-123",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "The timestamp when the symbol file was created.",
+            "example": "2024-01-01T00:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "file_name": {
+            "description": "The file name of the symbol file.",
+            "example": "module.wasm",
+            "type": "string"
+          },
+          "mapkind": {
+            "$ref": "#/components/schemas/WASMSourcemapMapKind"
+          },
+          "size": {
+            "description": "The size of the symbol file in bytes.",
+            "example": 4096,
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mapkind"
+        ],
+        "type": "object"
+      },
+      "WASMSourcemapData": {
+        "description": "WebAssembly symbol file data object.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/WASMSourcemapAttributes"
+          },
+          "id": {
+            "description": "The unique identifier of the source map.",
+            "example": "9",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SourcemapDataType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "WASMSourcemapMapKind": {
+        "description": "The type of source map. Always `wasm` for WebAssembly symbol files.",
+        "enum": [
+          "wasm"
+        ],
+        "example": "wasm",
+        "type": "string",
+        "x-enum-varnames": [
+          "WASM"
         ]
       },
       "Watch": {
@@ -269833,7 +270177,7 @@
                           }
                         ]
                       },
-                      "type": "events"
+                      "type": "experiments"
                     }
                   }
                 }
@@ -274968,7 +275312,7 @@
                           }
                         ]
                       },
-                      "type": "records"
+                      "type": "datasets"
                     }
                   }
                 }
@@ -275094,7 +275438,7 @@
                 "default": {
                   "value": {
                     "data": {
-                      "type": "records"
+                      "type": "datasets"
                     }
                   }
                 }
@@ -275262,7 +275606,7 @@
                           "rec-7c3f5a1b-9e2d-4f8a-b1c6-3d7e9f0a2b4c"
                         ]
                       },
-                      "type": "records"
+                      "type": "datasets"
                     }
                   }
                 }
@@ -280413,6 +280757,398 @@
           ]
         },
         "x-sunset": "2027-01-01"
+      }
+    },
+    "/api/v2/metrics/derived-metrics": {
+      "post": {
+        "description": "Create a derived metric for the org. The metric name is supplied as the resource `id`,\nand the `definition` sets the formula and the queries the formula is computed from.\nRequires the `Manage Tags for Metrics` permission.",
+        "operationId": "CreateDerivedMetric",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "definition": {
+                          "formula": "a",
+                          "queries": [
+                            {
+                              "data_source": "metrics",
+                              "name": "a",
+                              "query": "avg:system.cpu.user{*}"
+                            }
+                          ]
+                        }
+                      },
+                      "id": "my.derived.metric",
+                      "type": "derived_metrics"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/DerivedMetricCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "definition": {
+                            "formula": "a",
+                            "queries": [
+                              {
+                                "data_source": "metrics",
+                                "name": "a",
+                                "query": "avg:system.cpu.user{*}"
+                              }
+                            ]
+                          }
+                        },
+                        "id": "my.derived.metric",
+                        "type": "derived_metrics"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DerivedMetricResponse"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Location": {
+                "description": "The URL of the newly created derived metric.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "metric_tags_write"
+            ]
+          }
+        ],
+        "summary": "Create a derived metric",
+        "tags": [
+          "Metrics"
+        ],
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "metric_tags_write"
+          ]
+        }
+      }
+    },
+    "/api/v2/metrics/derived-metrics/{metric_name}": {
+      "delete": {
+        "description": "Delete a derived metric by name. Idempotent: returns 204 regardless of whether the derived\nmetric existed. Requires the `Manage Tags for Metrics` permission.",
+        "operationId": "DeleteDerivedMetric",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MetricName"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "metric_tags_write"
+            ]
+          }
+        ],
+        "summary": "Delete a derived metric",
+        "tags": [
+          "Metrics"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "metric_tags_write"
+          ]
+        }
+      },
+      "get": {
+        "description": "Get the definition of a derived metric by name.",
+        "operationId": "GetDerivedMetric",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MetricName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "definition": {
+                            "formula": "a",
+                            "queries": [
+                              {
+                                "data_source": "metrics",
+                                "name": "a",
+                                "query": "avg:system.cpu.user{*}"
+                              }
+                            ]
+                          }
+                        },
+                        "id": "my.derived.metric",
+                        "type": "derived_metrics"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DerivedMetricResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "metrics_read"
+            ]
+          }
+        ],
+        "summary": "Get a derived metric",
+        "tags": [
+          "Metrics"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "metrics_read"
+          ]
+        }
+      },
+      "put": {
+        "description": "Update the definition of an existing derived metric. The `id` in the request body\nmust match the `metric_name` path parameter. Requires the `Manage Tags for Metrics` permission.",
+        "operationId": "UpdateDerivedMetric",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MetricName"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "definition": {
+                          "formula": "a",
+                          "queries": [
+                            {
+                              "data_source": "metrics",
+                              "name": "a",
+                              "query": "avg:system.cpu.user{*}"
+                            }
+                          ]
+                        }
+                      },
+                      "id": "my.derived.metric",
+                      "type": "derived_metrics"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/DerivedMetricCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "definition": {
+                            "formula": "a",
+                            "queries": [
+                              {
+                                "data_source": "metrics",
+                                "name": "a",
+                                "query": "avg:system.cpu.user{*}"
+                              }
+                            ]
+                          }
+                        },
+                        "id": "my.derived.metric",
+                        "type": "derived_metrics"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DerivedMetricResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "metric_tags_write"
+            ]
+          }
+        ],
+        "summary": "Update a derived metric",
+        "tags": [
+          "Metrics"
+        ],
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "metric_tags_write"
+          ]
+        }
       }
     },
     "/api/v2/metrics/historical-metrics-configurations": {
@@ -297382,7 +298118,12 @@
                         {
                           "attributes": {
                             "cmdline": "/usr/bin/python3",
+                            "executable": "/usr/bin/python3",
                             "host": "my-host",
+                            "identifying_tags": [
+                              "host:my-host",
+                              "pid:123"
+                            ],
                             "pid": 123
                           },
                           "id": "abc-123",
@@ -307066,8 +307807,7 @@
         "summary": "Get all RUM exclusion filters",
         "tags": [
           "Rum Retention Filters"
-        ],
-        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        ]
       },
       "post": {
         "description": "Create an exclusion filter for a RUM application.\nReturns the created exclusion filter when the request is successful.",
@@ -307149,8 +307889,7 @@
         "tags": [
           "Rum Retention Filters"
         ],
-        "x-codegen-request-body-name": "body",
-        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "x-codegen-request-body-name": "body"
       }
     },
     "/api/v2/rum/applications/{app_id}/retention_filters/exclusion/{ef_id}": {
@@ -307185,8 +307924,7 @@
         "summary": "Delete a RUM exclusion filter",
         "tags": [
           "Rum Retention Filters"
-        ],
-        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        ]
       },
       "get": {
         "description": "Get a single exclusion filter for a RUM application.",
@@ -307244,8 +307982,7 @@
         "summary": "Get a RUM exclusion filter",
         "tags": [
           "Rum Retention Filters"
-        ],
-        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        ]
       },
       "patch": {
         "description": "Update an exclusion filter for a RUM application.\nFor the built-in Error Tracking exclusion filter (`error_tracking_exclusion_filter`), only `enabled` can be\nupdated; `name`, `event_type`, and `query` must be omitted.\nReturns the updated exclusion filter when the request is successful.",
@@ -307337,8 +308074,7 @@
         "tags": [
           "Rum Retention Filters"
         ],
-        "x-codegen-request-body-name": "body",
-        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        "x-codegen-request-body-name": "body"
       }
     },
     "/api/v2/rum/applications/{app_id}/retention_filters/permanent": {
