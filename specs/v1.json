@@ -14796,22 +14796,26 @@
             "type": "number"
           },
           "estimated_indexed_spans_percentage": {
-            "description": "The percentage of estimated indexed spans usage by tag(s).",
+            "deprecated": true,
+            "description": "The percentage of estimated indexed spans usage by tag(s) (To be deprecated on February 1st, 2027).",
             "format": "double",
             "type": "number"
           },
           "estimated_indexed_spans_usage": {
-            "description": "The estimated indexed spans usage by tag(s).",
+            "deprecated": true,
+            "description": "The estimated indexed spans usage by tag(s) (To be deprecated on February 1st, 2027).",
             "format": "double",
             "type": "number"
           },
           "estimated_ingested_spans_percentage": {
-            "description": "The percentage of estimated ingested spans usage by tag(s).",
+            "deprecated": true,
+            "description": "The percentage of estimated ingested spans usage by tag(s) (To be deprecated on February 1st, 2027).",
             "format": "double",
             "type": "number"
           },
           "estimated_ingested_spans_usage": {
-            "description": "The estimated ingested spans usage by tag(s).",
+            "deprecated": true,
+            "description": "The estimated ingested spans usage by tag(s) (To be deprecated on February 1st, 2027).",
             "format": "double",
             "type": "number"
           },
@@ -59222,7 +59226,7 @@
     },
     "/api/v1/usage/hourly-attribution": {
       "get": {
-        "description": "Get hourly usage attribution. Multi-region data is available starting March 1, 2023.\n\nThis API endpoint is paginated. To make sure you receive all records, check if the value of `next_record_id` is\nset in the response. If it is, make another request and pass `next_record_id` as a parameter.\nPseudo code example:\n\n```\nresponse := GetHourlyUsageAttribution(start_month)\ncursor := response.metadata.pagination.next_record_id\nWHILE cursor != null BEGIN\n  sleep(5 seconds)  # Avoid running into rate limit\n  response := GetHourlyUsageAttribution(start_month, next_record_id=cursor)\n  cursor := response.metadata.pagination.next_record_id\nEND\n```",
+        "description": "Get hourly usage attribution. Multi-region data is available starting March 1, 2023.\n\n**Note**: All `estimated_*` usage types will be deprecated on February 1, 2027.\n\nThis API endpoint is paginated. To make sure you receive all records, check if the value of `next_record_id` is\nset in the response. If it is, make another request and pass `next_record_id` as a parameter.\nPseudo code example:\n\n```\nresponse := GetHourlyUsageAttribution(start_month)\ncursor := response.metadata.pagination.next_record_id\nWHILE cursor != null BEGIN\n  sleep(5 seconds)  # Avoid running into rate limit\n  response := GetHourlyUsageAttribution(start_month, next_record_id=cursor)\n  cursor := response.metadata.pagination.next_record_id\nEND\n```",
         "operationId": "GetHourlyUsageAttribution",
         "parameters": [
           {
@@ -60122,7 +60126,7 @@
     },
     "/api/v1/usage/monthly-attribution": {
       "get": {
-        "description": "Get monthly usage attribution. Multi-region data is available starting March 1, 2023.\n\nThis API endpoint is paginated. To make sure you receive all records, check if the value of `next_record_id` is\nset in the response. If it is, make another request and pass `next_record_id` as a parameter.\nPseudo code example:\n\n```\nresponse := GetMonthlyUsageAttribution(start_month)\ncursor := response.metadata.pagination.next_record_id\nWHILE cursor != null BEGIN\n  sleep(5 seconds)  # Avoid running into rate limit\n  response := GetMonthlyUsageAttribution(start_month, next_record_id=cursor)\n  cursor := response.metadata.pagination.next_record_id\nEND\n```",
+        "description": "Get monthly usage attribution. Multi-region data is available starting March 1, 2023.\n\n**Note**: All `estimated_*` usage types will be deprecated on February 1, 2027.\n\nThis API endpoint is paginated. To make sure you receive all records, check if the value of `next_record_id` is\nset in the response. If it is, make another request and pass `next_record_id` as a parameter.\nPseudo code example:\n\n```\nresponse := GetMonthlyUsageAttribution(start_month)\ncursor := response.metadata.pagination.next_record_id\nWHILE cursor != null BEGIN\n  sleep(5 seconds)  # Avoid running into rate limit\n  response := GetMonthlyUsageAttribution(start_month, next_record_id=cursor)\n  cursor := response.metadata.pagination.next_record_id\nEND\n```",
         "operationId": "GetMonthlyUsageAttribution",
         "parameters": [
           {

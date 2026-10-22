@@ -5453,6 +5453,11 @@
             "example": false,
             "type": "boolean"
           },
+          "collect_service_quotas": {
+            "description": "Enable Service Quotas collection. Defaults to `false`.",
+            "example": false,
+            "type": "boolean"
+          },
           "enabled": {
             "description": "Enable AWS metrics collection. Defaults to `true`.",
             "example": true,
@@ -29791,7 +29796,7 @@
         "description": "Reference to connected external team.",
         "properties": {
           "id": {
-            "description": "The connected team ID as it is referenced throughout the Datadog ecosystem.",
+            "description": "The connected team ID as it is referenced throughout the Datadog ecosystem.\nFor GitHub teams, this is `@<organization>/<team-slug>`.\nFor ServiceNow groups, this is `<instance_name>/<sys_id>`.",
             "example": "@GitHubOrg/team-handle",
             "type": "string"
           },
@@ -29809,12 +29814,14 @@
         "default": "github_team",
         "description": "External team resource type.",
         "enum": [
-          "github_team"
+          "github_team",
+          "servicenow_team"
         ],
         "example": "github_team",
         "type": "string",
         "x-enum-varnames": [
-          "GITHUB_TEAM"
+          "GITHUB_TEAM",
+          "SERVICENOW_TEAM"
         ]
       },
       "Connection": {
@@ -107280,13 +107287,17 @@
         "description": "The metric's type category.",
         "enum": [
           "non_distribution",
-          "distribution"
+          "distribution",
+          "exponential_histogram",
+          "explicit_histogram"
         ],
         "example": "distribution",
         "type": "string",
         "x-enum-varnames": [
           "NON_DISTRIBUTION",
-          "DISTRIBUTION"
+          "DISTRIBUTION",
+          "EXPONENTIAL_HISTOGRAM",
+          "EXPLICIT_HISTOGRAM"
         ]
       },
       "MetricTagConfigurationMetricTypes": {
@@ -148941,6 +148952,7 @@
         "example": {
           "data": {
             "attributes": {
+              "max_responders": 1,
               "name": "On-Call Schedule",
               "time_zone": "America/New_York"
             },
@@ -149074,6 +149086,7 @@
                   "rotation_start": "2025-02-01T00:00:00Z"
                 }
               ],
+              "max_responders": 1,
               "name": "On-Call Schedule",
               "time_zone": "America/New_York"
             },
@@ -149128,6 +149141,14 @@
               "$ref": "#/components/schemas/ScheduleCreateRequestDataAttributesLayersItems"
             },
             "type": "array"
+          },
+          "max_responders": {
+            "description": "Maximum number of users who can be on call at the same time.\nThe value must be between 1 and the number of layers, and no greater than 10.",
+            "example": 1,
+            "format": "int64",
+            "maximum": 10,
+            "minimum": 1,
+            "type": "integer"
           },
           "name": {
             "description": "A human-readable name for the new schedule.",
@@ -149251,6 +149272,14 @@
       "ScheduleDataAttributes": {
         "description": "Provides core properties of a schedule object such as its name and time zone.",
         "properties": {
+          "max_responders": {
+            "description": "Maximum number of users who can be on call at the same time.\nThe value is between 1 and the number of layers, and no greater than 10.",
+            "example": 1,
+            "format": "int64",
+            "maximum": 10,
+            "minimum": 1,
+            "type": "integer"
+          },
           "name": {
             "description": "A short name for the schedule.",
             "example": "Primary On-Call",
@@ -149948,6 +149977,7 @@
                   "rotation_start": "2025-02-01T00:00:00Z"
                 }
               ],
+              "max_responders": 1,
               "name": "On-Call Schedule Updated",
               "time_zone": "America/New_York"
             },
@@ -150009,6 +150039,14 @@
               "$ref": "#/components/schemas/ScheduleUpdateRequestDataAttributesLayersItems"
             },
             "type": "array"
+          },
+          "max_responders": {
+            "description": "Maximum number of users who can be on call at the same time.\nThe value must be between 1 and the number of layers, and no greater than 10.",
+            "example": 1,
+            "format": "int64",
+            "maximum": 10,
+            "minimum": 1,
+            "type": "integer"
           },
           "name": {
             "description": "A short name for the schedule.",
@@ -150175,6 +150213,7 @@
           "data": [
             {
               "attributes": {
+                "max_responders": 1,
                 "name": "Primary On-Call",
                 "tags": [],
                 "time_zone": "America/New_York"
@@ -177832,7 +177871,7 @@
             "type": "string"
           },
           "source": {
-            "description": "The name of the external source.",
+            "description": "The name of the external source, such as `github` or `servicenow`.",
             "example": "github",
             "type": "string"
           }
@@ -179480,14 +179519,16 @@
         "type": "array"
       },
       "TeamSyncAttributesSource": {
-        "description": "The external source platform for team synchronization. Only \"github\" is supported.",
+        "description": "The external source platform for team synchronization.",
         "enum": [
-          "github"
+          "github",
+          "servicenow"
         ],
         "example": "github",
         "type": "string",
         "x-enum-varnames": [
-          "GITHUB"
+          "GITHUB",
+          "SERVICENOW"
         ]
       },
       "TeamSyncAttributesSyncMembership": {
@@ -179592,7 +179633,7 @@
         "type": "object"
       },
       "TeamSyncSelectionStateExternalIdType": {
-        "description": "The type of external identifier for the selection state item.\nFor GitHub synchronization, the allowed values are `team` and\n`organization`.",
+        "description": "The type of external identifier for the selection state item.\nFor GitHub synchronization, `team` refers to a GitHub team and\n`organization` refers to a GitHub organization. For ServiceNow\nsynchronization, `team` refers to a ServiceNow group and\n`organization` refers to a ServiceNow instance.",
         "enum": [
           "team",
           "organization"
@@ -179605,7 +179646,7 @@
         ]
       },
       "TeamSyncSelectionStateExternalIdValue": {
-        "description": "The external identifier value from the source\nplatform. For GitHub, this is the string\nrepresentation of a GitHub organization ID or team\nID.",
+        "description": "The external identifier value from the source\nplatform. For GitHub, this is the string\nrepresentation of a GitHub organization ID or team\nID. For ServiceNow, this is the instance name for\n`organization`, or `<instance_name>/<sys_id>` of the\ngroup for `team`.",
         "example": "1",
         "type": "string"
       },
@@ -189150,7 +189191,7 @@
         "type": "object"
       },
       "UserTeamRole": {
-        "description": "The user's role within the team",
+        "description": "The user's role within the team. A value of `null` represents a regular member.",
         "enum": [
           "admin"
         ],
@@ -192296,6 +192337,7 @@
           "authorizationCode": {
             "authorizationUrl": "/oauth2/v1/authorize",
             "scopes": {
+              "agent_builder_run": "Run agents created with Agent Builder.",
               "ai_gateway_config_read": "View AI Gateway configuration.",
               "ai_gateway_config_write": "Create, update, and delete AI Gateway configuration.",
               "ai_gateway_usage": "Use AI Gateway and view configuration applicable to the authenticated user.",
@@ -192305,11 +192347,14 @@
               "apm_service_catalog_read": "View service catalog and service definitions.",
               "apm_service_catalog_write": "Add, modify, and delete service catalog definitions when those definitions are maintained by Datadog.",
               "appsec_vm_read": "View infrastructure, application code, and library vulnerability findings.",
+              "assistant_access": "Access Bits Chat.",
               "aws_configurations_manage": "Manage AWS integration account configurations and related integration settings.",
               "billing_edit": "Edit your organization's billing information.",
               "billing_read": "View your organization's billing information.",
+              "bits_dev_write": "Create and interact with Bits Code sessions.",
               "bits_investigations_read": "View Bits AI investigations.",
               "bits_investigations_write": "Create and manage Bits AI investigations.",
+              "bits_security_analyst_write": "Create and manage Bits AI Security Analyst investigations.",
               "cases_read": "View Cases.",
               "cases_shared_settings_write": "Update shared case management settings.",
               "cases_write": "Create and update cases.",
@@ -258624,6 +258669,7 @@
                           "automute_enabled": true,
                           "collect_cloudwatch_alarms": false,
                           "collect_custom_metrics": false,
+                          "collect_service_quotas": false,
                           "enabled": true,
                           "metric_name_filters": [
                             {
@@ -258849,6 +258895,7 @@
                           "automute_enabled": true,
                           "collect_cloudwatch_alarms": false,
                           "collect_custom_metrics": false,
+                          "collect_service_quotas": false,
                           "enabled": true,
                           "metric_name_filters": [
                             {
@@ -280707,7 +280754,7 @@
             }
           },
           {
-            "description": "This parameter has no effect unless `filter[queried]` is also set. Only return metrics that have been queried or not queried in the specified window. The default value is 2,592,000 seconds (30 days), the maximum value is 15,552,000 seconds (180 days), and the minimum value is 1 second. For example: `filter[queried]=true&filter[queried][window][seconds]=604800`.",
+            "description": "The look-back window for `filter[queried]`, in seconds. You must also set `filter[queried]`, or the request returns a 400 error. The default value is 2,592,000 seconds (30 days), the maximum value is 15,552,000 seconds (180 days), and the minimum value is 0. With `0`, the window ends now, so `filter[queried]=true` returns almost no metrics and `filter[queried]=false` returns all metrics. For example: `filter[queried]=true&filter[queried][window][seconds]=604800`.",
             "example": 15552000,
             "in": "query",
             "name": "filter[queried][window][seconds]",
@@ -280716,7 +280763,7 @@
               "default": 2592000,
               "format": "int64",
               "maximum": 15552000,
-              "minimum": 1,
+              "minimum": 0,
               "type": "integer"
             }
           },
@@ -280761,7 +280808,7 @@
             }
           },
           {
-            "description": "Only return metrics that have been actively reporting in the specified window. The default value is 3600 seconds (1 hour), the maximum value is 2,592,000 seconds (30 days), and the minimum value is 1 second.",
+            "description": "Only return metrics that have been actively reporting in this window. The default value is 3,600 seconds (1 hour), the maximum value is 5,184,000 seconds (60 days), and the minimum value is 0. With `0`, the API returns only metrics that reported in the last few minutes.",
             "example": 3600,
             "in": "query",
             "name": "window[seconds]",
@@ -280769,8 +280816,8 @@
             "schema": {
               "default": 3600,
               "format": "int64",
-              "maximum": 2592000,
-              "minimum": 1,
+              "maximum": 5184000,
+              "minimum": 0,
               "type": "integer"
             }
           },
@@ -290230,6 +290277,7 @@
                       "data": [
                         {
                           "attributes": {
+                            "max_responders": 1,
                             "name": "Primary On-Call",
                             "tags": [],
                             "time_zone": "America/New_York"
@@ -290355,6 +290403,7 @@
                             "rotation_start": "2025-02-01T00:00:00Z"
                           }
                         ],
+                        "max_responders": 1,
                         "name": "On-Call Schedule",
                         "time_zone": "America/New_York"
                       },
@@ -290389,6 +290438,7 @@
                     "value": {
                       "data": {
                         "attributes": {
+                          "max_responders": 1,
                           "name": "On-Call Schedule",
                           "time_zone": "America/New_York"
                         },
@@ -290542,6 +290592,7 @@
                     "value": {
                       "data": {
                         "attributes": {
+                          "max_responders": 1,
                           "name": "On-Call Schedule",
                           "time_zone": "America/New_York"
                         },
@@ -290666,6 +290717,7 @@
                             "rotation_start": "2025-02-01T00:00:00Z"
                           }
                         ],
+                        "max_responders": 1,
                         "name": "On-Call Schedule Updated",
                         "time_zone": "America/New_York"
                       },
@@ -290701,6 +290753,7 @@
                     "value": {
                       "data": {
                         "attributes": {
+                          "max_responders": 1,
                           "name": "On-Call Schedule",
                           "time_zone": "America/New_York"
                         },
@@ -351061,7 +351114,7 @@
             "$ref": "#/components/parameters/PageNumber"
           },
           {
-            "description": "Filter team connections by external source systems.",
+            "description": "Filter team connections by external source systems, such as `github` or `servicenow`.",
             "explode": false,
             "in": "query",
             "name": "filter[sources]",
@@ -351292,7 +351345,7 @@
     },
     "/api/v2/team/sync": {
       "get": {
-        "description": "Get all team synchronization configurations.\nReturns a list of configurations used for linking or provisioning teams with external sources like GitHub.",
+        "description": "Get all team synchronization configurations.\nReturns a list of configurations used for linking or provisioning teams with external sources like GitHub or ServiceNow.",
         "operationId": "GetTeamSync",
         "parameters": [
           {
@@ -351363,7 +351416,7 @@
         }
       },
       "post": {
-        "description": "This endpoint configures synchronization between your existing Datadog teams and GitHub teams by matching their names.\nIt evaluates all current Datadog teams and compares them against teams in the GitHub organization\nconnected to your Datadog account, based on Datadog Team handle and GitHub Team slug\n(lowercased and kebab-cased).\n\nThis operation is read-only on the GitHub side, no teams will be modified or created.\n\nOptionally, provide `selection_state` to limit synchronization\nto specific teams or organizations and their subtrees, instead\nof syncing all teams.\n\n[A GitHub organization must be connected to your Datadog account](https://docs.datadoghq.com/integrations/github/),\nand the GitHub App integrated with Datadog must have the `Members Read` permission. Matching is performed by comparing the Datadog team handle to the GitHub team slug\nusing a normalized exact match; case is ignored and spaces are removed. No modifications are made\nto teams in GitHub. This only creates new teams in Datadog when type is set to `provision`.",
+        "description": "This endpoint configures synchronization between your existing Datadog teams and teams from\nGitHub or ServiceNow by matching team names.\nIt evaluates all current Datadog teams and compares them against teams in the external source\nconnected to your Datadog account.\n\nThis operation is read-only on the external source side, no teams will be modified or created there.\nThis only creates new teams in Datadog when type is set to `provision`.\n\nOptionally, provide `selection_state` to limit synchronization\nto specific teams or organizations and their subtrees, instead\nof syncing all teams.\n\n**GitHub**: [A GitHub organization must be connected to your Datadog account](https://docs.datadoghq.com/integrations/github/),\nand the GitHub App integrated with Datadog must have the `Members Read` permission. Matching is performed by comparing the Datadog team handle to the GitHub team slug\n(lowercased and kebab-cased) using a normalized exact match; case is ignored and spaces are removed.\n\n**ServiceNow**: [The ServiceNow integration must be configured for your Datadog account](https://docs.datadoghq.com/integrations/servicenow/).\nActive assignment groups from every configured ServiceNow instance are synchronized, and the ServiceNow\ngroup hierarchy is preserved. When `sync_membership` is enabled, group members are matched to Datadog\nusers by email address.",
         "operationId": "SyncTeams",
         "requestBody": {
           "content": {
@@ -351423,7 +351476,7 @@
             ]
           }
         ],
-        "summary": "Link Teams with GitHub Teams",
+        "summary": "Link teams with external teams",
         "tags": [
           "Teams"
         ],
@@ -352492,6 +352545,13 @@
                             "role": "admin"
                           },
                           "id": "TeamMembership-aeadc05e-98a8-11ec-ac2c-da7ad0900001-38835",
+                          "type": "team_memberships"
+                        },
+                        {
+                          "attributes": {
+                            "role": null
+                          },
+                          "id": "TeamMembership-b8626d7e-cedd-11eb-abf5-da7ad0900001-38835",
                           "type": "team_memberships"
                         }
                       ]
