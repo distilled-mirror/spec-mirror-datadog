@@ -10390,6 +10390,11 @@
             "nullable": true,
             "type": "string"
           },
+          "requestId": {
+            "description": "Unique identifier of the request.",
+            "example": "example-request-id",
+            "type": "string"
+          },
           "status": {
             "description": "Status of the response.",
             "type": "string"
@@ -11634,6 +11639,12 @@
             "readOnly": true,
             "type": "string"
           },
+          "attributes": {
+            "additionalProperties": {},
+            "description": "Additional read-only attributes returned for the series.",
+            "readOnly": true,
+            "type": "object"
+          },
           "display_name": {
             "description": "Display name of the metric.",
             "example": "system.cpu.idle",
@@ -11763,6 +11774,13 @@
             "readOnly": true,
             "type": "string"
           },
+          "resp_version": {
+            "description": "Version of the response format.",
+            "example": 1,
+            "format": "int64",
+            "readOnly": true,
+            "type": "integer"
+          },
           "series": {
             "description": "List of timeseries queried.",
             "items": {
@@ -11777,11 +11795,27 @@
             "readOnly": true,
             "type": "string"
           },
+          "times": {
+            "description": "Legacy field, always returned as an empty list. Timestamps are returned\nin the `pointlist` of each entry of `series`.",
+            "items": {
+              "description": "An unused legacy timestamp."
+            },
+            "readOnly": true,
+            "type": "array"
+          },
           "to_date": {
             "description": "End of requested time window, milliseconds since Unix epoch.",
             "format": "int64",
             "readOnly": true,
             "type": "integer"
+          },
+          "values": {
+            "description": "Legacy field, always returned as an empty list. Timeseries values are\nreturned in the `pointlist` of each entry of `series`.",
+            "items": {
+              "description": "An unused legacy value."
+            },
+            "readOnly": true,
+            "type": "array"
           }
         },
         "type": "object"
@@ -11792,32 +11826,39 @@
         "properties": {
           "family": {
             "description": "Unit family, allows for conversion between units of the same family, for scaling.",
-            "example": "time",
+            "example": "percentage",
             "readOnly": true,
             "type": "string"
           },
+          "id": {
+            "description": "Unit identifier.",
+            "example": 17,
+            "format": "int64",
+            "readOnly": true,
+            "type": "integer"
+          },
           "name": {
             "description": "Unit name",
-            "example": "minute",
+            "example": "percent",
             "readOnly": true,
             "type": "string"
           },
           "plural": {
             "description": "Plural form of the unit name.",
-            "example": "minutes",
+            "example": "percent",
             "readOnly": true,
             "type": "string"
           },
           "scale_factor": {
             "description": "Factor for scaling between units of the same family.",
-            "example": 60,
+            "example": 1,
             "format": "double",
             "readOnly": true,
             "type": "number"
           },
           "short_name": {
             "description": "Abbreviation of the unit.",
-            "example": "min",
+            "example": "%",
             "readOnly": true,
             "type": "string"
           }
@@ -47422,6 +47463,7 @@
                           "id": "AAAAAWgN8Xwgr1vKDQAAAABBV2dOOFh3ZzZobm1mWXJFYTR0OA"
                         }
                       ],
+                      "requestId": "example-request-id",
                       "status": "done"
                     }
                   }

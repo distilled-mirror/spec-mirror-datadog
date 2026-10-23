@@ -2975,6 +2975,26 @@
         },
         "description": "Deployment rule not found."
       },
+      "NDMBadRequestResponse": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/JSONAPIErrorResponse"
+            }
+          }
+        },
+        "description": "Bad Request"
+      },
+      "NDMNotFoundResponse": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/JSONAPIErrorResponse"
+            }
+          }
+        },
+        "description": "Not Found"
+      },
       "NotAuthorizedResponse": {
         "content": {
           "application/json": {
@@ -29921,8 +29941,24 @@
             "format": "int64",
             "type": "integer"
           },
+          "first_offset": {
+            "description": "The first offset.",
+            "format": "int64",
+            "type": "integer"
+          },
           "last_number": {
             "description": "The last page number.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_offset": {
+            "description": "The last offset.",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "limit": {
+            "description": "The page limit, when offset pagination is used.",
             "format": "int64",
             "type": "integer"
           },
@@ -29932,13 +29968,30 @@
             "nullable": true,
             "type": "integer"
           },
+          "next_offset": {
+            "description": "The next offset.",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
           "number": {
             "description": "The current page number.",
             "format": "int64",
             "type": "integer"
           },
+          "offset": {
+            "description": "The current offset, when offset pagination is used.",
+            "format": "int64",
+            "type": "integer"
+          },
           "prev_number": {
             "description": "The previous page number.",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "prev_offset": {
+            "description": "The previous offset.",
             "format": "int64",
             "nullable": true,
             "type": "integer"
@@ -102546,14 +102599,18 @@
           "name",
           "-name",
           "user_count",
-          "-user_count"
+          "-user_count",
+          "link_count",
+          "-link_count"
         ],
         "type": "string",
         "x-enum-varnames": [
           "NAME",
           "_NAME",
           "USER_COUNT",
-          "_USER_COUNT"
+          "_USER_COUNT",
+          "LINK_COUNT",
+          "_LINK_COUNT"
         ]
       },
       "ListVulnerabilitiesResponse": {
@@ -103031,13 +103088,13 @@
         "type": "object"
       },
       "LogsArchiveAttributesCompressionMethod": {
-        "default": "GZIP",
+        "default": "ZSTD",
         "description": "The type of compression for the archive.",
         "enum": [
           "GZIP",
           "ZSTD"
         ],
-        "example": "GZIP",
+        "example": "ZSTD",
         "type": "string",
         "x-enum-varnames": [
           "GZIP",
@@ -167336,7 +167393,9 @@
           "flutter",
           "elf",
           "ndk",
-          "il2cpp"
+          "il2cpp",
+          "wasm",
+          "portable_pdb"
         ],
         "example": "js",
         "type": "string",
@@ -167348,7 +167407,9 @@
           "FLUTTER",
           "ELF",
           "NDK",
-          "IL2CPP"
+          "IL2CPP",
+          "WASM",
+          "PORTABLE_PDB"
         ]
       },
       "SourcemapSearchBy": {
@@ -177778,6 +177839,16 @@
             "maxLength": 195,
             "type": "string"
           },
+          "handles": {
+            "description": "Collection of handles associated with the team.",
+            "items": {
+              "description": "A team handle.",
+              "type": "string"
+            },
+            "nullable": true,
+            "readOnly": true,
+            "type": "array"
+          },
           "hidden_modules": {
             "description": "Collection of hidden modules for the team",
             "items": {
@@ -177789,6 +177860,11 @@
           },
           "is_managed": {
             "description": "Whether the team is managed from an external source",
+            "type": "boolean"
+          },
+          "is_open_membership": {
+            "description": "Whether any user can join the team without an invitation.",
+            "readOnly": true,
             "type": "boolean"
           },
           "link_count": {
@@ -177807,6 +177883,12 @@
             "description": "The name of the team",
             "example": "Example Team",
             "maxLength": 200,
+            "type": "string"
+          },
+          "provisioned_by": {
+            "description": "The mechanism that created the team, such as `teams_api`, `teams_terraform`, or `teams_ui`.\nOmitted when unknown.",
+            "example": "teams_api",
+            "readOnly": true,
             "type": "string"
           },
           "summary": {
@@ -179177,6 +179259,13 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/Team"
+          },
+          "included": {
+            "description": "Resources related to the team.",
+            "items": {
+              "$ref": "#/components/schemas/TeamIncluded"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -179843,7 +179932,9 @@
           "user_count",
           "link_count",
           "team_links",
-          "user_team_permissions"
+          "user_team_permissions",
+          "is_managed",
+          "provisioned_by"
         ],
         "type": "string",
         "x-enum-varnames": [
@@ -179861,7 +179952,9 @@
           "USER_COUNT",
           "LINK_COUNT",
           "TEAM_LINKS",
-          "USER_TEAM_PERMISSIONS"
+          "USER_TEAM_PERMISSIONS",
+          "IS_MANAGED",
+          "PROVISIONED_BY"
         ]
       },
       "TeamsHierarchyLinksResponseLinks": {
@@ -179911,8 +180004,24 @@
             "format": "int64",
             "type": "integer"
           },
+          "first_offset": {
+            "description": "First offset.",
+            "format": "int64",
+            "type": "integer"
+          },
           "last_number": {
             "description": "Last page number.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_offset": {
+            "description": "Last offset.",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "limit": {
+            "description": "Page limit, when offset pagination is used.",
             "format": "int64",
             "type": "integer"
           },
@@ -179922,13 +180031,30 @@
             "nullable": true,
             "type": "integer"
           },
+          "next_offset": {
+            "description": "Next offset.",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
           "number": {
             "description": "Page number.",
             "format": "int64",
             "type": "integer"
           },
+          "offset": {
+            "description": "Current offset, when offset pagination is used.",
+            "format": "int64",
+            "type": "integer"
+          },
           "prev_number": {
             "description": "Previous page number.",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "prev_offset": {
+            "description": "Previous offset.",
             "format": "int64",
             "nullable": true,
             "type": "integer"
@@ -180561,9 +180687,20 @@
       "TeamsResponseMetaPagination": {
         "description": "Teams response metadata.",
         "properties": {
+          "first_number": {
+            "description": "The first page number.",
+            "format": "int64",
+            "type": "integer"
+          },
           "first_offset": {
             "description": "The first offset.",
             "format": "int64",
+            "type": "integer"
+          },
+          "last_number": {
+            "description": "The last page number.",
+            "format": "int64",
+            "nullable": true,
             "type": "integer"
           },
           "last_offset": {
@@ -180576,8 +180713,19 @@
             "format": "int64",
             "type": "integer"
           },
+          "next_number": {
+            "description": "The next page number.",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
           "next_offset": {
             "description": "The next offset.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "number": {
+            "description": "The current page number, when page-number pagination is used.",
             "format": "int64",
             "type": "integer"
           },
@@ -180586,8 +180734,19 @@
             "format": "int64",
             "type": "integer"
           },
+          "prev_number": {
+            "description": "The previous page number.",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
           "prev_offset": {
             "description": "The previous offset.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "size": {
+            "description": "The page size, when page-number pagination is used.",
             "format": "int64",
             "type": "integer"
           },
@@ -180597,7 +180756,7 @@
             "type": "integer"
           },
           "type": {
-            "description": "Offset type.",
+            "description": "Pagination type. One of `offset_limit` or `number_size`.",
             "type": "string"
           }
         },
@@ -202179,7 +202338,7 @@
     },
     "/api/v2/authn_mappings": {
       "get": {
-        "description": "List all AuthN Mappings in the org.",
+        "description": "List all AuthN Mappings in the organization.",
         "operationId": "ListAuthNMappings",
         "parameters": [
           {
@@ -277760,7 +277919,7 @@
                   "value": {
                     "data": {
                       "attributes": {
-                        "compression_method": "GZIP",
+                        "compression_method": "ZSTD",
                         "destination": {
                           "container": "container-name",
                           "storage_account": "account-name",
@@ -278061,7 +278220,7 @@
                   "value": {
                     "data": {
                       "attributes": {
-                        "compression_method": "GZIP",
+                        "compression_method": "ZSTD",
                         "destination": {
                           "container": "container-name",
                           "storage_account": "account-name",
@@ -280822,7 +280981,7 @@
             }
           },
           {
-            "description": "Maximum number of results per page. Send `page[size]` on the first request to opt in to pagination. On each subsequent request, send `page[cursor]` set to the value of `meta.pagination.next_cursor` from the previous response. The default value is 10000, the maximum value is 10000, and the minimum value is 1.",
+            "description": "Maximum number of results per page. Send `page[size]` on the first request to opt in to pagination. On subsequent requests, send `page[cursor]` set to the value of `meta.pagination.next_cursor` from the previous response. To retain a custom page size, include `page[size]` on every request. The default value is 10000, the maximum value is 10000, and the minimum value is 1.",
             "in": "query",
             "name": "page[size]",
             "required": false,
@@ -287294,7 +287453,7 @@
             "$ref": "#/components/parameters/NDMPageNumber"
           },
           {
-            "description": "The field to sort the devices by. Defaults to `name`.",
+            "description": "The field to sort devices by. Defaults to `name`. Prefix the field with `-` to sort in descending order, for example, `-name`.",
             "example": "status",
             "in": "query",
             "name": "sort",
@@ -287351,7 +287510,7 @@
             "description": "OK"
           },
           "400": {
-            "$ref": "#/components/responses/BadRequestResponse"
+            "$ref": "#/components/responses/NDMBadRequestResponse"
           },
           "403": {
             "$ref": "#/components/responses/ForbiddenResponse"
@@ -287421,7 +287580,7 @@
             "$ref": "#/components/responses/ForbiddenResponse"
           },
           "404": {
-            "$ref": "#/components/responses/NotFoundResponse"
+            "$ref": "#/components/responses/NDMNotFoundResponse"
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequestsResponse"
@@ -287574,7 +287733,7 @@
             "$ref": "#/components/responses/ForbiddenResponse"
           },
           "404": {
-            "$ref": "#/components/responses/NotFoundResponse"
+            "$ref": "#/components/responses/NDMNotFoundResponse"
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequestsResponse"
@@ -287653,11 +287812,14 @@
             },
             "description": "OK"
           },
+          "400": {
+            "$ref": "#/components/responses/NDMBadRequestResponse"
+          },
           "403": {
             "$ref": "#/components/responses/ForbiddenResponse"
           },
           "404": {
-            "$ref": "#/components/responses/NotFoundResponse"
+            "$ref": "#/components/responses/NDMNotFoundResponse"
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequestsResponse"
@@ -287716,7 +287878,7 @@
             "$ref": "#/components/responses/ForbiddenResponse"
           },
           "404": {
-            "$ref": "#/components/responses/NotFoundResponse"
+            "$ref": "#/components/responses/NDMNotFoundResponse"
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequestsResponse"
@@ -287795,11 +287957,14 @@
             },
             "description": "OK"
           },
+          "400": {
+            "$ref": "#/components/responses/NDMBadRequestResponse"
+          },
           "403": {
             "$ref": "#/components/responses/ForbiddenResponse"
           },
           "404": {
-            "$ref": "#/components/responses/NotFoundResponse"
+            "$ref": "#/components/responses/NDMNotFoundResponse"
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequestsResponse"
@@ -336781,7 +336946,7 @@
         "operationId": "DeleteSourcemaps",
         "parameters": [
           {
-            "description": "The type of source map. Valid values are `js`, `jvm`, `ios`,\n`react`, `flutter`, `elf`, `ndk`, `il2cpp`.",
+            "description": "The type of source map. Valid values are `js`, `jvm`, `ios`,\n`react`, `flutter`, `elf`, `ndk`, `il2cpp`, `wasm`, `portable_pdb`.",
             "in": "query",
             "name": "mapkind",
             "required": true,
@@ -336858,7 +337023,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by build ID values (multiple values allowed). Supported for `jvm`, `ndk`, and `il2cpp`.",
+            "description": "Filter by build ID values (multiple values allowed). Supported for `jvm`, `ndk`, `il2cpp`, `wasm`, and `portable_pdb`.",
             "explode": true,
             "in": "query",
             "name": "filter[build_id]",
@@ -336975,7 +337140,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by filename (single value). Supported for `js`, `elf`, and `ndk`.",
+            "description": "Filter by filename (single value). Supported for `js`, `elf`, `ndk`, `wasm`, and `portable_pdb`.",
             "in": "query",
             "name": "filter[filename]",
             "schema": {
@@ -337337,7 +337502,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by build ID values (multiple values allowed). Supported for `jvm`, `ndk`, and `il2cpp`.",
+            "description": "Filter by build ID values (multiple values allowed). Supported for `jvm`, `ndk`, `il2cpp`, `wasm`, and `portable_pdb`.",
             "explode": true,
             "in": "query",
             "name": "filter[build_id]",
@@ -337454,7 +337619,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by filename (single value). Supported for `js`, `elf`, and `ndk`.",
+            "description": "Filter by filename (single value). Supported for `js`, `elf`, `ndk`, `wasm`, and `portable_pdb`.",
             "in": "query",
             "name": "filter[filename]",
             "schema": {
@@ -337609,7 +337774,7 @@
         "operationId": "RestoreSourcemaps",
         "parameters": [
           {
-            "description": "The type of source map. Valid values are `js`, `jvm`, `ios`,\n`react`, `flutter`, `elf`, `ndk`, `il2cpp`.",
+            "description": "The type of source map. Valid values are `js`, `jvm`, `ios`,\n`react`, `flutter`, `elf`, `ndk`, `il2cpp`, `wasm`, `portable_pdb`.",
             "in": "query",
             "name": "mapkind",
             "required": true,
@@ -337686,7 +337851,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by build ID values (multiple values allowed). Supported for `jvm`, `ndk`, and `il2cpp`.",
+            "description": "Filter by build ID values (multiple values allowed). Supported for `jvm`, `ndk`, `il2cpp`, `wasm`, and `portable_pdb`.",
             "explode": true,
             "in": "query",
             "name": "filter[build_id]",
@@ -337803,7 +337968,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by filename (single value). Supported for `js`, `elf`, and `ndk`.",
+            "description": "Filter by filename (single value). Supported for `js`, `elf`, `ndk`, `wasm`, and `portable_pdb`.",
             "in": "query",
             "name": "filter[filename]",
             "schema": {
