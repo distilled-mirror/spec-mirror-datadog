@@ -54329,6 +54329,89 @@
         ],
         "type": "object"
       },
+      "EscalationPolicies": {
+        "description": "A paginated list of escalation policies, with any related resources requested through `include`.",
+        "properties": {
+          "data": {
+            "description": "A list of escalation policies.",
+            "items": {
+              "$ref": "#/components/schemas/EscalationPolicyListItem"
+            },
+            "type": "array"
+          },
+          "included": {
+            "description": "Provides any included related resources, such as teams, steps, or targets, returned with the policies.",
+            "items": {
+              "$ref": "#/components/schemas/EscalationPolicyIncluded"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/EscalationPoliciesResponseMeta"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "EscalationPoliciesResponseMeta": {
+        "description": "Metadata included in the response when listing escalation policies.",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/EscalationPoliciesResponseMetaPage"
+          }
+        },
+        "type": "object"
+      },
+      "EscalationPoliciesResponseMetaPage": {
+        "description": "Pagination metadata included in the response when listing escalation policies.",
+        "properties": {
+          "first_number": {
+            "description": "First page number.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_number": {
+            "description": "Last page number.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "next_number": {
+            "description": "Next page number.",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "number": {
+            "description": "Page number.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "prev_number": {
+            "description": "Previous page number.",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "size": {
+            "description": "Page size.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "total": {
+            "description": "Total number of results.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "type": {
+            "description": "Pagination type.",
+            "example": "number_size",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "EscalationPolicy": {
         "description": "Represents a complete escalation policy response, including policy data and optionally included related resources.",
         "example": {
@@ -54662,6 +54745,17 @@
             "maximum": 10,
             "minimum": 0,
             "type": "integer"
+          },
+          "tags": {
+            "description": "A list of tags attached to the escalation policy, in `key:value` format.",
+            "example": [
+              "env:prod"
+            ],
+            "items": {
+              "description": "A tag in `key:value` format.",
+              "type": "string"
+            },
+            "type": "array"
           }
         },
         "required": [
@@ -54758,6 +54852,30 @@
             "$ref": "#/components/schemas/TeamReference"
           }
         ]
+      },
+      "EscalationPolicyListItem": {
+        "description": "Represents an escalation policy returned in a list, including its attributes, ID, relationships, and resource type.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/EscalationPolicyDataAttributes"
+          },
+          "id": {
+            "description": "Specifies the unique identifier of the escalation policy.",
+            "example": "ab000000-0000-0000-0000-000000000000",
+            "type": "string"
+          },
+          "relationships": {
+            "$ref": "#/components/schemas/EscalationPolicyDataRelationships"
+          },
+          "type": {
+            "$ref": "#/components/schemas/EscalationPolicyDataType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
       },
       "EscalationPolicyStep": {
         "description": "Represents a single step in an escalation policy, including its attributes, relationships, and resource type.",
@@ -55064,6 +55182,11 @@
       "EscalationPolicyUserAttributes": {
         "description": "Provides basic user information for an escalation policy, including a name and email address.",
         "properties": {
+          "color": {
+            "description": "The user's on-call color, as a hex code (for example, `#FF0000`). Included only when `user.color` is requested in the `include` parameter.",
+            "example": "#FF0000",
+            "type": "string"
+          },
           "email": {
             "description": "The user's email address.",
             "example": "jane.doe@example.com",
@@ -103789,10 +103912,10 @@
           },
           "limit": {
             "default": 10,
-            "description": "Maximum number of logs in the response.",
+            "description": "Requested maximum number of logs in the response.",
             "example": 25,
             "format": "int32",
-            "maximum": 1000,
+            "maximum": 5000,
             "type": "integer"
           }
         },
@@ -103926,7 +104049,7 @@
           "query": {
             "default": "*",
             "description": "The search query - following the log search syntax.",
-            "example": "service:web* AND @http.status_code:[200 TO 299]",
+            "example": "service:web-api AND @http.status_code:[200 TO 299]",
             "type": "string"
           }
         },
@@ -104034,7 +104157,7 @@
         "properties": {
           "query": {
             "description": "The search query - following the log search syntax.",
-            "example": "service:web* AND @http.status_code:[200 TO 299]",
+            "example": "service:web-api AND @http.status_code:[200 TO 299]",
             "type": "string"
           }
         },
@@ -104164,7 +104287,7 @@
           "query": {
             "default": "*",
             "description": "The search query - following the log search syntax.",
-            "example": "service:web* AND @http.status_code:[200 TO 299]",
+            "example": "service:web-api AND @http.status_code:[200 TO 299]",
             "type": "string"
           },
           "storage_tier": {
@@ -114608,7 +114731,7 @@
             "type": "array"
           },
           "use_legacy_search_syntax": {
-            "description": "Set to `true` to continue using the legacy search syntax while migrating filter queries. After migrating all queries to the new syntax, set to `false`.\nThe legacy syntax is deprecated and will eventually be removed.\nRequires Observability Pipelines Worker 2.11 or later.\nOnly applies to `logs` pipelines. This field is ignored for `metrics` pipelines.\nSee [Upgrade Your Filter Queries to the New Search Syntax](https://docs.datadoghq.com/observability_pipelines/guide/upgrade_your_filter_queries_to_the_new_search_syntax/) for more information.",
+            "description": "Set to `true` to continue using the legacy search syntax while migrating filter queries. After migrating all queries to the new syntax, set to `false`.\nThe legacy syntax is deprecated and will eventually be removed.\nRequires Observability Pipelines Worker 2.11 or later.\nOnly applies to `logs` pipelines. This field is ignored for `metrics` and `traces` pipelines.\nSee [Upgrade Your Filter Queries to the New Search Syntax](https://docs.datadoghq.com/observability_pipelines/guide/upgrade_your_filter_queries_to_the_new_search_syntax/) for more information.",
             "type": "boolean"
           }
         },
@@ -114703,13 +114826,16 @@
             "$ref": "#/components/schemas/ObservabilityPipelineDatadogMetricsDestination"
           },
           {
-            "$ref": "#/components/schemas/ObservabilityPipelineOpentelemetryMetricsDestination"
-          },
-          {
             "$ref": "#/components/schemas/ObservabilityPipelinePrometheusRemoteWriteDestination"
           },
           {
             "$ref": "#/components/schemas/ObservabilityPipelineSplunkHecMetricsDestination"
+          },
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineOpentelemetryDestination"
+          },
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineDatadogTracesDestination"
           }
         ]
       },
@@ -114718,13 +114844,15 @@
         "description": "The type of data being ingested. Defaults to `logs` if not specified.",
         "enum": [
           "logs",
-          "metrics"
+          "metrics",
+          "traces"
         ],
         "example": "logs",
         "type": "string",
         "x-enum-varnames": [
           "LOGS",
-          "METRICS"
+          "METRICS",
+          "TRACES"
         ]
       },
       "ObservabilityPipelineConfigProcessorGroup": {
@@ -114840,9 +114968,6 @@
             "$ref": "#/components/schemas/ObservabilityPipelineAddHostnameProcessor"
           },
           {
-            "$ref": "#/components/schemas/ObservabilityPipelineCustomProcessor"
-          },
-          {
             "$ref": "#/components/schemas/ObservabilityPipelineDatadogTagsProcessor"
           },
           {
@@ -114853,9 +114978,6 @@
           },
           {
             "$ref": "#/components/schemas/ObservabilityPipelineGenerateMetricsProcessor"
-          },
-          {
-            "$ref": "#/components/schemas/ObservabilityPipelineGenerateMetricsV2Processor"
           },
           {
             "$ref": "#/components/schemas/ObservabilityPipelineOcsfMapperProcessor"
@@ -114882,16 +115004,22 @@
             "$ref": "#/components/schemas/ObservabilityPipelineRenameFieldsProcessor"
           },
           {
-            "$ref": "#/components/schemas/ObservabilityPipelineSampleProcessor"
-          },
-          {
-            "$ref": "#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessor"
-          },
-          {
             "$ref": "#/components/schemas/ObservabilityPipelineSplitArrayProcessor"
           },
           {
             "$ref": "#/components/schemas/ObservabilityPipelineThrottleProcessor"
+          },
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineCustomProcessor"
+          },
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineGenerateMetricsV2Processor"
+          },
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineSampleProcessor"
+          },
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineSensitiveDataScannerProcessor"
           },
           {
             "$ref": "#/components/schemas/ObservabilityPipelineAddMetricTagsProcessor"
@@ -114918,6 +115046,9 @@
         "oneOf": [
           {
             "$ref": "#/components/schemas/ObservabilityPipelineDatadogAgentSource"
+          },
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineOpentelemetrySource"
           },
           {
             "$ref": "#/components/schemas/ObservabilityPipelineAmazonDataFirehoseSource"
@@ -114966,9 +115097,6 @@
           },
           {
             "$ref": "#/components/schemas/ObservabilityPipelineWebsocketSource"
-          },
-          {
-            "$ref": "#/components/schemas/ObservabilityPipelineOpentelemetrySource"
           },
           {
             "$ref": "#/components/schemas/ObservabilityPipelinePrometheusRemoteWriteSource"
@@ -115088,7 +115216,7 @@
         ]
       },
       "ObservabilityPipelineCustomProcessor": {
-        "description": "The `custom_processor` processor transforms events using [Vector Remap Language (VRL)](https://vector.dev/docs/reference/vrl/) scripts with advanced filtering capabilities.\n\n**Supported pipeline types:** logs",
+        "description": "The `custom_processor` processor transforms events using [Vector Remap Language (VRL)](https://vector.dev/docs/reference/vrl/) scripts with advanced filtering capabilities.\n\n**Supported pipeline types:** logs, traces",
         "properties": {
           "display_name": {
             "$ref": "#/components/schemas/ObservabilityPipelineComponentDisplayName"
@@ -115105,7 +115233,7 @@
           },
           "include": {
             "default": "*",
-            "description": "A Datadog search query used to determine which logs this processor targets. This field should always be set to `*` for the custom_processor processor.",
+            "description": "A Datadog search query used to determine which events this processor targets. This field should always be set to `*` for the custom_processor processor.",
             "example": "*",
             "type": "string"
           },
@@ -115130,7 +115258,8 @@
         ],
         "type": "object",
         "x-pipeline-types": [
-          "logs"
+          "logs",
+          "traces"
         ]
       },
       "ObservabilityPipelineCustomProcessorRemap": {
@@ -115314,7 +115443,7 @@
         ]
       },
       "ObservabilityPipelineDatadogAgentSource": {
-        "description": "The `datadog_agent` source collects logs/metrics from the Datadog Agent.\n\n**Supported pipeline types:** logs, metrics",
+        "description": "The `datadog_agent` source collects logs, metrics, or traces from the Datadog Agent.\n\n**Supported pipeline types:** logs, metrics, traces",
         "properties": {
           "address_key": {
             "description": "Name of the environment variable or secret that holds the listen address for the Datadog Agent source.",
@@ -115340,7 +115469,8 @@
         "type": "object",
         "x-pipeline-types": [
           "logs",
-          "metrics"
+          "metrics",
+          "traces"
         ]
       },
       "ObservabilityPipelineDatadogAgentSourceType": {
@@ -115582,6 +115712,54 @@
         "type": "string",
         "x-enum-varnames": [
           "DATADOG_TAGS"
+        ]
+      },
+      "ObservabilityPipelineDatadogTracesDestination": {
+        "description": "The `datadog_traces` destination forwards traces to Datadog.\n\n**Supported pipeline types:** traces",
+        "properties": {
+          "buffer": {
+            "$ref": "#/components/schemas/ObservabilityPipelineBufferOptions"
+          },
+          "id": {
+            "description": "The unique identifier for this component.",
+            "example": "datadog-traces-destination",
+            "type": "string"
+          },
+          "inputs": {
+            "description": "A list of component IDs whose output is used as the input for this component.",
+            "example": [
+              "trace-processor-group"
+            ],
+            "items": {
+              "description": "The ID of a component whose output is used as input for this destination.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ObservabilityPipelineDatadogTracesDestinationType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "inputs"
+        ],
+        "type": "object",
+        "x-pipeline-types": [
+          "traces"
+        ]
+      },
+      "ObservabilityPipelineDatadogTracesDestinationType": {
+        "default": "datadog_traces",
+        "description": "The destination type. The value should always be `datadog_traces`.",
+        "enum": [
+          "datadog_traces"
+        ],
+        "example": "datadog_traces",
+        "type": "string",
+        "x-enum-varnames": [
+          "DATADOG_TRACES"
         ]
       },
       "ObservabilityPipelineDecoding": {
@@ -116259,7 +116437,7 @@
         "type": "object"
       },
       "ObservabilityPipelineFilterProcessor": {
-        "description": "The `filter` processor allows conditional processing of logs/metrics based on a Datadog search query. Logs/metrics that match the `include` query are passed through; others are discarded.\n\n**Supported pipeline types:** logs, metrics",
+        "description": "The `filter` processor allows conditional processing of logs, metrics, or traces based on a Datadog search query. Events that match the `include` query are passed through; others are discarded.\n\n**Supported pipeline types:** logs, metrics, traces",
         "properties": {
           "display_name": {
             "$ref": "#/components/schemas/ObservabilityPipelineComponentDisplayName"
@@ -116275,7 +116453,7 @@
             "type": "string"
           },
           "include": {
-            "description": "A Datadog search query used to determine which logs/metrics should pass through the filter. Logs/metrics that match this query continue to downstream components; others are dropped.",
+            "description": "A Datadog search query used to determine which events should pass through the filter. Events that match this query continue to downstream components; others are dropped.",
             "example": "service:my-service",
             "type": "string"
           },
@@ -116292,7 +116470,8 @@
         "type": "object",
         "x-pipeline-types": [
           "logs",
-          "metrics"
+          "metrics",
+          "traces"
         ]
       },
       "ObservabilityPipelineFilterProcessorType": {
@@ -116459,7 +116638,7 @@
         ]
       },
       "ObservabilityPipelineGenerateMetricsV2Processor": {
-        "description": "The `generate_metrics` processor creates custom metrics from logs.\nMetrics can be counters, gauges, or distributions and optionally grouped by log fields.\n\nThere must be a destination whose `inputs` reference this processor with the `<processor-id>.metrics` suffix to route the generated metrics. All destination types normally supported for `metrics` pipelines are also supported as metrics destinations in `logs` pipelines.\n\n**Supported pipeline types:** logs",
+        "description": "The `generate_metrics` processor creates custom metrics from logs or traces.\nMetrics can be counters, gauges, or distributions and optionally grouped by event fields.\n\nThere must be a destination whose `inputs` reference this processor with the `<processor-id>.metrics` suffix to route the generated metrics. All destination types normally supported for `metrics` pipelines are also supported as metrics destinations in `logs` and `traces` pipelines.\n\n**Supported pipeline types:** logs, traces",
         "properties": {
           "display_name": {
             "$ref": "#/components/schemas/ObservabilityPipelineComponentDisplayName"
@@ -116481,7 +116660,7 @@
             "type": "string"
           },
           "include": {
-            "description": "A Datadog search query used to determine which logs this processor targets.",
+            "description": "A Datadog search query used to determine which events this processor targets.",
             "example": "service:my-service",
             "type": "string"
           },
@@ -116503,7 +116682,8 @@
         ],
         "type": "object",
         "x-pipeline-types": [
-          "logs"
+          "logs",
+          "traces"
         ]
       },
       "ObservabilityPipelineGenerateMetricsV2ProcessorType": {
@@ -116519,7 +116699,7 @@
         ]
       },
       "ObservabilityPipelineGeneratedMetric": {
-        "description": "Defines a log-based custom metric, including its name, type, filter, value computation strategy,\nand optional grouping fields.",
+        "description": "Defines a custom metric generated from logs or traces, including its name, type, filter, value computation strategy,\nand optional grouping fields.",
         "properties": {
           "group_by": {
             "description": "Optional fields used to group the metric series.",
@@ -116528,13 +116708,13 @@
               "env"
             ],
             "items": {
-              "description": "A log field name used to group the metric series.",
+              "description": "A field name used to group the metric series.",
               "type": "string"
             },
             "type": "array"
           },
           "include": {
-            "description": "Datadog filter query to match logs for metric generation.",
+            "description": "Datadog filter query to match events for metric generation.",
             "example": "service:billing",
             "type": "string"
           },
@@ -116559,10 +116739,10 @@
         "type": "object"
       },
       "ObservabilityPipelineGeneratedMetricIncrementByField": {
-        "description": "Strategy that increments a generated metric based on the value of a log field.",
+        "description": "Strategy that increments a generated metric based on the value of an event field.",
         "properties": {
           "field": {
-            "description": "Name of the log field containing the numeric value to increment the metric by.",
+            "description": "Name of the field containing the numeric value to increment the metric by.",
             "example": "errors",
             "type": "string"
           },
@@ -118628,21 +118808,21 @@
           "OPENSEARCH"
         ]
       },
-      "ObservabilityPipelineOpentelemetryMetricsDestination": {
-        "description": "The `opentelemetry` destination forwards metrics using the OpenTelemetry Protocol (OTLP) over HTTP.\n\n**Supported pipeline types:** metrics",
+      "ObservabilityPipelineOpentelemetryDestination": {
+        "description": "The `opentelemetry` destination forwards metrics or traces using the OpenTelemetry Protocol (OTLP) over HTTP.\n\n**Supported pipeline types:** metrics, traces",
         "properties": {
           "buffer": {
             "$ref": "#/components/schemas/ObservabilityPipelineBufferOptions"
           },
           "http_client_uri_key": {
             "default": "DESTINATION_OTEL_HTTP_CLIENT_URI",
-            "description": "Environment variable name containing the URI of the OTLP HTTP endpoint to send metrics to.",
+            "description": "Environment variable name containing the URI of the OTLP HTTP endpoint to send metrics or traces to.",
             "example": "DESTINATION_OTEL_HTTP_CLIENT_URI",
             "type": "string"
           },
           "id": {
             "description": "The unique identifier for this component. Used in other parts of the pipeline to reference this component (for example, as the `input` to downstream components).",
-            "example": "opentelemetry-metrics-destination",
+            "example": "opentelemetry-destination",
             "type": "string"
           },
           "inputs": {
@@ -118660,7 +118840,7 @@
             "$ref": "#/components/schemas/ObservabilityPipelineTls"
           },
           "type": {
-            "$ref": "#/components/schemas/ObservabilityPipelineOpentelemetryMetricsDestinationType"
+            "$ref": "#/components/schemas/ObservabilityPipelineOpentelemetryDestinationType"
           }
         },
         "required": [
@@ -118670,10 +118850,11 @@
         ],
         "type": "object",
         "x-pipeline-types": [
-          "metrics"
+          "metrics",
+          "traces"
         ]
       },
-      "ObservabilityPipelineOpentelemetryMetricsDestinationType": {
+      "ObservabilityPipelineOpentelemetryDestinationType": {
         "default": "opentelemetry",
         "description": "The destination type. Always `opentelemetry`.",
         "enum": [
@@ -118686,7 +118867,7 @@
         ]
       },
       "ObservabilityPipelineOpentelemetrySource": {
-        "description": "The `opentelemetry` source receives telemetry data using the OpenTelemetry Protocol (OTLP) over gRPC and HTTP.\n\n**Supported pipeline types:** logs, metrics",
+        "description": "The `opentelemetry` source receives telemetry data using the OpenTelemetry Protocol (OTLP) over gRPC and HTTP.\n\n**Supported pipeline types:** logs, metrics, traces",
         "properties": {
           "grpc_address_key": {
             "description": "Environment variable name containing the gRPC server address for receiving OTLP data. Must be a valid environment variable name (alphanumeric characters and underscores only).",
@@ -118717,7 +118898,8 @@
         "type": "object",
         "x-pipeline-types": [
           "logs",
-          "metrics"
+          "metrics",
+          "traces"
         ]
       },
       "ObservabilityPipelineOpentelemetrySourceType": {
@@ -119883,7 +120065,7 @@
         ]
       },
       "ObservabilityPipelineSampleProcessor": {
-        "description": "The `sample` processor allows probabilistic sampling of logs at a fixed rate.\n\n**Supported pipeline types:** logs",
+        "description": "The `sample` processor allows probabilistic sampling of logs or traces at a fixed rate.\n\n**Supported pipeline types:** logs, traces",
         "properties": {
           "display_name": {
             "$ref": "#/components/schemas/ObservabilityPipelineComponentDisplayName"
@@ -119900,7 +120082,7 @@
               "host"
             ],
             "items": {
-              "description": "A log field name used to group events for independent sampling.",
+              "description": "A field name used to group events for independent sampling.",
               "type": "string"
             },
             "minItems": 1,
@@ -119912,12 +120094,12 @@
             "type": "string"
           },
           "include": {
-            "description": "A Datadog search query used to determine which logs this processor targets.",
+            "description": "A Datadog search query used to determine which events this processor targets.",
             "example": "service:my-service",
             "type": "string"
           },
           "percentage": {
-            "description": "The percentage of logs to sample.",
+            "description": "The percentage of events to sample.",
             "example": 10,
             "format": "double",
             "type": "number"
@@ -119935,7 +120117,8 @@
         ],
         "type": "object",
         "x-pipeline-types": [
-          "logs"
+          "logs",
+          "traces"
         ]
       },
       "ObservabilityPipelineSampleProcessorType": {
@@ -119951,7 +120134,7 @@
         ]
       },
       "ObservabilityPipelineSensitiveDataScannerProcessor": {
-        "description": "The `sensitive_data_scanner` processor detects and optionally redacts sensitive data in log events.\n\n**Supported pipeline types:** logs",
+        "description": "The `sensitive_data_scanner` processor detects and optionally redacts sensitive data in log or trace events.\n\n**Supported pipeline types:** logs, traces",
         "properties": {
           "display_name": {
             "$ref": "#/components/schemas/ObservabilityPipelineComponentDisplayName"
@@ -119967,7 +120150,7 @@
             "type": "string"
           },
           "include": {
-            "description": "A Datadog search query used to determine which logs this processor targets.",
+            "description": "A Datadog search query used to determine which events this processor targets.",
             "example": "source:prod",
             "type": "string"
           },
@@ -119991,7 +120174,8 @@
         ],
         "type": "object",
         "x-pipeline-types": [
-          "logs"
+          "logs",
+          "traces"
         ]
       },
       "ObservabilityPipelineSensitiveDataScannerProcessorAction": {
@@ -126033,6 +126217,9 @@
           },
           "links": {
             "$ref": "#/components/schemas/OutcomesResponseLinks"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedResponseMeta"
           }
         },
         "type": "object"
@@ -126102,10 +126289,30 @@
         "type": "object"
       },
       "OutcomesResponseLinks": {
-        "description": "Links attributes.",
+        "description": "Pagination links for rule outcomes.",
         "properties": {
+          "first": {
+            "description": "Link for the first set of results.",
+            "example": "/api/v2/scorecard/outcomes?include=rule&page%5Blimit%5D=100&page%5Boffset%5D=0",
+            "type": "string"
+          },
+          "last": {
+            "description": "Link for the last set of results.",
+            "example": "/api/v2/scorecard/outcomes?include=rule&page%5Blimit%5D=100&page%5Boffset%5D=200",
+            "type": "string"
+          },
           "next": {
             "description": "Link for the next set of results.",
+            "example": "/api/v2/scorecard/outcomes?include=rule&page%5Blimit%5D=100&page%5Boffset%5D=200",
+            "type": "string"
+          },
+          "previous": {
+            "description": "Link for the previous set of results.",
+            "example": "/api/v2/scorecard/outcomes?include=rule&page%5Blimit%5D=100&page%5Boffset%5D=0",
+            "type": "string"
+          },
+          "self": {
+            "description": "Link for the current set of results.",
             "example": "/api/v2/scorecard/outcomes?include=rule&page%5Blimit%5D=100&page%5Boffset%5D=100",
             "type": "string"
           }
@@ -130921,7 +131128,7 @@
         ]
       },
       "ProcessScalarQuery": {
-        "description": "A query for host-level process metrics such as CPU and memory usage.",
+        "description": "Per-process metrics from Live Processes. Queries without `aggregator` fail. To scope to one process,\nset `tag_filters` to its `identifying_tags` from `GET /api/v2/processes`.",
         "properties": {
           "aggregator": {
             "$ref": "#/components/schemas/MetricsAggregator"
@@ -130937,12 +131144,12 @@
             "type": "boolean"
           },
           "limit": {
-            "description": "Maximum number of results to return.",
+            "description": "Maximum number of processes or groups to return. Large values can fail with an `Unprocessable\nContent` error. If so, retry with a smaller limit.",
             "format": "int64",
             "type": "integer"
           },
           "metric": {
-            "description": "The process metric to query.",
+            "description": "The process metric to query, such as `process.stat.cpu.total_pct`, `process.stat.memory.rss`, or\n`process.stat.memory.vms`.",
             "example": "process.stat.cpu.total_pct",
             "type": "string"
           },
@@ -130955,7 +131162,7 @@
             "$ref": "#/components/schemas/QuerySortOrder"
           },
           "tag_filters": {
-            "description": "Tag filters to narrow down processes.",
+            "description": "Tags to narrow down processes. To scope to one process, use its `identifying_tags` from\n`GET /api/v2/processes`, for example `host:web-01` and `pid:1234`.",
             "items": {
               "description": "A tag filter value.",
               "example": "env:prod",
@@ -131103,7 +131310,7 @@
         ]
       },
       "ProcessTimeseriesQuery": {
-        "description": "A query for host-level process metrics such as CPU and memory usage.",
+        "description": "Per-process metrics from Live Processes over time, such as CPU and memory usage. To scope to one\nprocess, set `tag_filters` to its `identifying_tags` from `GET /api/v2/processes`.",
         "properties": {
           "cross_org_uuids": {
             "$ref": "#/components/schemas/CrossOrgUuids"
@@ -131116,12 +131323,12 @@
             "type": "boolean"
           },
           "limit": {
-            "description": "Maximum number of results to return.",
+            "description": "Maximum number of processes or groups to return. Large values can fail with an `Unprocessable\nContent` error. If so, retry with a smaller limit.",
             "format": "int64",
             "type": "integer"
           },
           "metric": {
-            "description": "The process metric to query.",
+            "description": "The process metric to query, such as `process.stat.cpu.total_pct`, `process.stat.memory.rss`, or\n`process.stat.memory.vms`.",
             "example": "process.stat.cpu.total_pct",
             "type": "string"
           },
@@ -131134,7 +131341,7 @@
             "$ref": "#/components/schemas/QuerySortOrder"
           },
           "tag_filters": {
-            "description": "Tag filters to narrow down processes.",
+            "description": "Tags to narrow down processes. To scope to one process, use its `identifying_tags` from\n`GET /api/v2/processes`, for example `host:web-01` and `pid:1234`.",
             "items": {
               "description": "A tag filter value.",
               "example": "env:prod",
@@ -142213,6 +142420,9 @@
             "description": "The `RoleTemplateData` `id`.",
             "type": "string"
           },
+          "relationships": {
+            "$ref": "#/components/schemas/RoleResponseRelationships"
+          },
           "type": {
             "$ref": "#/components/schemas/RoleTemplateDataType"
           }
@@ -142278,6 +142488,12 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "team_count": {
+            "description": "Number of teams with that role.",
+            "format": "int64",
+            "readOnly": true,
+            "type": "integer"
           },
           "user_count": {
             "description": "The user count.",
@@ -176841,15 +177057,37 @@
             "readOnly": true,
             "type": "string"
           },
+          "estimated_change_in_volume": {
+            "description": "Estimated change in indexed cardinality or points if the exemption is removed and the matching tag indexing\nrule applies to the metric. A negative value indicates a reduction in indexed volume, a positive value\nindicates an increase, and zero indicates no change. A `null` value indicates that the estimate is unavailable.",
+            "example": 45,
+            "format": "int64",
+            "nullable": true,
+            "readOnly": true,
+            "type": "integer"
+          },
           "kind": {
             "description": "Discriminates between an explicit exemption (`exemption`) and a pre-existing legacy tag configuration acting as an implicit exclusion (`legacy_tag_configuration`).",
             "example": "exemption",
             "type": "string"
           },
+          "missing_indexed_tags": {
+            "description": "Tag keys used to query this metric in monitors, dashboards, notebooks, and SLOs that the matching rule would\nremove or not include if the exemption is removed.",
+            "example": [
+              "service"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
           "reason": {
             "description": "The reason the metric is exempt from tag indexing rules.",
             "example": "This metric has a pre-existing tag configuration.",
             "type": "string"
+          },
+          "volume_status": {
+            "$ref": "#/components/schemas/TagIndexingRuleExemptionVolumeStatus"
           }
         },
         "type": "object"
@@ -176933,6 +177171,22 @@
         "type": "string",
         "x-enum-varnames": [
           "TAG_INDEXING_RULE_EXEMPTIONS"
+        ]
+      },
+      "TagIndexingRuleExemptionVolumeStatus": {
+        "description": "Indicates whether `estimated_change_in_volume` is available and, if not, why. `ok` indicates a fresh estimate.\n`unindexed_tags` indicates that the matching rule uses tags that are not indexed for the metric.\n`unavailable` indicates that the estimate is stale, was not computed, or could not be retrieved.",
+        "enum": [
+          "ok",
+          "unindexed_tags",
+          "unavailable"
+        ],
+        "example": "unavailable",
+        "readOnly": true,
+        "type": "string",
+        "x-enum-varnames": [
+          "OK",
+          "UNINDEXED_TAGS",
+          "UNAVAILABLE"
         ]
       },
       "TagIndexingRuleMetricMatch": {
@@ -232370,7 +232624,7 @@
         }
       },
       "post": {
-        "description": "This endpoint allows you to publish events.\n\n**Note:** To utilize this endpoint with our client libraries, please ensure you are using the latest version released on or after July 1, 2025. Earlier versions do not support this functionality.\n\n**Important:** Upgrade to the latest client library version to use the updated endpoint at `https://event-management-intake.{site}/api/v2/events`. Older client library versions of the Post an event (v2) API send requests to a deprecated endpoint (`https://api.{site}/api/v2/events`).\n\n✅ **Only events with the `change` or `alert` category** are in General Availability. For change events, see [Change Tracking](https://docs.datadoghq.com/change_tracking) for more details.\n\n❌ For use cases involving other event categories, use the V1 endpoint or reach out to [support](https://www.datadoghq.com/support/).",
+        "description": "This endpoint allows you to publish events.\n\n**Note:** To utilize this endpoint with our client libraries, please ensure you are using the latest version released on or after July 1, 2025. Earlier versions do not support this functionality.\n\n**Important:** Upgrade to the latest client library version to use the updated endpoint at `https://event-management-intake.{site}/api/v2/events`. Older client library versions of the Post an event (v2) API send requests to a deprecated endpoint (`https://api.{site}/api/v2/events`).\n\nSupported event categories are `change` and `alert`. For more information about change events, see [Change Tracking](https://docs.datadoghq.com/change_tracking).",
         "operationId": "CreateEvent",
         "requestBody": {
           "content": {
@@ -277365,7 +277619,7 @@
                         "main",
                         "web"
                       ],
-                      "query": "service:web* AND @http.status_code:[200 TO 299]",
+                      "query": "service:web-api AND @http.status_code:[200 TO 299]",
                       "storage_tier": "indexes",
                       "to": "now"
                     },
@@ -279022,7 +279276,7 @@
                               "path": "@duration"
                             },
                             "filter": {
-                              "query": "service:web* AND @http.status_code:[200 TO 299]"
+                              "query": "service:web-api AND @http.status_code:[200 TO 299]"
                             },
                             "group_by": [
                               {
@@ -279080,7 +279334,7 @@
                           "path": "@duration"
                         },
                         "filter": {
-                          "query": "service:web* AND @http.status_code:[200 TO 299]"
+                          "query": "service:web-api AND @http.status_code:[200 TO 299]"
                         },
                         "group_by": [
                           {
@@ -279118,7 +279372,7 @@
                             "path": "@duration"
                           },
                           "filter": {
-                            "query": "service:web* AND @http.status_code:[200 TO 299]"
+                            "query": "service:web-api AND @http.status_code:[200 TO 299]"
                           },
                           "group_by": [
                             {
@@ -279223,7 +279477,7 @@
                             "path": "@duration"
                           },
                           "filter": {
-                            "query": "service:web* AND @http.status_code:[200 TO 299]"
+                            "query": "service:web-api AND @http.status_code:[200 TO 299]"
                           },
                           "group_by": [
                             {
@@ -279286,7 +279540,7 @@
                           "include_percentiles": true
                         },
                         "filter": {
-                          "query": "service:web* AND @http.status_code:[200 TO 299]"
+                          "query": "service:web-api AND @http.status_code:[200 TO 299]"
                         },
                         "group_by": [
                           {
@@ -279323,7 +279577,7 @@
                             "path": "@duration"
                           },
                           "filter": {
-                            "query": "service:web* AND @http.status_code:[200 TO 299]"
+                            "query": "service:web-api AND @http.status_code:[200 TO 299]"
                           },
                           "group_by": [
                             {
@@ -280376,7 +280630,7 @@
             "schema": {
               "default": 10,
               "format": "int32",
-              "maximum": 1000,
+              "maximum": 5000,
               "type": "integer"
             }
           }
@@ -280460,7 +280714,7 @@
                         "main",
                         "web"
                       ],
-                      "query": "service:web* AND @http.status_code:[200 TO 299]",
+                      "query": "service:web-api AND @http.status_code:[200 TO 299]",
                       "storage_tier": "indexes",
                       "to": "now"
                     },
@@ -283434,8 +283688,13 @@
                         "attributes": {
                           "created_at": "2024-01-15T12:00:00.000Z",
                           "created_by_handle": "user@datadoghq.com",
+                          "estimated_change_in_volume": 45,
                           "kind": "exemption",
-                          "reason": "This metric has a pre-existing tag configuration."
+                          "missing_indexed_tags": [
+                            "service"
+                          ],
+                          "reason": "This metric has a pre-existing tag configuration.",
+                          "volume_status": "ok"
                         },
                         "id": "dd.test.metric",
                         "type": "tag_indexing_rule_exemptions"
@@ -283555,8 +283814,11 @@
                         "attributes": {
                           "created_at": "2024-01-15T12:00:00.000Z",
                           "created_by_handle": "user@datadoghq.com",
+                          "estimated_change_in_volume": null,
                           "kind": "exemption",
-                          "reason": "This metric has a pre-existing tag configuration."
+                          "missing_indexed_tags": [],
+                          "reason": "This metric has a pre-existing tag configuration.",
+                          "volume_status": "unavailable"
                         },
                         "id": "dd.test.metric",
                         "type": "tag_indexing_rule_exemptions"
@@ -289335,6 +289597,194 @@
       }
     },
     "/api/v2/on-call/escalation-policies": {
+      "get": {
+        "description": "Retrieve a paginated list of On-Call escalation policies, sorted by name.",
+        "operationId": "ListOnCallEscalationPolicies",
+        "parameters": [
+          {
+            "description": "Number of escalation policies to return per page. The maximum allowed value is 50.",
+            "in": "query",
+            "name": "page[size]",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "format": "int64",
+              "maximum": 50,
+              "type": "integer"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/PageNumber"
+          },
+          {
+            "description": "Search query to filter escalation policies. Supports free-text search on the policy name (case-insensitive) and structured filters on `team.id` and `tags`. When set, `filter[team_id]`, `filter[user_id]`, and `filter[schedule_id]` are ignored. Can't be combined with `filter[tags]` or `filter[tags_any]`.",
+            "in": "query",
+            "name": "filter[query]",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated list of team IDs. Returns escalation policies that belong to any of these teams or have a step targeting any of them.",
+            "in": "query",
+            "name": "filter[team_id]",
+            "required": false,
+            "schema": {
+              "example": "00000000-da3a-0000-0000-000000000000",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated list of user IDs. Returns escalation policies with a step targeting any of these users.",
+            "in": "query",
+            "name": "filter[user_id]",
+            "required": false,
+            "schema": {
+              "example": "00000000-aba1-0000-0000-000000000000",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated list of schedule IDs. Returns escalation policies with a step targeting any of these schedules.",
+            "in": "query",
+            "name": "filter[schedule_id]",
+            "required": false,
+            "schema": {
+              "example": "00000000-aba2-0000-0000-000000000000",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated list of `key:value` tags. Returns escalation policies that have all of these tags.",
+            "in": "query",
+            "name": "filter[tags]",
+            "required": false,
+            "schema": {
+              "example": "env:prod",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated list of `key:value` tags. Returns escalation policies that have at least one of these tags.",
+            "in": "query",
+            "name": "filter[tags_any]",
+            "required": false,
+            "schema": {
+              "example": "env:prod,env:staging",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated list of included relationships to be returned. Allowed values: `teams`, `steps`, `steps.targets`, `steps.targets.schedule`, `user.color`. `user.color` populates the `color` attribute of users included through `steps.targets`.",
+            "in": "query",
+            "name": "include",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "name": "Escalation Policy 1",
+                            "resolve_page_on_policy_end": true,
+                            "retries": 2,
+                            "tags": [
+                              "env:prod"
+                            ]
+                          },
+                          "id": "00000000-aba1-0000-0000-000000000000",
+                          "relationships": {
+                            "steps": {
+                              "data": [
+                                {
+                                  "id": "00000000-aba1-0000-0000-000000000000",
+                                  "type": "steps"
+                                }
+                              ]
+                            },
+                            "teams": {
+                              "data": [
+                                {
+                                  "id": "00000000-da3a-0000-0000-000000000000",
+                                  "type": "teams"
+                                }
+                              ]
+                            }
+                          },
+                          "type": "policies"
+                        }
+                      ],
+                      "meta": {
+                        "page": {
+                          "first_number": 0,
+                          "last_number": 0,
+                          "next_number": null,
+                          "number": 0,
+                          "prev_number": null,
+                          "size": 20,
+                          "total": 1,
+                          "type": "number_size"
+                        }
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/EscalationPolicies"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedResponse"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
+          }
+        ],
+        "summary": "List On-Call escalation policies",
+        "tags": [
+          "On-Call"
+        ],
+        "x-pagination": {
+          "limitParam": "page[size]",
+          "pageParam": "page[number]",
+          "resultsPath": "data"
+        },
+        "x-permission": {
+          "operator": "AND",
+          "permissions": [
+            "on_call_read"
+          ]
+        }
+      },
       "post": {
         "description": "Create a new On-Call escalation policy",
         "operationId": "CreateOnCallEscalationPolicy",
@@ -298535,11 +298985,11 @@
     },
     "/api/v2/processes": {
       "get": {
-        "description": "Get all processes for your organization.",
+        "description": "Get processes collected by Live Processes for your organization. One request covers a window of\nat most 1 hour that starts within the past 36 hours. To cover a longer period, make one request\nper hour. Older data is not available from this endpoint.\n\nWhen a process includes `identifying_tags`, pass them as `tag_filters` in a `process` data source\nquery to `/api/v2/query/scalar` or `/api/v2/query/timeseries` to get CPU or memory metrics for that\none process. If absent, don't substitute an empty filter, which would query all processes.",
         "operationId": "ListProcesses",
         "parameters": [
           {
-            "description": "String to search processes by.",
+            "description": "Free-text search over process fields such as the executable and user. When it contains several\nwords, a process must match all of them. Use `tags` for exact values such as host.",
             "in": "query",
             "name": "search",
             "required": false,
@@ -298548,7 +298998,7 @@
             }
           },
           {
-            "description": "Comma-separated list of tags to filter processes by.",
+            "description": "Comma-separated `key:value` tags. A process must match every tag. Wildcards, negation\n(`-key:value`), spaces, and `IN (...)` are not supported. To cover several hosts, make one\nrequest per host.",
             "example": "account:prod,user:admin",
             "in": "query",
             "name": "tags",
@@ -298558,7 +299008,7 @@
             }
           },
           {
-            "description": "Unix timestamp (number of seconds since epoch) of the start of the query window.\nIf not provided, the start of the query window will be 15 minutes before the `to` timestamp. If neither\n`from` nor `to` are provided, the query window will be `[now - 15m, now]`.",
+            "description": "Start of the query window, in Unix seconds. Must be within the past 36 hours and at most 1 hour\nbefore `to`. If not provided, the start of the query window is 15 minutes before the `to` timestamp.\nIf neither `from` nor `to` is provided, the query window is `[now - 15m, now]`.",
             "in": "query",
             "name": "from",
             "required": false,
@@ -298568,7 +299018,7 @@
             }
           },
           {
-            "description": "Unix timestamp (number of seconds since epoch) of the end of the query window.\nIf not provided, the end of the query window will be 15 minutes after the `from` timestamp. If neither\n`from` nor `to` are provided, the query window will be `[now - 15m, now]`.",
+            "description": "End of the query window, in Unix seconds. Must be at most 1 hour after `from`. If not provided, the\nend of the query window is 15 minutes after the `from` timestamp. If neither `from` nor `to` is\nprovided, the query window is `[now - 15m, now]`.",
             "in": "query",
             "name": "to",
             "required": false,
@@ -306740,9 +307190,20 @@
                       "data": [
                         {
                           "attributes": {
+                            "description": "Role template with permissions for standard access.",
                             "name": "Datadog Standard Role"
                           },
-                          "id": "00000000-0000-0000-0000-000000000012",
+                          "id": "2",
+                          "relationships": {
+                            "permissions": {
+                              "data": [
+                                {
+                                  "id": "984d2ee2-dbb1-11e8-a1b5-1b33e7f4e7a0",
+                                  "type": "permissions"
+                                }
+                              ]
+                            }
+                          },
                           "type": "roles"
                         }
                       ]
@@ -306906,7 +307367,7 @@
         "x-codegen-request-body-name": "body"
       },
       "patch": {
-        "description": "Edit a role. Can only be used with application keys belonging to administrators.\n\n[Restricted permissions](https://docs.datadoghq.com/account_management/rbac/permissions/#restricted-permissions),\nsuch as Dashboards Read and Monitors Read, remain on the role by default, even if they are omitted from\nthe request. To exclude them, set `default_permissions_opt_out` to `true`.",
+        "description": "Edit a role. Can only be used with application keys belonging to administrators.\n\n[Restricted permissions](https://docs.datadoghq.com/account_management/rbac/permissions/#restricted-permissions),\nsuch as Dashboards Read and Monitors Read, remain on the role by default, even if they are omitted from\nthe request. To exclude them, set `default_permissions_opt_out` to `true`.\n\nOmitting the `permissions` relationship from the request leaves the role's existing permissions\nunchanged. Sending `\"permissions\": {\"data\": []}` removes all permissions except restricted default\npermissions, which remain unless `default_permissions_opt_out` is `true`. Some restricted permissions\ncan only be excluded after Minimal Access Roles is enabled for the organization.",
         "operationId": "UpdateRole",
         "parameters": [
           {
@@ -306945,7 +307406,8 @@
                     "value": {
                       "data": {
                         "attributes": {
-                          "name": "developers"
+                          "name": "developers",
+                          "team_count": 0
                         },
                         "id": "00000000-0000-0000-0000-000000000004",
                         "type": "roles"
