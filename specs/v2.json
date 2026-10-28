@@ -14533,6 +14533,95 @@
         ],
         "type": "object"
       },
+      "ArchiveSearchListResponse": {
+        "description": "Response containing multiple Archive Searches.",
+        "properties": {
+          "data": {
+            "description": "Array of Archive Searches.",
+            "items": {
+              "$ref": "#/components/schemas/ArchiveSearchResponseData"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ArchiveSearchListResponseMeta"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "ArchiveSearchListResponseMeta": {
+        "description": "Metadata of the Archive Searches response.",
+        "properties": {
+          "truncated": {
+            "description": "Whether more Archive Searches exist beyond the ones returned.",
+            "example": false,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "ArchiveSearchRehydrateRequest": {
+        "description": "Request to rehydrate an Archive Search.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ArchiveSearchRehydrateRequestData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "ArchiveSearchRehydrateRequestAttributes": {
+        "description": "Attributes accepted when rehydrating an Archive Search.",
+        "properties": {
+          "rehydration": {
+            "$ref": "#/components/schemas/ArchiveSearchRehydrateRequestRehydration"
+          }
+        },
+        "required": [
+          "rehydration"
+        ],
+        "type": "object"
+      },
+      "ArchiveSearchRehydrateRequestData": {
+        "description": "Archive Search object to rehydrate.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/ArchiveSearchRehydrateRequestAttributes"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ArchiveSearchType"
+          }
+        },
+        "required": [
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "ArchiveSearchRehydrateRequestRehydration": {
+        "description": "Rehydration settings to apply.",
+        "properties": {
+          "retention_days": {
+            "description": "Number of days the rehydrated logs are retained for.",
+            "example": 15,
+            "format": "int64",
+            "type": "integer"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/ArchiveSearchRehydrationTier"
+          }
+        },
+        "required": [
+          "retention_days",
+          "tier"
+        ],
+        "type": "object"
+      },
       "ArchiveSearchRehydration": {
         "description": "Rehydration settings of the Archive Search. Absent when the search only scans the archive\nwithout indexing the results.",
         "properties": {
@@ -22870,6 +22959,41 @@
         ],
         "type": "object"
       },
+      "CaseInvestigationNotebookCreateData": {
+        "description": "Case investigation notebook creation data.",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/CaseInvestigationNotebookResourceType"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "CaseInvestigationNotebookCreateRequest": {
+        "description": "Case investigation notebook creation request.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CaseInvestigationNotebookCreateData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "CaseInvestigationNotebookResourceType": {
+        "description": "Case investigation notebook resource type.",
+        "enum": [
+          "notebook"
+        ],
+        "example": "notebook",
+        "type": "string",
+        "x-enum-varnames": [
+          "NOTEBOOK"
+        ]
+      },
       "CaseLink": {
         "description": "A directional link representing a relationship between two entities. At least one entity must be a work item.",
         "properties": {
@@ -29002,18 +29126,6 @@
           }
         ]
       },
-      "ComponentRecommendation": {
-        "description": "Resource recommendation for a single Spark component (driver or executor). Contains estimation data used to patch Spark job specs.",
-        "properties": {
-          "estimation": {
-            "$ref": "#/components/schemas/Estimation"
-          }
-        },
-        "required": [
-          "estimation"
-        ],
-        "type": "object"
-      },
       "ComponentType": {
         "description": "The UI component type.",
         "enum": [
@@ -32747,28 +32859,6 @@
         "x-enum-varnames": [
           "CI_APP_COVERAGE_SUMMARY"
         ]
-      },
-      "Cpu": {
-        "description": "CPU usage statistics derived from historical Spark job metrics. Provides multiple estimates so users can choose between conservative and cost-saving risk profiles.",
-        "properties": {
-          "max": {
-            "description": "Maximum CPU usage observed for the job, expressed in millicores. This represents the upper bound of usage.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "p75": {
-            "description": "75th percentile of CPU usage (millicores). Represents a cost-saving configuration while covering most workloads.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "p95": {
-            "description": "95th percentile of CPU usage (millicores). Balances performance and cost, providing a safer margin than p75.",
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "type": "object",
-        "x-model-simple-name": "SpaCpu"
       },
       "CreateActionConnectionRequest": {
         "description": "Request used to create an action connection.",
@@ -55485,35 +55575,6 @@
         "x-enum-varnames": [
           "ESCALATION_POLICY_STEPS"
         ]
-      },
-      "Estimation": {
-        "description": "Recommended resource values for a Spark driver or executor, derived from recent real usage metrics. Used by SPA to propose more efficient pod sizing.",
-        "properties": {
-          "cpu": {
-            "$ref": "#/components/schemas/Cpu"
-          },
-          "ephemeral_storage": {
-            "description": "Recommended ephemeral storage allocation (in MiB). Derived from job temporary storage patterns.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "heap": {
-            "description": "Recommended JVM heap size (in MiB).",
-            "format": "int64",
-            "type": "integer"
-          },
-          "memory": {
-            "description": "Recommended total memory allocation (in MiB). Includes both heap and overhead.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "overhead": {
-            "description": "Recommended JVM overhead (in MiB). Computed as total memory - heap.",
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "type": "object"
       },
       "Event": {
         "additionalProperties": {},
@@ -79737,6 +79798,40 @@
           "HISTORICALDETECTIONSJOB"
         ]
       },
+      "HistoricalJobFailure": {
+        "description": "Details about why the job failed. Only present when the job has failed and won't be retried.",
+        "properties": {
+          "hint": {
+            "description": "A suggestion to fix the failure.",
+            "example": "Narrow the time range or reduce the data scanned.",
+            "type": "string"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/HistoricalJobFailureReason"
+          }
+        },
+        "type": "object"
+      },
+      "HistoricalJobFailureReason": {
+        "description": "The reason why the job failed.",
+        "enum": [
+          "rule_configuration",
+          "query_too_expensive",
+          "internal_error"
+        ],
+        "example": "query_too_expensive",
+        "type": "string",
+        "x-enum-descriptions": [
+          "The rule, or the dataset it references, can't run as written.",
+          "The query scans too much data.",
+          "An internal error occurred. These are usually temporary."
+        ],
+        "x-enum-varnames": [
+          "RULE_CONFIGURATION",
+          "QUERY_TOO_EXPENSIVE",
+          "INTERNAL_ERROR"
+        ]
+      },
       "HistoricalJobListMeta": {
         "description": "Metadata about the list of jobs.",
         "properties": {
@@ -79907,6 +80002,9 @@
           "createdFromRuleId": {
             "description": "ID of the rule used to create the job (if it is created from a rule).",
             "type": "string"
+          },
+          "failure": {
+            "$ref": "#/components/schemas/HistoricalJobFailure"
           },
           "jobDefinition": {
             "$ref": "#/components/schemas/JobDefinition"
@@ -112841,41 +112939,6 @@
           "GET_NODE_TYPES_RESPONSE"
         ]
       },
-      "NotebookCreateData": {
-        "description": "Notebook creation data",
-        "properties": {
-          "type": {
-            "$ref": "#/components/schemas/NotebookResourceType"
-          }
-        },
-        "required": [
-          "type"
-        ],
-        "type": "object"
-      },
-      "NotebookCreateRequest": {
-        "description": "Notebook creation request",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/NotebookCreateData"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
-      },
-      "NotebookResourceType": {
-        "description": "Notebook resource type",
-        "enum": [
-          "notebook"
-        ],
-        "example": "notebook",
-        "type": "string",
-        "x-enum-varnames": [
-          "NOTEBOOK"
-        ]
-      },
       "NotebookTriggerWrapper": {
         "description": "Schema for a Notebook-based trigger.",
         "properties": {
@@ -116439,6 +116502,9 @@
             "$ref": "#/components/schemas/ObservabilityPipelineRenameFieldsProcessor"
           },
           {
+            "$ref": "#/components/schemas/ObservabilityPipelineSpikeProtectionProcessor"
+          },
+          {
             "$ref": "#/components/schemas/ObservabilityPipelineSplitArrayProcessor"
           },
           {
@@ -118084,7 +118150,6 @@
             "type": "boolean"
           },
           "enabled_metric_aggregation": {
-            "default": true,
             "description": "[Recommended] Indicates whether generated metrics are automatically aggregated and enriched with the `worker_uuid` tag before being sent to the metric destination.",
             "example": true,
             "type": "boolean"
@@ -122574,6 +122639,212 @@
           "attributes"
         ],
         "type": "object"
+      },
+      "ObservabilityPipelineSpikeProtectionProcessor": {
+        "description": "The `spike_protection` processor learns the normal ingestion volume for the logs that match a specified filter and takes action when the volume spikes unexpectedly.\n\n**Supported pipeline types:** logs",
+        "properties": {
+          "action_when_missing_partitions": {
+            "$ref": "#/components/schemas/ObservabilityPipelineSpikeProtectionProcessorActionWhenMissingPartitions"
+          },
+          "display_name": {
+            "$ref": "#/components/schemas/ObservabilityPipelineComponentDisplayName"
+          },
+          "enabled": {
+            "description": "Indicates whether the processor is enabled.",
+            "example": true,
+            "type": "boolean"
+          },
+          "id": {
+            "description": "The unique identifier for this component. Used in other parts of the pipeline to reference this component (for example, as the `input` to downstream components).",
+            "example": "spike-protection-processor",
+            "type": "string"
+          },
+          "include": {
+            "description": "A Datadog search query used to determine which logs this processor targets.",
+            "example": "service:my-service",
+            "type": "string"
+          },
+          "minimal_threshold": {
+            "description": "The minimum volume, in bytes, that must be observed within 24 hours before spike protection can activate. Defaults to 100 GiB.",
+            "example": 107374182400,
+            "format": "int64",
+            "type": "integer"
+          },
+          "minimal_threshold_overrides": {
+            "description": "A list of per-partition overrides for the minimal threshold, identified by matching field values. Requires `partition_fields` to be set.",
+            "items": {
+              "$ref": "#/components/schemas/ObservabilityPipelineSpikeProtectionProcessorThresholdOverride"
+            },
+            "type": "array"
+          },
+          "name": {
+            "description": "Name of the spike protection rule.",
+            "example": "MySpikeProtection",
+            "type": "string"
+          },
+          "partition_fields": {
+            "description": "A list of fields used to segment log traffic. Volume is learned and evaluated independently for each unique combination of these field values. A maximum of five fields is supported.",
+            "items": {
+              "description": "The name of a log field used to partition spike detection.",
+              "maxLength": 128,
+              "type": "string"
+            },
+            "maxItems": 5,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "spike_action": {
+            "$ref": "#/components/schemas/ObservabilityPipelineSpikeProtectionProcessorSpikeAction"
+          },
+          "spike_threshold": {
+            "description": "The number of standard deviations above the learned mean volume that must be exceeded before a spike is detected. Defaults to `5`.",
+            "example": 5,
+            "format": "double",
+            "type": "number"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ObservabilityPipelineSpikeProtectionProcessorType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "include",
+          "name",
+          "spike_action",
+          "enabled"
+        ],
+        "type": "object",
+        "x-pipeline-types": [
+          "logs"
+        ]
+      },
+      "ObservabilityPipelineSpikeProtectionProcessorActionWhenMissingPartitions": {
+        "default": "ignore",
+        "description": "How to handle logs that are missing one of the `partition_fields`. Options:\n- `ignore`: Forward the event without applying spike protection.\n- `default_bucket`: Assign the event to a default partition.",
+        "enum": [
+          "ignore",
+          "default_bucket"
+        ],
+        "example": "ignore",
+        "type": "string",
+        "x-enum-varnames": [
+          "IGNORE",
+          "DEFAULT_BUCKET"
+        ]
+      },
+      "ObservabilityPipelineSpikeProtectionProcessorMinimalThreshold": {
+        "description": "The minimal threshold to apply to the matching partition.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineSpikeProtectionProcessorMinimalThresholdBytes"
+          },
+          {
+            "$ref": "#/components/schemas/ObservabilityPipelineSpikeProtectionProcessorMinimalThresholdAlwaysKeep"
+          }
+        ]
+      },
+      "ObservabilityPipelineSpikeProtectionProcessorMinimalThresholdAlwaysKeep": {
+        "description": "Never activates spike protection for the matching partition, regardless of volume.",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/ObservabilityPipelineSpikeProtectionProcessorMinimalThresholdAlwaysKeepType"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "ObservabilityPipelineSpikeProtectionProcessorMinimalThresholdAlwaysKeepType": {
+        "default": "always_keep",
+        "description": "The minimal threshold type. The value should always be `always_keep`.",
+        "enum": [
+          "always_keep"
+        ],
+        "example": "always_keep",
+        "type": "string",
+        "x-enum-varnames": [
+          "ALWAYS_KEEP"
+        ]
+      },
+      "ObservabilityPipelineSpikeProtectionProcessorMinimalThresholdBytes": {
+        "description": "Sets a specific byte threshold for the matching partition.",
+        "properties": {
+          "bytes": {
+            "description": "The minimal threshold, in bytes, for the matching partition.",
+            "example": 107374182400,
+            "format": "int64",
+            "type": "integer"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ObservabilityPipelineSpikeProtectionProcessorMinimalThresholdBytesType"
+          }
+        },
+        "required": [
+          "type",
+          "bytes"
+        ],
+        "type": "object"
+      },
+      "ObservabilityPipelineSpikeProtectionProcessorMinimalThresholdBytesType": {
+        "default": "threshold",
+        "description": "The minimal threshold type. The value should always be `threshold`.",
+        "enum": [
+          "threshold"
+        ],
+        "example": "threshold",
+        "type": "string",
+        "x-enum-varnames": [
+          "THRESHOLD"
+        ]
+      },
+      "ObservabilityPipelineSpikeProtectionProcessorSpikeAction": {
+        "description": "The action to take with matching logs while spike protection is active. Options:\n- `drop`: Drop the event.\n- `no_action`: Let the event pass through.\n- `overflow_routing`: Route to an overflow destination.\n\nWhen `overflow_routing` is used, there must be a destination whose `inputs` reference this processor with the `<processor-id>.overflow_events` suffix to route the overflowing events.",
+        "enum": [
+          "drop",
+          "no_action",
+          "overflow_routing"
+        ],
+        "example": "drop",
+        "type": "string",
+        "x-enum-varnames": [
+          "DROP",
+          "NO_ACTION",
+          "OVERFLOW_ROUTING"
+        ]
+      },
+      "ObservabilityPipelineSpikeProtectionProcessorThresholdOverride": {
+        "description": "Defines a minimal threshold that applies to a specific partition instead of the processor-wide `minimal_threshold`.",
+        "properties": {
+          "fields": {
+            "description": "The set of field matchers that identifies the partition this override applies to. Every field name listed must also appear in `partition_fields`.",
+            "items": {
+              "$ref": "#/components/schemas/ObservabilityPipelineFieldValue"
+            },
+            "type": "array"
+          },
+          "minimal_threshold": {
+            "$ref": "#/components/schemas/ObservabilityPipelineSpikeProtectionProcessorMinimalThreshold"
+          }
+        },
+        "required": [
+          "fields",
+          "minimal_threshold"
+        ],
+        "type": "object"
+      },
+      "ObservabilityPipelineSpikeProtectionProcessorType": {
+        "default": "spike_protection",
+        "description": "The processor type. The value should always be `spike_protection`.",
+        "enum": [
+          "spike_protection"
+        ],
+        "example": "spike_protection",
+        "type": "string",
+        "x-enum-varnames": [
+          "SPIKE_PROTECTION"
+        ]
       },
       "ObservabilityPipelineSplitArrayProcessor": {
         "description": "The `split_array` processor splits array fields into separate events based on configured rules.\n\n**Supported pipeline types:** logs",
@@ -138157,6 +138428,17 @@
             "maximum": 2147483647,
             "type": "integer"
           },
+          "apm_rum_flat_sampling_replay_enabled": {
+            "description": "Indicates if flat sampling of Session Replay for APM-correlated RUM sessions is enabled.",
+            "example": false,
+            "type": "boolean"
+          },
+          "apm_rum_flat_sampling_replay_sample_rate": {
+            "description": "Sample rate (0-100) of Session Replay for APM-correlated RUM sessions when flat sampling is enabled.",
+            "example": 0,
+            "format": "double",
+            "type": "number"
+          },
           "application_id": {
             "description": "ID of the RUM application.",
             "example": "abcd1234-0000-0000-abcd-1234abcd5678",
@@ -138178,6 +138460,33 @@
             "example": "john.doe",
             "type": "string"
           },
+          "disabled_at": {
+            "description": "Timestamp in ms of the date the RUM application was disabled. Only present if the application was disabled.",
+            "example": 1659479836169,
+            "format": "int64",
+            "type": "integer"
+          },
+          "disabled_by_handle": {
+            "description": "Handle of the user who disabled the RUM application. Only present if the application was disabled.",
+            "example": "jane.doe",
+            "type": "string"
+          },
+          "error_tracking_exclusion_filter_enabled": {
+            "description": "Indicates if Error Tracking exclusion filters are enabled for the application.",
+            "example": false,
+            "type": "boolean"
+          },
+          "external_feeds": {
+            "description": "Non-native ingestion paths the RUM application sends its data through. `otel` means the application sends RUM data through OpenTelemetry instead of the Datadog RUM SDK.",
+            "example": [
+              "otel"
+            ],
+            "items": {
+              "description": "External feed name.",
+              "type": "string"
+            },
+            "type": "array"
+          },
           "hash": {
             "description": "Hash of the RUM application. Optional.",
             "type": "string"
@@ -138192,9 +138501,26 @@
             "example": "my_rum_application",
             "type": "string"
           },
+          "ootb_metrics_installed": {
+            "description": "Indicates if the out-of-the-box RUM metrics are installed for the application.",
+            "example": true,
+            "type": "boolean"
+          },
           "org_id": {
             "description": "Org ID of the RUM application.",
             "example": 999,
+            "format": "int32",
+            "maximum": 2147483647,
+            "type": "integer"
+          },
+          "product_analytics_preview_disabled": {
+            "description": "Indicates that the Product Analytics preview is disabled for the application. Only present (and `true`) when the Product Analytics retention state is not preview.",
+            "example": true,
+            "type": "boolean"
+          },
+          "product_analytics_replay_sample_rate": {
+            "description": "Sample rate (0-100) of Session Replay for Product Analytics sessions.",
+            "example": 0,
             "format": "int32",
             "maximum": 2147483647,
             "type": "integer"
@@ -138206,6 +138532,22 @@
             "description": "ID of the RUM SDK remote configuration for the application, if one exists.",
             "example": "abc12345-1234-5678-abcd-ef1234567890",
             "type": "string"
+          },
+          "short_name": {
+            "description": "Short name of the RUM application.",
+            "example": "my_rum_application",
+            "type": "string"
+          },
+          "tags": {
+            "description": "List of tags associated with the RUM application.",
+            "example": [
+              "team:rum"
+            ],
+            "items": {
+              "description": "Tag associated with the RUM application.",
+              "type": "string"
+            },
+            "type": "array"
           },
           "type": {
             "description": "Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.",
@@ -138256,6 +138598,12 @@
       "RUMApplicationCreateAttributes": {
         "description": "RUM application creation attributes.",
         "properties": {
+          "create_default_retention_filters": {
+            "default": true,
+            "description": "Whether to create the default retention filters when the application is created: `Sessions with errors` and `Sessions`, each with a 100% retention rate.\nSet to `false` to create the application without them, for example when you add your own retention filters right after creating it. Until you add retention filters, the application only retains sessions matched by its [permanent retention filters](https://docs.datadoghq.com/real_user_monitoring/rum_without_limits/retention_filters/#permanent-retention-filters).\nThis setting doesn't affect permanent retention filters (sessions with forced replays, Synthetics sessions and RUM-APM flat sampling).",
+            "example": false,
+            "type": "boolean"
+          },
           "name": {
             "description": "Name of the RUM application.",
             "example": "my_new_rum_application",
@@ -138326,6 +138674,24 @@
       "RUMApplicationListAttributes": {
         "description": "RUM application list attributes.",
         "properties": {
+          "api_key_id": {
+            "description": "ID of the API key associated with the application.",
+            "example": 123456789,
+            "format": "int32",
+            "maximum": 2147483647,
+            "type": "integer"
+          },
+          "apm_rum_flat_sampling_replay_enabled": {
+            "description": "Indicates if flat sampling of Session Replay for APM-correlated RUM sessions is enabled.",
+            "example": false,
+            "type": "boolean"
+          },
+          "apm_rum_flat_sampling_replay_sample_rate": {
+            "description": "Sample rate (0-100) of Session Replay for APM-correlated RUM sessions when flat sampling is enabled.",
+            "example": 0,
+            "format": "double",
+            "type": "number"
+          },
           "application_id": {
             "description": "ID of the RUM application.",
             "example": "abcd1234-0000-0000-abcd-1234abcd5678",
@@ -138342,6 +138708,33 @@
             "example": "john.doe",
             "type": "string"
           },
+          "disabled_at": {
+            "description": "Timestamp in ms of the date the RUM application was disabled. Only present if the application was disabled.",
+            "example": 1659479836169,
+            "format": "int64",
+            "type": "integer"
+          },
+          "disabled_by_handle": {
+            "description": "Handle of the user who disabled the RUM application. Only present if the application was disabled.",
+            "example": "jane.doe",
+            "type": "string"
+          },
+          "error_tracking_exclusion_filter_enabled": {
+            "description": "Indicates if Error Tracking exclusion filters are enabled for the application.",
+            "example": false,
+            "type": "boolean"
+          },
+          "external_feeds": {
+            "description": "Non-native ingestion paths the RUM application sends its data through. `otel` means the application sends RUM data through OpenTelemetry instead of the Datadog RUM SDK.",
+            "example": [
+              "otel"
+            ],
+            "items": {
+              "description": "External feed name.",
+              "type": "string"
+            },
+            "type": "array"
+          },
           "hash": {
             "description": "Hash of the RUM application. Optional.",
             "type": "string"
@@ -138356,6 +138749,11 @@
             "example": "my_rum_application",
             "type": "string"
           },
+          "ootb_metrics_installed": {
+            "description": "Indicates if the out-of-the-box RUM metrics are installed for the application.",
+            "example": true,
+            "type": "boolean"
+          },
           "org_id": {
             "description": "Org ID of the RUM application.",
             "example": 999,
@@ -138363,8 +138761,41 @@
             "maximum": 2147483647,
             "type": "integer"
           },
+          "product_analytics_preview_disabled": {
+            "description": "Indicates that the Product Analytics preview is disabled for the application. Only present (and `true`) when the Product Analytics retention state is not preview.",
+            "example": true,
+            "type": "boolean"
+          },
+          "product_analytics_replay_sample_rate": {
+            "description": "Sample rate (0-100) of Session Replay for Product Analytics sessions.",
+            "example": 0,
+            "format": "int32",
+            "maximum": 2147483647,
+            "type": "integer"
+          },
           "product_scales": {
             "$ref": "#/components/schemas/RUMProductScales"
+          },
+          "remote_config_id": {
+            "description": "ID of the RUM SDK remote configuration for the application, if one exists.",
+            "example": "abc12345-1234-5678-abcd-ef1234567890",
+            "type": "string"
+          },
+          "short_name": {
+            "description": "Short name of the RUM application.",
+            "example": "my_rum_application",
+            "type": "string"
+          },
+          "tags": {
+            "description": "List of tags associated with the RUM application.",
+            "example": [
+              "team:rum"
+            ],
+            "items": {
+              "description": "Tag associated with the RUM application.",
+              "type": "string"
+            },
+            "type": "array"
           },
           "type": {
             "description": "Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.",
@@ -138508,18 +138939,29 @@
         },
         "type": "object"
       },
+      "RUMBucketGroupByValue": {
+        "description": "The value of a group-by facet for this bucket. A string for string facets, a number for numeric facets and histograms.",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "format": "double",
+            "type": "number"
+          }
+        ]
+      },
       "RUMBucketResponse": {
         "description": "Bucket values.",
         "properties": {
           "by": {
             "additionalProperties": {
-              "description": "The values for each group-by.",
-              "type": "string"
+              "$ref": "#/components/schemas/RUMBucketGroupByValue"
             },
             "description": "The key-value pairs for each group-by.",
             "example": {
               "@session.type": "user",
-              "@type": "view"
+              "@view.time_spent": 1000000000
             },
             "type": "object"
           },
@@ -139951,135 +140393,6 @@
           "data"
         ],
         "type": "object"
-      },
-      "RecommendationAttributes": {
-        "description": "Attributes of the SPA Recommendation resource. Contains recommendations for both driver and executor components.",
-        "properties": {
-          "confidence_level": {
-            "description": "The confidence level of the recommendation, expressed as a value between 0.0 (low confidence) and 1.0 (high confidence).",
-            "format": "double",
-            "type": "number"
-          },
-          "driver": {
-            "$ref": "#/components/schemas/ComponentRecommendation"
-          },
-          "executor": {
-            "$ref": "#/components/schemas/ComponentRecommendation"
-          },
-          "matched_params": {
-            "description": "Only returned by the v2 endpoint. The job parameters whose values the recommendation was matched on, as `parameter=value` pairs joined by `|`.\nAn empty string means the service-wide (coarse) recommendation was used.",
-            "example": "detailed_metrics=false|Region=US1",
-            "type": "string"
-          }
-        },
-        "required": [
-          "driver",
-          "executor"
-        ],
-        "type": "object"
-      },
-      "RecommendationData": {
-        "description": "JSON:API resource object for SPA Recommendation. Includes type, optional ID, and resource attributes with structured recommendations.",
-        "properties": {
-          "attributes": {
-            "$ref": "#/components/schemas/RecommendationAttributes"
-          },
-          "id": {
-            "description": "Resource identifier for the recommendation. Optional in responses.",
-            "type": "string"
-          },
-          "type": {
-            "$ref": "#/components/schemas/RecommendationType"
-          }
-        },
-        "required": [
-          "type",
-          "attributes"
-        ],
-        "type": "object"
-      },
-      "RecommendationDocument": {
-        "description": "JSON:API document containing a single Recommendation resource. Returned by SPA when the Spark Gateway requests recommendations.",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/RecommendationData"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
-      },
-      "RecommendationType": {
-        "default": "recommendation",
-        "description": "JSON:API resource type for Spark Pod Autosizing recommendations. Identifies the Recommendation resource returned by SPA.",
-        "enum": [
-          "recommendation"
-        ],
-        "example": "recommendation",
-        "type": "string",
-        "x-enum-varnames": [
-          "RECOMMENDATION"
-        ]
-      },
-      "RecommendationV2RequestAttributes": {
-        "description": "Attributes for requesting SPA recommendations by forwarding a Spark job's raw arguments\ninstead of a pre-computed shard.",
-        "properties": {
-          "arguments": {
-            "description": "Raw, unfiltered Spark job arguments as submitted (for example, `--org_id=2`).\nSPA determines which arguments are relevant for the given service.",
-            "example": [
-              ""
-            ],
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "arguments"
-        ],
-        "type": "object"
-      },
-      "RecommendationV2RequestBody": {
-        "description": "Request body for retrieving SPA recommendations by forwarding a Spark job's raw arguments\ninstead of a pre-computed shard.",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/RecommendationV2RequestData"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
-      },
-      "RecommendationV2RequestData": {
-        "description": "JSON:API resource object for the SPA v2 recommendation request.",
-        "properties": {
-          "attributes": {
-            "$ref": "#/components/schemas/RecommendationV2RequestAttributes"
-          },
-          "type": {
-            "$ref": "#/components/schemas/RecommendationV2RequestType"
-          }
-        },
-        "required": [
-          "type",
-          "attributes"
-        ],
-        "type": "object"
-      },
-      "RecommendationV2RequestType": {
-        "default": "recommendation_v2_request",
-        "description": "JSON:API resource type for the SPA v2 recommendation request.",
-        "enum": [
-          "recommendation_v2_request"
-        ],
-        "example": "recommendation_v2_request",
-        "type": "string",
-        "x-enum-varnames": [
-          "RECOMMENDATION_V2_REQUEST"
-        ]
       },
       "RecommendationsFilterRequest": {
         "description": "JSON:API request body for filtering cost recommendations.",
@@ -178661,6 +178974,48 @@
           "TAG_INDEXING_RULE_EXEMPTIONS"
         ]
       },
+      "TagIndexingRuleExemptionUpdateAttributes": {
+        "description": "Attributes for updating a tag indexing rule exemption.",
+        "properties": {
+          "reason": {
+            "description": "The updated reason the metric is exempt from tag indexing rules.",
+            "example": "This metric must remain exempt because of its query requirements.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "type": "object"
+      },
+      "TagIndexingRuleExemptionUpdateData": {
+        "description": "Data object for updating a tag indexing rule exemption.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/TagIndexingRuleExemptionUpdateAttributes"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TagIndexingRuleExemptionType"
+          }
+        },
+        "required": [
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "TagIndexingRuleExemptionUpdateRequest": {
+        "description": "Request body for updating a tag indexing rule exemption.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TagIndexingRuleExemptionUpdateData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "TagIndexingRuleExemptionVolumeStatus": {
         "description": "Indicates whether `estimated_change_in_volume` is available and, if not, why. `ok` indicates a fresh estimate.\n`unindexed_tags` indicates that the matching rule uses tags that are not indexed for the metric.\n`unavailable` indicates that the estimate is stale, was not computed, or could not be retrieved.",
         "enum": [
@@ -210234,11 +210589,11 @@
                 }
               },
               "schema": {
-                "$ref": "#/components/schemas/NotebookCreateRequest"
+                "$ref": "#/components/schemas/CaseInvestigationNotebookCreateRequest"
               }
             }
           },
-          "description": "Notebook creation request",
+          "description": "Case investigation notebook creation request.",
           "required": true
         },
         "responses": {
@@ -280729,6 +281084,83 @@
       }
     },
     "/api/v2/logs/archive_searches": {
+      "get": {
+        "description": "List the organization's Archive Searches that haven't expired, up to 5,000. When more\nexist, `meta.truncated` is `true`.",
+        "operationId": "ListArchiveSearches",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "archive_id": "mhmyYmyLTOaFYKvhNadu1w",
+                            "bytes_scanned": 0,
+                            "created_at": "2026-01-02T12:00:00Z",
+                            "description": "Investigating the checkout latency spike.",
+                            "events_scanned": 0,
+                            "expected_duration": 120,
+                            "from": "2026-01-01T00:00:00Z",
+                            "name": "checkout-latency-investigation",
+                            "query": "service:checkout status:error",
+                            "status": "RUNNING",
+                            "to": "2026-01-02T00:00:00Z"
+                          },
+                          "id": "nv2eu4srgyzdkulggjzg2zkmmzifa2rum5iq",
+                          "type": "archive_search"
+                        }
+                      ],
+                      "meta": {
+                        "truncated": false
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveSearchListResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
+          }
+        ],
+        "summary": "List Archive Searches",
+        "tags": [
+          "Logs Archive Searches"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "logs_read_data"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
       "post": {
         "description": "Start a search over the logs stored in an archive.\n\nWithout a `rehydration` object, the search only scans the archive and reports how much data\nmatched. With one, the matched logs are also indexed into a retained historical view, which\nrequires the `logs_write_historical_view` permission.",
         "operationId": "CreateArchiveSearch",
@@ -280939,6 +281371,241 @@
           "operator": "OR",
           "permissions": [
             "logs_read_data"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
+      "patch": {
+        "description": "Turn a plain Archive Search into a Search & Rehydration by indexing the matched logs into a\nretained historical view. Rehydration is the only thing this endpoint can change, and it only\napplies to a search that has already finished scanning.",
+        "operationId": "RehydrateArchiveSearch",
+        "parameters": [
+          {
+            "description": "Unique identifier of the Archive Search.",
+            "example": "nv2eu4srgyzdkulggjzg2zkmmzifa2rum5iq",
+            "in": "path",
+            "name": "archive_search_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveSearchRehydrateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "archive_id": "mhmyYmyLTOaFYKvhNadu1w",
+                          "bytes_scanned": 402764439,
+                          "created_at": "2026-01-02T12:00:00Z",
+                          "description": "Investigating the checkout latency spike.",
+                          "events_scanned": 1500,
+                          "from": "2026-01-01T00:00:00Z",
+                          "name": "checkout-latency-investigation",
+                          "query": "service:checkout status:error",
+                          "rehydration": {
+                            "max_rehydrated_events": 100000,
+                            "retention_days": 15,
+                            "tier": "standard"
+                          },
+                          "status": "RUNNING",
+                          "to": "2026-01-02T00:00:00Z"
+                        },
+                        "id": "nv2eu4srgyzdkulggjzg2zkmmzifa2rum5iq",
+                        "type": "archive_search"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveSearchResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "412": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Precondition Failed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
+          }
+        ],
+        "summary": "Rehydrate an Archive Search",
+        "tags": [
+          "Logs Archive Searches"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "logs_write_historical_view"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/logs/archive_searches/{archive_search_id}/cancel": {
+      "post": {
+        "description": "Cancel a running Archive Search. Cancelling an Archive Search that has already finished is a\nno-op: it returns the resource unchanged instead of returning an error.",
+        "operationId": "CancelArchiveSearch",
+        "parameters": [
+          {
+            "description": "Unique identifier of the Archive Search.",
+            "example": "nv2eu4srgyzdkulggjzg2zkmmzifa2rum5iq",
+            "in": "path",
+            "name": "archive_search_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "archive_id": "mhmyYmyLTOaFYKvhNadu1w",
+                          "bytes_scanned": 102400,
+                          "completed_at": "2026-01-02T12:05:00Z",
+                          "created_at": "2026-01-02T12:00:00Z",
+                          "description": "Investigating the checkout latency spike.",
+                          "events_scanned": 500,
+                          "from": "2026-01-01T00:00:00Z",
+                          "name": "checkout-latency-investigation",
+                          "query": "service:checkout status:error",
+                          "status": "CANCELLED",
+                          "to": "2026-01-02T00:00:00Z"
+                        },
+                        "id": "nv2eu4srgyzdkulggjzg2zkmmzifa2rum5iq",
+                        "type": "archive_search"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveSearchResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
+          }
+        ],
+        "summary": "Cancel an Archive Search",
+        "tags": [
+          "Logs Archive Searches"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "logs_write_historical_view",
+            "logs_write_archive_search"
           ]
         },
         "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
@@ -287058,6 +287725,131 @@
           }
         ],
         "summary": "Create a tag indexing rule exemption",
+        "tags": [
+          "Metrics"
+        ],
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "metric_tags_write"
+          ]
+        },
+        "x-unstable": "**Note**: The Tag Indexing Rules feature is currently in Preview.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
+      "put": {
+        "description": "Update the reason for an explicit tag indexing rule exemption. The exemption's `created_at` and\n`created_by_handle` values remain unchanged. Returns 404 when the metric has no explicit exemption or has\nonly a legacy tag configuration. Requires the `Manage Tags for Metrics` permission.",
+        "operationId": "UpdateTagIndexingRuleExemption",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MetricName"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "reason": "This metric must remain exempt because of its query requirements."
+                      },
+                      "type": "tag_indexing_rule_exemptions"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/TagIndexingRuleExemptionUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "created_at": "2024-01-15T12:00:00.000Z",
+                          "created_by_handle": "user@datadoghq.com",
+                          "estimated_change_in_volume": null,
+                          "kind": "exemption",
+                          "missing_indexed_tags": [],
+                          "reason": "This metric must remain exempt because of its query requirements.",
+                          "volume_status": "unavailable"
+                        },
+                        "id": "dd.test.metric",
+                        "type": "tag_indexing_rule_exemptions"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/TagIndexingRuleExemptionResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "metric_tags_write"
+            ]
+          }
+        ],
+        "summary": "Update a tag indexing rule exemption",
         "tags": [
           "Metrics"
         ],
@@ -311626,7 +312418,7 @@
           "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "content": {
               "application/json": {
                 "examples": {
@@ -311655,7 +312447,7 @@
                 }
               }
             },
-            "description": "OK"
+            "description": "Created"
           },
           "400": {
             "$ref": "#/components/responses/BadRequestResponse"
@@ -312663,7 +313455,14 @@
             "description": "No Content"
           },
           "404": {
-            "$ref": "#/components/responses/NotFoundResponse"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequestsResponse"
@@ -312727,7 +313526,14 @@
             "description": "OK"
           },
           "404": {
-            "$ref": "#/components/responses/NotFoundResponse"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequestsResponse"
@@ -312820,7 +313626,14 @@
             "$ref": "#/components/responses/BadRequestResponse"
           },
           "404": {
-            "$ref": "#/components/responses/NotFoundResponse"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
           },
           "422": {
             "content": {
@@ -341831,291 +342644,6 @@
         "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
-    "/api/v2/spa/recommendations-v2/{service}": {
-      "post": {
-        "description": "This endpoint is experimental and restricted to Datadog internal use only.\nRetrieve resource recommendations for a Spark job. The caller (Spark Gateway) provides\na service name and the job's raw arguments. SPA determines which arguments are relevant\nfor the service and returns structured recommendations for driver and executor resources.",
-        "operationId": "GetSPARecommendationsV2",
-        "parameters": [
-          {
-            "description": "The service name for a Spark job",
-            "in": "path",
-            "name": "service",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RecommendationV2RequestBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "example": {
-                  "data": {
-                    "attributes": {
-                      "driver": {
-                        "estimation": {
-                          "cpu": {
-                            "max": 1500,
-                            "p75": 1000,
-                            "p95": 1200
-                          },
-                          "ephemeral_storage": 896,
-                          "heap": 6144,
-                          "memory": 7168,
-                          "overhead": 1024
-                        }
-                      },
-                      "executor": {
-                        "estimation": {
-                          "cpu": {
-                            "max": 2000,
-                            "p75": 1200,
-                            "p95": 1500
-                          },
-                          "ephemeral_storage": 512,
-                          "heap": 3072,
-                          "memory": 4096,
-                          "overhead": 1024
-                        }
-                      },
-                      "matched_params": "detailed_metrics=false"
-                    },
-                    "id": "dedupeactivecontexts:adp_dedupeactivecontexts_org2",
-                    "type": "recommendation"
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/RecommendationDocument"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequestResponse"
-          },
-          "403": {
-            "$ref": "#/components/responses/NotAuthorizedResponse"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundResponse"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "security": [
-          {
-            "AuthZ": []
-          }
-        ],
-        "summary": "Get SPA recommendations v2",
-        "tags": [
-          "Spa"
-        ],
-        "x-unstable": "**Note**: This endpoint is in preview and may change in the future. It is not yet recommended for production use."
-      }
-    },
-    "/api/v2/spa/recommendations/{service}": {
-      "get": {
-        "description": "This endpoint is currently experimental and restricted to Datadog internal use only. Retrieve resource recommendations for a Spark job. The caller (Spark Gateway or DJM UI) provides a service name and SPA returns structured recommendations for driver and executor resources. The version with a shard should be preferred, where possible, as it gives more accurate results.",
-        "operationId": "GetSPARecommendations",
-        "parameters": [
-          {
-            "description": "The recommendation service should not use its metrics cache.",
-            "in": "query",
-            "name": "bypass_cache",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "The service name for a spark job.",
-            "in": "path",
-            "name": "service",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "example": {
-                  "data": {
-                    "attributes": {
-                      "driver": {
-                        "estimation": {
-                          "cpu": {
-                            "max": 1500,
-                            "p75": 1000,
-                            "p95": 1200
-                          },
-                          "ephemeral_storage": 896,
-                          "heap": 6144,
-                          "memory": 7168,
-                          "overhead": 1024
-                        }
-                      },
-                      "executor": {
-                        "estimation": {
-                          "cpu": {
-                            "max": 2000,
-                            "p75": 1200,
-                            "p95": 1500
-                          },
-                          "ephemeral_storage": 512,
-                          "heap": 3072,
-                          "memory": 4096,
-                          "overhead": 1024
-                        }
-                      }
-                    },
-                    "id": "dedupeactivecontexts:adp_dedupeactivecontexts_org2",
-                    "type": "recommendation"
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/RecommendationDocument"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequestResponse"
-          },
-          "403": {
-            "$ref": "#/components/responses/NotAuthorizedResponse"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "security": [
-          {
-            "AuthZ": []
-          }
-        ],
-        "summary": "Get SPA Recommendations",
-        "tags": [
-          "Spa"
-        ],
-        "x-unstable": "**Note**: This endpoint is in preview and may change in the future. It is not yet recommended for production use."
-      }
-    },
-    "/api/v2/spa/recommendations/{service}/{shard}": {
-      "get": {
-        "description": "This endpoint is currently experimental and restricted to Datadog internal use only. Retrieve resource recommendations for a Spark job. The caller (Spark Gateway or DJM UI) provides a service name and shard identifier, and SPA returns structured recommendations for driver and executor resources.",
-        "operationId": "GetSPARecommendationsWithShard",
-        "parameters": [
-          {
-            "description": "The shard tag for a spark job, which differentiates jobs within the same service that have different resource needs",
-            "in": "path",
-            "name": "shard",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "The service name for a spark job",
-            "in": "path",
-            "name": "service",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "The recommendation service should not use its metrics cache.",
-            "in": "query",
-            "name": "bypass_cache",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "example": {
-                  "data": {
-                    "attributes": {
-                      "driver": {
-                        "estimation": {
-                          "cpu": {
-                            "max": 1500,
-                            "p75": 1000,
-                            "p95": 1200
-                          },
-                          "ephemeral_storage": 896,
-                          "heap": 6144,
-                          "memory": 7168,
-                          "overhead": 1024
-                        }
-                      },
-                      "executor": {
-                        "estimation": {
-                          "cpu": {
-                            "max": 2000,
-                            "p75": 1200,
-                            "p95": 1500
-                          },
-                          "ephemeral_storage": 512,
-                          "heap": 3072,
-                          "memory": 4096,
-                          "overhead": 1024
-                        }
-                      }
-                    },
-                    "id": "dedupeactivecontexts:adp_dedupeactivecontexts_org2",
-                    "type": "recommendation"
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/RecommendationDocument"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequestResponse"
-          },
-          "403": {
-            "$ref": "#/components/responses/NotAuthorizedResponse"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "security": [
-          {
-            "AuthZ": []
-          }
-        ],
-        "summary": "Get SPA Recommendations with a shard parameter",
-        "tags": [
-          "Spa"
-        ],
-        "x-unstable": "**Note**: This endpoint is in preview and may change in the future. It is not yet recommended for production use."
-      }
-    },
     "/api/v2/spans/analytics/aggregate": {
       "post": {
         "description": "The API endpoint to aggregate spans into buckets and compute metrics and timeseries.\nThis endpoint is rate limited to `300` requests per hour.\n\nA request can generate at most 10,000 groups across all `group_by` entries, or 400,000 groups\nincluding time buckets when a `timeseries` compute is used. Set `limit` on each `group_by` entry\nto stay within these bounds. Requests over long time ranges or with many groups are more resource-intensive\nand can fail. To reduce load, narrow the time range or lower the `limit` on each `group_by` entry.",
@@ -358231,7 +358759,7 @@
             "description": "List of span fields to include in the response. When omitted, every available field is returned.\nValues may be passed as repeated query parameters or as a single comma-separated value.",
             "example": [
               "service",
-              "resource_name"
+              "resource"
             ],
             "in": "query",
             "name": "include_fields",
@@ -364652,10 +365180,6 @@
         "url": "https://docs.datadoghq.com/service_catalog/service_definitions#metadata-schema-v30-beta"
       },
       "name": "Software Catalog"
-    },
-    {
-      "description": "SPA (Spark Pod Autosizing) API. Provides resource recommendations and cost insights to help optimize Spark job configurations.",
-      "name": "Spa"
     },
     {
       "description": "Search and aggregate your spans from your Datadog platform over HTTP.",
