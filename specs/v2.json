@@ -1068,6 +1068,48 @@
           "type": "string"
         }
       },
+      "IncidentResponderIncludeQueryParameter": {
+        "description": "Comma-separated related resource types to include. Supported values are `users` and `role_assignments`.",
+        "explode": false,
+        "in": "query",
+        "name": "include",
+        "required": false,
+        "schema": {
+          "example": [
+            "users",
+            "role_assignments"
+          ],
+          "items": {
+            "$ref": "#/components/schemas/IncidentResponderRelatedObject"
+          },
+          "type": "array"
+        },
+        "style": "form"
+      },
+      "IncidentResponderPageLimitParameter": {
+        "description": "Maximum number of responders to return per page.",
+        "in": "query",
+        "name": "page[limit]",
+        "required": false,
+        "schema": {
+          "default": 25,
+          "example": 25,
+          "format": "int64",
+          "maximum": 1000,
+          "type": "integer"
+        }
+      },
+      "IncidentResponderPageOffsetParameter": {
+        "description": "The offset of the first responder to return.",
+        "in": "query",
+        "name": "page[offset]",
+        "required": false,
+        "schema": {
+          "example": 0,
+          "format": "int64",
+          "type": "integer"
+        }
+      },
       "IncidentRuleIDPathParameter": {
         "description": "The UUID of the incident rule.",
         "in": "path",
@@ -84920,6 +84962,29 @@
         ],
         "type": "object"
       },
+      "IncidentResponderIncludedItem": {
+        "description": "A user or role assignment related to an incident responder.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/IncidentUserData"
+          },
+          {
+            "$ref": "#/components/schemas/IncidentRoleAssignmentDataResponse"
+          }
+        ]
+      },
+      "IncidentResponderRelatedObject": {
+        "description": "Object related to an incident responder.",
+        "enum": [
+          "users",
+          "role_assignments"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "USERS",
+          "ROLE_ASSIGNMENTS"
+        ]
+      },
       "IncidentResponderRelationships": {
         "description": "Relationships for an incident responder.",
         "properties": {
@@ -85060,6 +85125,63 @@
         ],
         "type": "object"
       },
+      "IncidentRespondersPagination": {
+        "description": "Offset-based pagination for incident responders.",
+        "properties": {
+          "first_offset": {
+            "description": "The offset of the first page.",
+            "example": 0,
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_offset": {
+            "description": "The offset of the last page, if available.",
+            "example": 25,
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "limit": {
+            "description": "The maximum number of elements returned per page.",
+            "example": 25,
+            "format": "int64",
+            "type": "integer"
+          },
+          "next_offset": {
+            "description": "The offset of the next page, if available.",
+            "example": 25,
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "offset": {
+            "description": "The index of the first element in the current page.",
+            "example": 0,
+            "format": "int64",
+            "type": "integer"
+          },
+          "prev_offset": {
+            "description": "The offset of the previous page, if available.",
+            "example": 0,
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "total": {
+            "description": "The total number of elements, when available.",
+            "example": 1,
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "type": {
+            "description": "The pagination type.",
+            "example": "offset_limit",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "IncidentRespondersResponse": {
         "description": "Response with a list of incident responders.",
         "properties": {
@@ -85073,14 +85195,51 @@
           "included": {
             "description": "Included related resources.",
             "items": {
-              "$ref": "#/components/schemas/IncidentUserData"
+              "$ref": "#/components/schemas/IncidentResponderIncludedItem"
             },
             "readOnly": true,
             "type": "array"
+          },
+          "links": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Links to pages of incident responders.",
+            "type": "object"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/IncidentRespondersResponseMeta"
           }
         },
         "required": [
           "data"
+        ],
+        "type": "object"
+      },
+      "IncidentRespondersResponseMeta": {
+        "description": "Pagination metadata for the responder list.",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/IncidentRespondersResponseMetaPage"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/IncidentRespondersPagination"
+          }
+        },
+        "type": "object"
+      },
+      "IncidentRespondersResponseMetaPage": {
+        "description": "Total count for the responder list.",
+        "properties": {
+          "total_filtered_count": {
+            "description": "Total number of responders matching the query, before pagination.",
+            "example": 1,
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_filtered_count"
         ],
         "type": "object"
       },
@@ -85388,6 +85547,9 @@
           "impacts": {
             "$ref": "#/components/schemas/RelationshipToIncidentImpacts"
           },
+          "incident_type": {
+            "$ref": "#/components/schemas/RelationshipToIncidentType"
+          },
           "integrations": {
             "$ref": "#/components/schemas/RelationshipToIncidentIntegrationMetadatas"
           },
@@ -85402,6 +85564,171 @@
           }
         },
         "type": "object"
+      },
+      "IncidentRoleAssignmentDataAttributesResponse": {
+        "description": "Attributes of an incident role assignment.",
+        "properties": {
+          "created": {
+            "description": "Timestamp when the role assignment was created.",
+            "example": "2024-01-01T00:00:00.000Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "deleted": {
+            "description": "Timestamp when the role assignment was deleted, or the zero timestamp if it has not been deleted.",
+            "example": "0001-01-01T00:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "modified": {
+            "description": "Timestamp when the role assignment was last modified.",
+            "example": "2024-01-01T00:00:00.000Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "responder_type": {
+            "description": "The type of the responder.",
+            "example": "user",
+            "type": "string"
+          },
+          "role": {
+            "description": "The name of the assigned role.",
+            "example": "commander",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "responder_type",
+          "created",
+          "modified"
+        ],
+        "type": "object"
+      },
+      "IncidentRoleAssignmentDataResponse": {
+        "description": "Role assignment data in a response.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/IncidentRoleAssignmentDataAttributesResponse"
+          },
+          "id": {
+            "description": "The role assignment identifier.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "relationships": {
+            "$ref": "#/components/schemas/IncidentRoleAssignmentRelationshipsResponse"
+          },
+          "type": {
+            "$ref": "#/components/schemas/IncidentRoleAssignmentType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "IncidentRoleAssignmentRelationshipsResponse": {
+        "description": "Relationships of a role assignment.",
+        "properties": {
+          "created_by_user": {
+            "$ref": "#/components/schemas/IncidentRoleAssignmentResponderRelationship"
+          },
+          "last_modified_by_user": {
+            "$ref": "#/components/schemas/IncidentRoleAssignmentResponderRelationship"
+          },
+          "reserved_role": {
+            "$ref": "#/components/schemas/IncidentRoleAssignmentRoleRelationship"
+          },
+          "responder": {
+            "$ref": "#/components/schemas/IncidentRoleAssignmentResponderRelationship"
+          },
+          "user_defined_role": {
+            "$ref": "#/components/schemas/IncidentRoleAssignmentRoleRelationship"
+          }
+        },
+        "required": [
+          "responder"
+        ],
+        "type": "object"
+      },
+      "IncidentRoleAssignmentResponderRelationship": {
+        "description": "Relationship to a responder.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/IncidentRoleAssignmentResponderRelationshipData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "IncidentRoleAssignmentResponderRelationshipData": {
+        "description": "Responder relationship data.",
+        "properties": {
+          "id": {
+            "description": "The responder identifier.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "description": "The responder resource type.",
+            "example": "users",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "IncidentRoleAssignmentRoleRelationship": {
+        "description": "Relationship to a role.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/IncidentRoleAssignmentRoleRelationshipData"
+          }
+        },
+        "type": "object"
+      },
+      "IncidentRoleAssignmentRoleRelationshipData": {
+        "description": "Role relationship data.",
+        "nullable": true,
+        "properties": {
+          "id": {
+            "description": "The role identifier.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "description": "The role resource type.",
+            "example": "incident_reserved_roles",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "IncidentRoleAssignmentType": {
+        "description": "Incident role assignment resource type.",
+        "enum": [
+          "incident_role_assignments"
+        ],
+        "example": "incident_role_assignments",
+        "type": "string",
+        "x-enum-varnames": [
+          "INCIDENT_ROLE_ASSIGNMENTS"
+        ]
       },
       "IncidentRuleCondition": {
         "description": "A condition for an incident rule.",
@@ -115338,6 +115665,9 @@
             "example": "AZURE_DATA_EXPLORER_INGESTION_ENDPOINT",
             "type": "string"
           },
+          "ingestion_mode": {
+            "$ref": "#/components/schemas/ObservabilityPipelineAzureDataExplorerDestinationIngestionMode"
+          },
           "inputs": {
             "description": "A list of component IDs whose output is used as the `input` for this component.",
             "example": [
@@ -115601,26 +115931,36 @@
             "description": "Maximum batch size in bytes.",
             "example": 2000000,
             "format": "int64",
-            "maximum": 4000000,
-            "minimum": 1,
             "type": "integer"
           },
           "max_events": {
             "description": "Maximum number of events per batch before it is flushed.",
             "example": 1000,
             "format": "int64",
-            "minimum": 1,
             "type": "integer"
           },
           "timeout_secs": {
             "description": "Maximum number of seconds to wait before flushing a partial batch.",
             "example": 1,
             "format": "int64",
-            "minimum": 1,
             "type": "integer"
           }
         },
         "type": "object"
+      },
+      "ObservabilityPipelineAzureDataExplorerDestinationIngestionMode": {
+        "default": "streaming",
+        "description": "The ingestion method used to send data to Azure Data Explorer.\n\n- `streaming`: Sends events directly to the table using streaming ingestion.\n- `queue`: Sends events through queued (batched) ingestion.\n\nDefaults to `streaming`.",
+        "enum": [
+          "streaming",
+          "queue"
+        ],
+        "example": "queue",
+        "type": "string",
+        "x-enum-varnames": [
+          "STREAMING",
+          "QUEUE"
+        ]
       },
       "ObservabilityPipelineAzureDataExplorerDestinationManagedIdentityIdType": {
         "description": "The type of the user-assigned managed identity ID.",
@@ -188663,6 +189003,19 @@
             "description": "The name of the feature flag.",
             "example": "Updated Feature Flag XYZ789",
             "type": "string"
+          },
+          "tags": {
+            "description": "Tags associated with the feature flag. This field replaces the full set of\nexisting tags; omit it to leave tags unchanged, or pass an empty array to\nclear all tags. The owning team is set by including a tag of the form\n`team:<team-handle>` in this array.",
+            "example": [
+              "team:feature-flagging"
+            ],
+            "items": {
+              "description": "A tag associated with the feature flag.",
+              "maxLength": 200,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": "array"
           }
         },
         "type": "object"
@@ -214866,831 +215219,6 @@
           "CI Visibility Logs"
         ],
         "x-codegen-request-body-name": "body"
-      }
-    },
-    "/api/v2/cloud_auth/aws/persona_mapping": {
-      "get": {
-        "description": "List all AWS cloud authentication persona mappings. This endpoint retrieves all configured persona mappings that associate AWS IAM principals with Datadog users.",
-        "operationId": "ListAWSCloudAuthPersonaMappings",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": [
-                        {
-                          "attributes": {
-                            "account_identifier": "test@example.com",
-                            "account_uuid": "00000000-0000-0000-0000-000000000001",
-                            "arn_pattern": "arn:aws:iam::123456789012:user/testuser"
-                          },
-                          "id": "abc-123",
-                          "type": "aws_cloud_auth_config"
-                        }
-                      ]
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/AWSCloudAuthPersonaMappingsResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "List AWS cloud authentication persona mappings",
-        "tags": [
-          "Cloud Authentication"
-        ],
-        "x-unstable": "**Note**: This endpoint is in public beta and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      },
-      "post": {
-        "description": "Create an AWS cloud authentication persona mapping. This endpoint associates an AWS IAM principal with a Datadog user.",
-        "operationId": "CreateAWSCloudAuthPersonaMapping",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "examples": {
-                "default": {
-                  "value": {
-                    "data": {
-                      "attributes": {
-                        "account_identifier": "test@test.com",
-                        "arn_pattern": "arn:aws:iam::123456789012:user/testuser"
-                      },
-                      "type": "aws_cloud_auth_config"
-                    }
-                  }
-                }
-              },
-              "schema": {
-                "$ref": "#/components/schemas/AWSCloudAuthPersonaMappingCreateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "account_identifier": "test@example.com",
-                          "account_uuid": "00000000-0000-0000-0000-000000000001",
-                          "arn_pattern": "arn:aws:iam::123456789012:user/testuser"
-                        },
-                        "id": "abc-123",
-                        "type": "aws_cloud_auth_config"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/AWSCloudAuthPersonaMappingResponse"
-                }
-              }
-            },
-            "description": "Created"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Create an AWS cloud authentication persona mapping",
-        "tags": [
-          "Cloud Authentication"
-        ],
-        "x-codegen-request-body-name": "body",
-        "x-unstable": "**Note**: This endpoint is in public beta and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      }
-    },
-    "/api/v2/cloud_auth/aws/persona_mapping/{persona_mapping_id}": {
-      "delete": {
-        "description": "Delete an AWS cloud authentication persona mapping by ID. This removes the association between an AWS IAM principal and a Datadog user.",
-        "operationId": "DeleteAWSCloudAuthPersonaMapping",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/PersonaMappingID"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Delete an AWS cloud authentication persona mapping",
-        "tags": [
-          "Cloud Authentication"
-        ],
-        "x-unstable": "**Note**: This endpoint is in public beta and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      },
-      "get": {
-        "description": "Get a specific AWS cloud authentication persona mapping by ID. This endpoint retrieves a single configured persona mapping that associates an AWS IAM principal with a Datadog user.",
-        "operationId": "GetAWSCloudAuthPersonaMapping",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/PersonaMappingID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "account_identifier": "test@example.com",
-                          "account_uuid": "00000000-0000-0000-0000-000000000001",
-                          "arn_pattern": "arn:aws:iam::123456789012:user/testuser"
-                        },
-                        "id": "abc-123",
-                        "type": "aws_cloud_auth_config"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/AWSCloudAuthPersonaMappingResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Get an AWS cloud authentication persona mapping",
-        "tags": [
-          "Cloud Authentication"
-        ],
-        "x-unstable": "**Note**: This endpoint is in public beta and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      }
-    },
-    "/api/v2/cloud_auth/github/intake_mapping": {
-      "get": {
-        "description": "List all GitHub cloud authentication intake mappings. This endpoint retrieves all configured intake mappings that entitle matching GitHub Actions OIDC principals to request Datadog API keys.",
-        "operationId": "ListGitHubCloudAuthIntakeMappings",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": [
-                        {
-                          "attributes": {
-                            "claim_matchers": {
-                              "ref": "refs/heads/main",
-                              "repository": "test_owner/test_repo",
-                              "repository_owner": "test_owner",
-                              "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
-                            }
-                          },
-                          "id": "d6d869d7-29d3-5595-bf40-57c95235cf5b",
-                          "type": "github_oidc_auth_intake_mapping"
-                        }
-                      ]
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/GitHubCloudAuthIntakeMappingsResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "List GitHub cloud authentication intake mappings",
-        "tags": [
-          "Cloud Authentication"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      },
-      "post": {
-        "description": "Create a GitHub cloud authentication intake mapping. This endpoint entitles a matching GitHub Actions OIDC principal to request Datadog API keys.",
-        "operationId": "CreateGitHubCloudAuthIntakeMapping",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "examples": {
-                "default": {
-                  "value": {
-                    "data": {
-                      "attributes": {
-                        "claim_matchers": {
-                          "ref": "refs/heads/main",
-                          "repository": "test_owner/test_repo",
-                          "repository_owner": "test_owner",
-                          "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
-                        }
-                      },
-                      "type": "github_oidc_auth_intake_mapping"
-                    }
-                  }
-                }
-              },
-              "schema": {
-                "$ref": "#/components/schemas/GitHubCloudAuthIntakeMappingCreateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "claim_matchers": {
-                            "ref": "refs/heads/main",
-                            "repository": "test_owner/test_repo",
-                            "repository_owner": "test_owner",
-                            "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
-                          }
-                        },
-                        "id": "d6d869d7-29d3-5595-bf40-57c95235cf5b",
-                        "type": "github_oidc_auth_intake_mapping"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/GitHubCloudAuthIntakeMappingResponse"
-                }
-              }
-            },
-            "description": "Created"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Create a GitHub cloud auth intake mapping",
-        "tags": [
-          "Cloud Authentication"
-        ],
-        "x-codegen-request-body-name": "body",
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      }
-    },
-    "/api/v2/cloud_auth/github/intake_mapping/{intake_mapping_id}": {
-      "delete": {
-        "description": "Delete a GitHub cloud authentication intake mapping by ID. This removes a GitHub Actions OIDC principal's entitlement to request Datadog API keys.",
-        "operationId": "DeleteGitHubCloudAuthIntakeMapping",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/IntakeMappingID"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Delete a GitHub cloud auth intake mapping",
-        "tags": [
-          "Cloud Authentication"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      },
-      "get": {
-        "description": "Get a specific GitHub cloud authentication intake mapping by ID. This endpoint retrieves a single configured intake mapping that entitles a matching GitHub Actions OIDC principal to request Datadog API keys.",
-        "operationId": "GetGitHubCloudAuthIntakeMapping",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/IntakeMappingID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "claim_matchers": {
-                            "ref": "refs/heads/main",
-                            "repository": "test_owner/test_repo",
-                            "repository_owner": "test_owner",
-                            "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
-                          }
-                        },
-                        "id": "d6d869d7-29d3-5595-bf40-57c95235cf5b",
-                        "type": "github_oidc_auth_intake_mapping"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/GitHubCloudAuthIntakeMappingResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Get a GitHub cloud authentication intake mapping",
-        "tags": [
-          "Cloud Authentication"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      }
-    },
-    "/api/v2/cloud_auth/github/persona_mapping": {
-      "get": {
-        "description": "List all GitHub cloud authentication persona mappings. This endpoint retrieves all configured persona mappings that associate GitHub Actions OpenID Connect (OIDC) principals with Datadog users. Mapped principals can request impersonation tokens.",
-        "operationId": "ListGitHubCloudAuthPersonaMappings",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": [
-                        {
-                          "attributes": {
-                            "account_identifier": "test@example.com",
-                            "account_uuid": "12bbdc5c-5966-47e0-8733-285f9e44bcf4",
-                            "claim_matchers": {
-                              "ref": "refs/heads/main",
-                              "repository": "test_owner/test_repo",
-                              "repository_owner": "test_owner",
-                              "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
-                            }
-                          },
-                          "id": "c5c758c6-18c2-4484-ae3f-46b84128404a",
-                          "type": "github_oidc_auth_config"
-                        }
-                      ]
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/GitHubCloudAuthPersonaMappingsResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "List GitHub cloud authentication persona mappings",
-        "tags": [
-          "Cloud Authentication"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      },
-      "post": {
-        "description": "Create a GitHub cloud authentication persona mapping. This endpoint associates a GitHub Actions OIDC principal with a Datadog user. The mapped principal can request an impersonation token.",
-        "operationId": "CreateGitHubCloudAuthPersonaMapping",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "examples": {
-                "default": {
-                  "value": {
-                    "data": {
-                      "attributes": {
-                        "account_identifier": "test@example.com",
-                        "claim_matchers": {
-                          "ref": "refs/heads/main",
-                          "repository": "test_owner/test_repo",
-                          "repository_owner": "test_owner",
-                          "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
-                        }
-                      },
-                      "type": "github_oidc_auth_config"
-                    }
-                  }
-                }
-              },
-              "schema": {
-                "$ref": "#/components/schemas/GitHubCloudAuthPersonaMappingCreateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "account_identifier": "test@example.com",
-                          "account_uuid": "12bbdc5c-5966-47e0-8733-285f9e44bcf4",
-                          "claim_matchers": {
-                            "ref": "refs/heads/main",
-                            "repository": "test_owner/test_repo",
-                            "repository_owner": "test_owner",
-                            "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
-                          }
-                        },
-                        "id": "c5c758c6-18c2-4484-ae3f-46b84128404a",
-                        "type": "github_oidc_auth_config"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/GitHubCloudAuthPersonaMappingResponse"
-                }
-              }
-            },
-            "description": "Created"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Create a GitHub cloud auth persona mapping",
-        "tags": [
-          "Cloud Authentication"
-        ],
-        "x-codegen-request-body-name": "body",
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      }
-    },
-    "/api/v2/cloud_auth/github/persona_mapping/{persona_mapping_id}": {
-      "delete": {
-        "description": "Delete a GitHub cloud authentication persona mapping by ID. This removes the association between a GitHub Actions OIDC principal and a Datadog user.",
-        "operationId": "DeleteGitHubCloudAuthPersonaMapping",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/PersonaMappingID"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Delete a GitHub cloud auth persona mapping",
-        "tags": [
-          "Cloud Authentication"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      },
-      "get": {
-        "description": "Get a specific GitHub cloud authentication persona mapping by ID. This endpoint retrieves a single configured persona mapping that associates a GitHub Actions OIDC principal with a Datadog user. The mapped principal can request an impersonation token.",
-        "operationId": "GetGitHubCloudAuthPersonaMapping",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/PersonaMappingID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "account_identifier": "test@example.com",
-                          "account_uuid": "12bbdc5c-5966-47e0-8733-285f9e44bcf4",
-                          "claim_matchers": {
-                            "ref": "refs/heads/main",
-                            "repository": "test_owner/test_repo",
-                            "repository_owner": "test_owner",
-                            "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
-                          }
-                        },
-                        "id": "c5c758c6-18c2-4484-ae3f-46b84128404a",
-                        "type": "github_oidc_auth_config"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/GitHubCloudAuthPersonaMappingResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Get a GitHub cloud authentication persona mapping",
-        "tags": [
-          "Cloud Authentication"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
     "/api/v2/cloud_security_management/custom_frameworks": {
@@ -245349,7 +244877,7 @@
         }
       },
       "put": {
-        "description": "Updates an existing feature flag's metadata such as\n name and description. Does not modify targeting rules or allocations.",
+        "description": "Updates an existing feature flag's metadata such as\n name and description. Does not modify targeting rules or allocations.\n\nTo change the owning team, update `tags` and include a tag of the form\n`team:<team-handle>` in the array. `tags` is a full replacement of the\nexisting tag set (including any `team:` tag), so include every tag you\nwant to keep, not just the ones you're adding.",
         "operationId": "UpdateFeatureFlag",
         "parameters": [
           {
@@ -245366,7 +244894,10 @@
                       "attributes": {
                         "description": "Updated description for the feature flag",
                         "enabled": true,
-                        "name": "Updated Feature Flag XYZ789"
+                        "name": "Updated Feature Flag XYZ789",
+                        "tags": [
+                          "team:feature-flagging"
+                        ]
                       },
                       "type": "feature-flags"
                     }
@@ -259922,6 +259453,15 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/IncidentIDPathParameter"
+          },
+          {
+            "$ref": "#/components/parameters/IncidentResponderIncludeQueryParameter"
+          },
+          {
+            "$ref": "#/components/parameters/IncidentResponderPageLimitParameter"
+          },
+          {
+            "$ref": "#/components/parameters/IncidentResponderPageOffsetParameter"
           }
         ],
         "responses": {
@@ -285191,7 +284731,7 @@
             "metric_tags_write"
           ]
         },
-        "x-sunset": "2027-01-01"
+        "x-sunset": "2026-11-01"
       },
       "post": {
         "deprecated": true,
@@ -285309,7 +284849,7 @@
             "metric_tags_write"
           ]
         },
-        "x-sunset": "2027-01-01"
+        "x-sunset": "2026-11-01"
       }
     },
     "/api/v2/metrics/derived-metrics": {
@@ -290077,7 +289617,8 @@
         "x-permission": {
           "operator": "OR",
           "permissions": [
-            "monitor_config_policy_write"
+            "monitor_config_policy_write",
+            "monitor_notification_rules_write"
           ]
         }
       }
@@ -290132,7 +289673,8 @@
         "x-permission": {
           "operator": "OR",
           "permissions": [
-            "monitor_config_policy_write"
+            "monitor_config_policy_write",
+            "monitor_notification_rules_write"
           ]
         }
       },
@@ -290359,7 +289901,8 @@
         "x-permission": {
           "operator": "OR",
           "permissions": [
-            "monitor_config_policy_write"
+            "monitor_config_policy_write",
+            "monitor_notification_rules_write"
           ]
         }
       }
@@ -309285,7 +308828,13 @@
         "summary": "List replay heatmap snapshots",
         "tags": [
           "Rum Replay Heatmaps"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_session_replay_read"
+          ]
+        }
       },
       "post": {
         "description": "Create a heatmap snapshot.",
@@ -312594,7 +312143,13 @@
         "summary": "Get all RUM retention filters",
         "tags": [
           "Rum Retention Filters"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_retention_filters_read"
+          ]
+        }
       },
       "post": {
         "description": "Create a RUM retention filter for a RUM application.\nReturns RUM retention filter objects from the request body when the request is successful.",
@@ -312746,7 +312301,13 @@
         "summary": "Get all RUM exclusion filters",
         "tags": [
           "Rum Retention Filters"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_retention_filters_read"
+          ]
+        }
       },
       "post": {
         "description": "Create an exclusion filter for a RUM application.\nReturns the created exclusion filter when the request is successful.",
@@ -312921,7 +312482,13 @@
         "summary": "Get a RUM exclusion filter",
         "tags": [
           "Rum Retention Filters"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_retention_filters_read"
+          ]
+        }
       },
       "patch": {
         "description": "Update an exclusion filter for a RUM application.\nFor the built-in Error Tracking exclusion filter (`error_tracking_exclusion_filter`), only `enabled` can be\nupdated; `name`, `event_type`, and `query` must be omitted.\nReturns the updated exclusion filter when the request is successful.",
@@ -313099,7 +312666,13 @@
         "summary": "Get all permanent RUM retention filters",
         "tags": [
           "Rum Retention Filters"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_retention_filters_read"
+          ]
+        }
       }
     },
     "/api/v2/rum/applications/{app_id}/retention_filters/permanent/{permanent_rf_id}": {
@@ -313159,7 +312732,13 @@
         "summary": "Get a permanent RUM retention filter",
         "tags": [
           "Rum Retention Filters"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_retention_filters_read"
+          ]
+        }
       },
       "patch": {
         "description": "Update the cross-product sampling configuration of a permanent RUM retention filter for a RUM application.\nOnly fields marked as editable in the `editability` block of the filter can be updated.\nUpdating a non-editable field returns a `400` response.",
@@ -313338,7 +312917,13 @@
         "summary": "Get a RUM retention filter",
         "tags": [
           "Rum Retention Filters"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_retention_filters_read"
+          ]
+        }
       },
       "patch": {
         "description": "Update a RUM retention filter for a RUM application.\nReturns RUM retention filter objects from the request body when the request is successful.",
@@ -313709,6 +313294,12 @@
         "tags": [
           "RUM Config"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "patch": {
@@ -313919,7 +313510,13 @@
         "summary": "Get all RUM-based metrics",
         "tags": [
           "Rum Metrics"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        }
       },
       "post": {
         "description": "Create a metric based on your organization's RUM data.\nReturns the RUM-based metric object from the request body when the request is successful.",
@@ -314116,7 +313713,13 @@
         "summary": "Get a RUM-based metric",
         "tags": [
           "Rum Metrics"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        }
       },
       "patch": {
         "description": "Update a specific RUM-based metric from your organization.\nReturns the RUM-based metric object from the request body when the request is successful.",
@@ -314594,6 +314197,12 @@
         "tags": [
           "Rum Teams Ownership"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
@@ -314894,6 +314503,12 @@
         "tags": [
           "Rum Teams Ownership"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
@@ -314964,6 +314579,12 @@
         "tags": [
           "Rum Teams Ownership"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
@@ -315443,7 +315064,13 @@
         "summary": "Get a RUM operation by name",
         "tags": [
           "RUM Operations"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        }
       }
     },
     "/api/v2/rum/operations/search": {
@@ -315624,7 +315251,13 @@
         "summary": "Search RUM operations",
         "tags": [
           "RUM Operations"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        }
       }
     },
     "/api/v2/rum/operations/strong_links": {
@@ -315732,7 +315365,13 @@
         "summary": "List RUM operation links",
         "tags": [
           "RUM Operations"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        }
       },
       "post": {
         "description": "Create a link between a RUM operation and a journey, confirming that the journey\nbelongs to the operation. The operation can be identified by `operation_id` or `operation_name`;\nif `operation_name` does not match an existing operation, a stub operation is created.",
@@ -316126,7 +315765,13 @@
         "summary": "Get a RUM operation",
         "tags": [
           "RUM Operations"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        }
       },
       "put": {
         "description": "Update an existing RUM operation. Fields omitted from the request body keep their existing value,\nwith the exception of `journey_rum`, which is required and fully replaced on every update.",
@@ -316662,7 +316307,13 @@
         "summary": "List RUM replay playlists",
         "tags": [
           "Rum Replay Playlists"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_session_replay_read"
+          ]
+        }
       },
       "post": {
         "description": "Create a playlist.",
@@ -316832,7 +316483,13 @@
         "summary": "Get RUM replay playlist",
         "tags": [
           "Rum Replay Playlists"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_session_replay_read"
+          ]
+        }
       },
       "put": {
         "description": "Update a playlist.",
@@ -317059,7 +316716,13 @@
         "summary": "List RUM replay playlist sessions",
         "tags": [
           "Rum Replay Playlists"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_session_replay_read"
+          ]
+        }
       }
     },
     "/api/v2/rum/replay/playlists/{playlist_id}/sessions/{session_id}": {
@@ -317307,7 +316970,13 @@
         "summary": "Get segments",
         "tags": [
           "Rum Replay Sessions"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_session_replay_read"
+          ]
+        }
       }
     },
     "/api/v2/rum/replay/sessions/{session_id}/watchers": {
@@ -317390,7 +317059,13 @@
         "summary": "List RUM replay session watchers",
         "tags": [
           "Rum Replay Viewership"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_session_replay_read"
+          ]
+        }
       }
     },
     "/api/v2/rum/replay/sessions/{session_id}/watches": {
@@ -317630,7 +317305,13 @@
         "summary": "List RUM replay viewership history sessions",
         "tags": [
           "Rum Replay Viewership"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_session_replay_read"
+          ]
+        }
       }
     },
     "/api/v2/saml_configurations": {
@@ -363479,6 +363160,831 @@
             "product_analytics_saved_widgets_write"
           ]
         }
+      }
+    },
+    "/api/v2/wif/aws/persona_mapping": {
+      "get": {
+        "description": "List all AWS cloud authentication persona mappings. This endpoint retrieves all configured persona mappings that associate AWS IAM principals with Datadog users.",
+        "operationId": "ListAWSCloudAuthPersonaMappings",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "account_identifier": "test@example.com",
+                            "account_uuid": "00000000-0000-0000-0000-000000000001",
+                            "arn_pattern": "arn:aws:iam::123456789012:user/testuser"
+                          },
+                          "id": "abc-123",
+                          "type": "aws_cloud_auth_config"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/AWSCloudAuthPersonaMappingsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "List AWS cloud authentication persona mappings",
+        "tags": [
+          "Cloud Authentication"
+        ],
+        "x-unstable": "**Note**: This endpoint is in public beta and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
+      "post": {
+        "description": "Create an AWS cloud authentication persona mapping. This endpoint associates an AWS IAM principal with a Datadog user.",
+        "operationId": "CreateAWSCloudAuthPersonaMapping",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "account_identifier": "test@test.com",
+                        "arn_pattern": "arn:aws:iam::123456789012:user/testuser"
+                      },
+                      "type": "aws_cloud_auth_config"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/AWSCloudAuthPersonaMappingCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "account_identifier": "test@example.com",
+                          "account_uuid": "00000000-0000-0000-0000-000000000001",
+                          "arn_pattern": "arn:aws:iam::123456789012:user/testuser"
+                        },
+                        "id": "abc-123",
+                        "type": "aws_cloud_auth_config"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/AWSCloudAuthPersonaMappingResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Create an AWS cloud authentication persona mapping",
+        "tags": [
+          "Cloud Authentication"
+        ],
+        "x-codegen-request-body-name": "body",
+        "x-unstable": "**Note**: This endpoint is in public beta and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/wif/aws/persona_mapping/{persona_mapping_id}": {
+      "delete": {
+        "description": "Delete an AWS cloud authentication persona mapping by ID. This removes the association between an AWS IAM principal and a Datadog user.",
+        "operationId": "DeleteAWSCloudAuthPersonaMapping",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PersonaMappingID"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Delete an AWS cloud authentication persona mapping",
+        "tags": [
+          "Cloud Authentication"
+        ],
+        "x-unstable": "**Note**: This endpoint is in public beta and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
+      "get": {
+        "description": "Get a specific AWS cloud authentication persona mapping by ID. This endpoint retrieves a single configured persona mapping that associates an AWS IAM principal with a Datadog user.",
+        "operationId": "GetAWSCloudAuthPersonaMapping",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PersonaMappingID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "account_identifier": "test@example.com",
+                          "account_uuid": "00000000-0000-0000-0000-000000000001",
+                          "arn_pattern": "arn:aws:iam::123456789012:user/testuser"
+                        },
+                        "id": "abc-123",
+                        "type": "aws_cloud_auth_config"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/AWSCloudAuthPersonaMappingResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Get an AWS cloud authentication persona mapping",
+        "tags": [
+          "Cloud Authentication"
+        ],
+        "x-unstable": "**Note**: This endpoint is in public beta and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/wif/github/intake_mapping": {
+      "get": {
+        "description": "List all GitHub cloud authentication intake mappings. This endpoint retrieves all configured intake mappings that entitle matching GitHub Actions OIDC principals to request Datadog API keys.",
+        "operationId": "ListGitHubCloudAuthIntakeMappings",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "claim_matchers": {
+                              "ref": "refs/heads/main",
+                              "repository": "test_owner/test_repo",
+                              "repository_owner": "test_owner",
+                              "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
+                            }
+                          },
+                          "id": "d6d869d7-29d3-5595-bf40-57c95235cf5b",
+                          "type": "github_oidc_auth_intake_mapping"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubCloudAuthIntakeMappingsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "List GitHub cloud authentication intake mappings",
+        "tags": [
+          "Cloud Authentication"
+        ],
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
+      "post": {
+        "description": "Create a GitHub cloud authentication intake mapping. This endpoint entitles a matching GitHub Actions OIDC principal to request Datadog API keys.",
+        "operationId": "CreateGitHubCloudAuthIntakeMapping",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "claim_matchers": {
+                          "ref": "refs/heads/main",
+                          "repository": "test_owner/test_repo",
+                          "repository_owner": "test_owner",
+                          "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
+                        }
+                      },
+                      "type": "github_oidc_auth_intake_mapping"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/GitHubCloudAuthIntakeMappingCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "claim_matchers": {
+                            "ref": "refs/heads/main",
+                            "repository": "test_owner/test_repo",
+                            "repository_owner": "test_owner",
+                            "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
+                          }
+                        },
+                        "id": "d6d869d7-29d3-5595-bf40-57c95235cf5b",
+                        "type": "github_oidc_auth_intake_mapping"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubCloudAuthIntakeMappingResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Create a GitHub cloud auth intake mapping",
+        "tags": [
+          "Cloud Authentication"
+        ],
+        "x-codegen-request-body-name": "body",
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/wif/github/intake_mapping/{intake_mapping_id}": {
+      "delete": {
+        "description": "Delete a GitHub cloud authentication intake mapping by ID. This removes a GitHub Actions OIDC principal's entitlement to request Datadog API keys.",
+        "operationId": "DeleteGitHubCloudAuthIntakeMapping",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IntakeMappingID"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Delete a GitHub cloud auth intake mapping",
+        "tags": [
+          "Cloud Authentication"
+        ],
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
+      "get": {
+        "description": "Get a specific GitHub cloud authentication intake mapping by ID. This endpoint retrieves a single configured intake mapping that entitles a matching GitHub Actions OIDC principal to request Datadog API keys.",
+        "operationId": "GetGitHubCloudAuthIntakeMapping",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IntakeMappingID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "claim_matchers": {
+                            "ref": "refs/heads/main",
+                            "repository": "test_owner/test_repo",
+                            "repository_owner": "test_owner",
+                            "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
+                          }
+                        },
+                        "id": "d6d869d7-29d3-5595-bf40-57c95235cf5b",
+                        "type": "github_oidc_auth_intake_mapping"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubCloudAuthIntakeMappingResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Get a GitHub cloud authentication intake mapping",
+        "tags": [
+          "Cloud Authentication"
+        ],
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/wif/github/persona_mapping": {
+      "get": {
+        "description": "List all GitHub cloud authentication persona mappings. This endpoint retrieves all configured persona mappings that associate GitHub Actions OpenID Connect (OIDC) principals with Datadog users. Mapped principals can request impersonation tokens.",
+        "operationId": "ListGitHubCloudAuthPersonaMappings",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "account_identifier": "test@example.com",
+                            "account_uuid": "12bbdc5c-5966-47e0-8733-285f9e44bcf4",
+                            "claim_matchers": {
+                              "ref": "refs/heads/main",
+                              "repository": "test_owner/test_repo",
+                              "repository_owner": "test_owner",
+                              "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
+                            }
+                          },
+                          "id": "c5c758c6-18c2-4484-ae3f-46b84128404a",
+                          "type": "github_oidc_auth_config"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubCloudAuthPersonaMappingsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "List GitHub cloud authentication persona mappings",
+        "tags": [
+          "Cloud Authentication"
+        ],
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
+      "post": {
+        "description": "Create a GitHub cloud authentication persona mapping. This endpoint associates a GitHub Actions OIDC principal with a Datadog user. The mapped principal can request an impersonation token.",
+        "operationId": "CreateGitHubCloudAuthPersonaMapping",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "account_identifier": "test@example.com",
+                        "claim_matchers": {
+                          "ref": "refs/heads/main",
+                          "repository": "test_owner/test_repo",
+                          "repository_owner": "test_owner",
+                          "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
+                        }
+                      },
+                      "type": "github_oidc_auth_config"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/GitHubCloudAuthPersonaMappingCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "account_identifier": "test@example.com",
+                          "account_uuid": "12bbdc5c-5966-47e0-8733-285f9e44bcf4",
+                          "claim_matchers": {
+                            "ref": "refs/heads/main",
+                            "repository": "test_owner/test_repo",
+                            "repository_owner": "test_owner",
+                            "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
+                          }
+                        },
+                        "id": "c5c758c6-18c2-4484-ae3f-46b84128404a",
+                        "type": "github_oidc_auth_config"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubCloudAuthPersonaMappingResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Create a GitHub cloud auth persona mapping",
+        "tags": [
+          "Cloud Authentication"
+        ],
+        "x-codegen-request-body-name": "body",
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/wif/github/persona_mapping/{persona_mapping_id}": {
+      "delete": {
+        "description": "Delete a GitHub cloud authentication persona mapping by ID. This removes the association between a GitHub Actions OIDC principal and a Datadog user.",
+        "operationId": "DeleteGitHubCloudAuthPersonaMapping",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PersonaMappingID"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Delete a GitHub cloud auth persona mapping",
+        "tags": [
+          "Cloud Authentication"
+        ],
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
+      "get": {
+        "description": "Get a specific GitHub cloud authentication persona mapping by ID. This endpoint retrieves a single configured persona mapping that associates a GitHub Actions OIDC principal with a Datadog user. The mapped principal can request an impersonation token.",
+        "operationId": "GetGitHubCloudAuthPersonaMapping",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PersonaMappingID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "account_identifier": "test@example.com",
+                          "account_uuid": "12bbdc5c-5966-47e0-8733-285f9e44bcf4",
+                          "claim_matchers": {
+                            "ref": "refs/heads/main",
+                            "repository": "test_owner/test_repo",
+                            "repository_owner": "test_owner",
+                            "sub": "repo:test_owner/test_repo:(ref:refs/heads/main|pull_request)"
+                          }
+                        },
+                        "id": "c5c758c6-18c2-4484-ae3f-46b84128404a",
+                        "type": "github_oidc_auth_config"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubCloudAuthPersonaMappingResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Get a GitHub cloud authentication persona mapping",
+        "tags": [
+          "Cloud Authentication"
+        ],
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
     "/api/v2/workflows": {
