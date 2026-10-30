@@ -2538,6 +2538,17 @@
           "type": "string"
         }
       },
+      "SecurityMonitoringRuleProposalID": {
+        "description": "The ID of the rule proposal, returned by the start a rule proposal endpoint.",
+        "in": "path",
+        "name": "proposal_id",
+        "required": true,
+        "schema": {
+          "example": "c968cf83-56c2-4d54-a993-6c86dfb83527",
+          "format": "uuid",
+          "type": "string"
+        }
+      },
       "SecurityMonitoringRuleVersion": {
         "description": "The historical version number of the rule.",
         "in": "path",
@@ -3152,6 +3163,46 @@
         "description": "Not Found"
       },
       "SecurityMonitoringBatchMigrationUnauthorizedResponse": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/JSONAPIErrorResponse"
+            }
+          }
+        },
+        "description": "Unauthorized"
+      },
+      "SecurityMonitoringRuleProposalBadRequestResponse": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/JSONAPIErrorResponse"
+            }
+          }
+        },
+        "description": "Bad Request"
+      },
+      "SecurityMonitoringRuleProposalForbiddenResponse": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/JSONAPIErrorResponse"
+            }
+          }
+        },
+        "description": "Forbidden"
+      },
+      "SecurityMonitoringRuleProposalNotFoundResponse": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/JSONAPIErrorResponse"
+            }
+          }
+        },
+        "description": "Not Found"
+      },
+      "SecurityMonitoringRuleProposalUnauthorizedResponse": {
         "content": {
           "application/json": {
             "schema": {
@@ -5549,8 +5600,16 @@
           "namespace_filters": {
             "$ref": "#/components/schemas/AWSNamespaceFilters"
           },
+          "resource_type_tag_filters": {
+            "description": "AWS Metrics collection resource type tag filters list. Defaults to `[]`.",
+            "items": {
+              "$ref": "#/components/schemas/AWSResourceTypeTagFilter"
+            },
+            "type": "array"
+          },
           "tag_filters": {
-            "description": "AWS Metrics collection tag filters list. Defaults to `[]`.",
+            "deprecated": true,
+            "description": "AWS Metrics collection tag filters list. Defaults to `[]`.\nDeprecated in favor of `resource_type_tag_filters`. The two fields are mutually exclusive on an account.",
             "items": {
               "$ref": "#/components/schemas/AWSNamespaceTagFilter"
             },
@@ -5805,6 +5864,39 @@
         },
         "required": [
           "include_only"
+        ],
+        "type": "object"
+      },
+      "AWSResourceTypeTagFilter": {
+        "description": "AWS Metrics Collection resource type tag filter.\nEach filter targets either a specific AWS service's resource types (`service` and\n`resource_types`) or custom metrics (`custom`). These two modes are mutually exclusive.\nThe `expression` defines a tag filter that Datadog uses when collecting metrics from the\nresource types of a specified service. Wildcards, such as `?` (match a single character)\nand `*` (match multiple characters), and exclusion using `!` before the tag are supported.\nFor example, `env:production AND instance-type:c?.* AND !region:us-east-1`.",
+        "properties": {
+          "custom": {
+            "description": "Whether the tag filter applies to custom metrics. When `true`, `service` and `resource_types` must be omitted.",
+            "example": false,
+            "type": "boolean"
+          },
+          "expression": {
+            "description": "The tag filter expression to apply when collecting metrics for the matching resource types.",
+            "example": "env:production",
+            "type": "string"
+          },
+          "resource_types": {
+            "description": "The AWS resource types of the service to which the tag filter applies. Required when `service` is set. Use `*` as the only entry to match all resource types of the service; `*` cannot be combined with specific resource types.",
+            "items": {
+              "description": "An AWS resource type of the service.",
+              "example": "instance",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "service": {
+            "description": "The AWS service for which the tag filter defined in `expression` will be applied. Required unless `custom` is `true`, and must be set together with `resource_types`.",
+            "example": "ec2",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expression"
         ],
         "type": "object"
       },
@@ -30227,7 +30319,7 @@
         "type": "object"
       },
       "ContainerAttributes": {
-        "description": "Attributes for a container.",
+        "description": "Attributes for a container. For CPU or memory metrics, use its full `container_id` as\n`container_id:<container_id>` in `tag_filters` with the `container` data source.",
         "properties": {
           "container_id": {
             "description": "The ID of the container.",
@@ -30317,7 +30409,7 @@
         "description": "Attributes for a container group.",
         "properties": {
           "count": {
-            "description": "Number of containers in the group.",
+            "description": "Number of containers in the group. A container with multiple values for a grouping tag can appear in multiple groups. Summing group counts can overcount distinct containers.",
             "format": "int64",
             "type": "integer"
           },
@@ -30338,7 +30430,7 @@
         "type": "object"
       },
       "ContainerGroupRelationshipsData": {
-        "description": "Links data.",
+        "description": "This array is always empty, even when the group includes containers. To retrieve the containers\nin this group, make a new request to this endpoint with the `filter[tags]` value from\n`links.related`, using your site's API host.",
         "items": {
           "description": "A link data.",
           "type": "string"
@@ -30817,14 +30909,14 @@
             "type": "string"
           },
           "limit": {
-            "description": "Number of results returned",
+            "description": "Maximum number of results requested.",
             "format": "int32",
             "maximum": 10000,
             "minimum": 0,
             "type": "integer"
           },
           "next_cursor": {
-            "description": "The cursor used to get the next results, if any.",
+            "description": "The cursor used to get the next results, if any. To make the next request, use the same\nparameters with the addition of the `page[cursor]`. Empty for grouped results.",
             "type": "string"
           },
           "prev_cursor": {
@@ -30833,7 +30925,7 @@
             "type": "string"
           },
           "total": {
-            "description": "Total number of records that match the query.",
+            "description": "Total number of containers that match the query. Always `0` for grouped results.",
             "format": "int64",
             "type": "integer"
           },
@@ -30978,7 +31070,7 @@
         "description": "List of containers.",
         "properties": {
           "data": {
-            "description": "Array of Container objects.",
+            "description": "Array of containers or container group objects.",
             "items": {
               "$ref": "#/components/schemas/ContainerItem"
             },
@@ -43789,6 +43881,11 @@
             "example": "service:xyz host:abc",
             "type": "string"
           },
+          "recoverable_until": {
+            "description": "Time when the recovery period for the deletion request ends. Before this time, you can cancel the request and recover the data. After this time, permanent deletion begins, and the status changes to `deleting` within a few minutes. This field is returned only for `in_progress` requests when listing deletion requests, and is omitted if the value cannot be determined.",
+            "example": "2024-01-11T02:00:00.000000Z",
+            "type": "string"
+          },
           "source": {
             "description": "The source of the deletion request.",
             "example": "standard",
@@ -43842,6 +43939,12 @@
       "DataDeletionResponseMeta": {
         "description": "The metadata of the data deletion response.",
         "properties": {
+          "available_slots": {
+            "description": "Number of additional deletion requests the current organization can create before reaching the concurrency limit. Requests with a `pending`, `in_progress`, or `deleting` status count toward the limit. This field is returned only when listing deletion requests, and is omitted if the value cannot be determined.",
+            "example": 3,
+            "format": "int64",
+            "type": "integer"
+          },
           "count_product": {
             "additionalProperties": {
               "format": "int64",
@@ -43864,6 +43967,12 @@
               "pending": 5
             },
             "type": "object"
+          },
+          "max_concurrent_requests": {
+            "description": "Maximum number of deletion requests with a `pending`, `in_progress`, or `deleting` status that the current organization can have at the same time. This field is returned only when listing deletion requests, and is omitted if the value cannot be determined.",
+            "example": 5,
+            "format": "int64",
+            "type": "integer"
           },
           "next_page": {
             "description": "The next page when searching deletion requests created in the current organization.",
@@ -54935,7 +55044,7 @@
             "type": "string"
           },
           "resolve_page_on_policy_end": {
-            "description": "Indicates whether the page is automatically resolved when the policy ends.",
+            "description": "Indicates whether the Page is automatically resolved when the policy ends.",
             "type": "boolean"
           },
           "retries": {
@@ -55045,7 +55154,7 @@
             "type": "string"
           },
           "resolve_page_on_policy_end": {
-            "description": "Indicates whether the page is automatically resolved when the policy ends.",
+            "description": "Indicates whether the Page is automatically resolved when the policy ends.",
             "type": "boolean"
           },
           "retries": {
@@ -55390,7 +55499,7 @@
             "type": "string"
           },
           "resolve_page_on_policy_end": {
-            "description": "Indicates whether the page is automatically resolved when the policy ends.",
+            "description": "Indicates whether the Page is automatically resolved when the policy ends.",
             "type": "boolean"
           },
           "retries": {
@@ -56717,14 +56826,16 @@
         "enum": [
           "INTEGRATION_KUBERNETES",
           "INTEGRATION_SCRIPT",
-          "INTEGRATION_REMOTE_ACTION"
+          "INTEGRATION_REMOTE_ACTION",
+          "INTEGRATION_SLACK"
         ],
         "example": "INTEGRATION_SCRIPT",
         "type": "string",
         "x-enum-varnames": [
           "INTEGRATION_KUBERNETES",
           "INTEGRATION_SCRIPT",
-          "INTEGRATION_REMOTE_ACTION"
+          "INTEGRATION_REMOTE_ACTION",
+          "INTEGRATION_SLACK"
         ]
       },
       "ExecutionPolicyKubernetesScope": {
@@ -56898,7 +57009,7 @@
         "type": "object"
       },
       "ExecutionPolicyScope": {
-        "description": "Restricts where the policy applies. At most one of `kubernetes`, `scripts`,\nor `remote_action_rshell` can be set. An empty object means the policy has\nno scope restriction.",
+        "description": "Restricts where the policy applies. At most one scope type can be set,\nand it must match the action pattern's integration. An empty object means\nthe policy has no scope restriction.",
         "properties": {
           "kubernetes": {
             "$ref": "#/components/schemas/ExecutionPolicyKubernetesScope"
@@ -56908,6 +57019,9 @@
           },
           "scripts": {
             "$ref": "#/components/schemas/ExecutionPolicyScriptScope"
+          },
+          "slack": {
+            "$ref": "#/components/schemas/ExecutionPolicySlackScope"
           }
         },
         "type": "object"
@@ -56947,11 +57061,52 @@
         ],
         "type": "object"
       },
+      "ExecutionPolicySlackScope": {
+        "description": "Restricts the policy to specific Slack private channel names.",
+        "properties": {
+          "rules": {
+            "description": "The Slack scope rules.",
+            "items": {
+              "$ref": "#/components/schemas/ExecutionPolicySlackScopeRule"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "rules"
+        ],
+        "type": "object"
+      },
+      "ExecutionPolicySlackScopeRule": {
+        "description": "A rule restricting a Slack scope to specific private channel names.",
+        "properties": {
+          "channel_name_selectors": {
+            "description": "The private channel name selectors this rule applies to. Selectors are lowercase private channel names\nwithout the leading `#`, and can contain `*` wildcards. Use `*` alone to match any private channel name.",
+            "example": [
+              "incident-*"
+            ],
+            "items": {
+              "maxLength": 80,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "channel_name_selectors"
+        ],
+        "type": "object"
+      },
       "ExecutionPolicyTarget": {
-        "description": "A target this policy is scoped to, expressed as a set of Agent tags.",
+        "description": "A target this policy is scoped to, expressed as a set of tags.",
         "properties": {
           "agent_tags": {
-            "description": "The Agent tags identifying the target.",
+            "description": "The tags identifying the target.",
             "example": [
               "env:prod"
             ],
@@ -73735,7 +73890,7 @@
             "type": "array"
           },
           "is_cspm_enabled": {
-            "description": "When enabled, Datadog will activate the Cloud Security Monitoring product for this service account. Note: This requires resource_collection_enabled to be set to true.",
+            "description": "When enabled, Datadog will activate the Cloud Security Monitoring product for this service account. Note: This requires resource_collection_enabled or is_org_folder_resource_collection_enabled to be set to true.",
             "type": "boolean"
           },
           "is_global_location_enabled": {
@@ -108165,197 +108320,6 @@
         },
         "type": "object"
       },
-      "MetricBulkConfigureTagsType": {
-        "default": "metric_bulk_configure_tags",
-        "description": "The metric bulk configure tags resource.",
-        "enum": [
-          "metric_bulk_configure_tags"
-        ],
-        "example": "metric_bulk_configure_tags",
-        "type": "string",
-        "x-enum-varnames": [
-          "BULK_MANAGE_TAGS"
-        ]
-      },
-      "MetricBulkTagConfigCreate": {
-        "description": "Request object to bulk configure tags for metrics matching the given prefix.",
-        "properties": {
-          "attributes": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigCreateAttributes"
-          },
-          "id": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigNamePrefix"
-          },
-          "type": {
-            "$ref": "#/components/schemas/MetricBulkConfigureTagsType"
-          }
-        },
-        "required": [
-          "id",
-          "type"
-        ],
-        "type": "object"
-      },
-      "MetricBulkTagConfigCreateAttributes": {
-        "description": "Optional parameters for bulk creating metric tag configurations.",
-        "properties": {
-          "emails": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigEmailList"
-          },
-          "exclude_tags_mode": {
-            "description": "When set to true, the configuration will exclude the configured tags and include any other submitted tags.\nWhen set to false, the configuration will include the configured tags and exclude any other submitted tags.\nDefaults to false.",
-            "type": "boolean"
-          },
-          "include_actively_queried_tags_window": {
-            "description": "When provided, all tags that have been actively queried are\nconfigured (and, therefore, remain queryable) for each metric that\nmatches the given prefix.  Minimum value is 1 second, and maximum\nvalue is 7,776,000 seconds (90 days).",
-            "format": "double",
-            "maximum": 7776000,
-            "minimum": 1,
-            "type": "number"
-          },
-          "override_existing_configurations": {
-            "description": "When set to true, the configuration overrides any existing\nconfigurations for the given metric with the new set of tags in this\nconfiguration request. If false, old configurations are kept and\nare merged with the set of tags in this configuration request.\nDefaults to true.",
-            "type": "boolean"
-          },
-          "tags": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigTagNameList"
-          }
-        },
-        "type": "object"
-      },
-      "MetricBulkTagConfigCreateRequest": {
-        "description": "Wrapper object for a single bulk tag configuration request.",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigCreate"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
-      },
-      "MetricBulkTagConfigDelete": {
-        "description": "Request object to bulk delete all tag configurations for metrics matching the given prefix.",
-        "properties": {
-          "attributes": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigDeleteAttributes"
-          },
-          "id": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigNamePrefix"
-          },
-          "type": {
-            "$ref": "#/components/schemas/MetricBulkConfigureTagsType"
-          }
-        },
-        "required": [
-          "id",
-          "type"
-        ],
-        "type": "object"
-      },
-      "MetricBulkTagConfigDeleteAttributes": {
-        "description": "Optional parameters for bulk deleting metric tag configurations.",
-        "properties": {
-          "emails": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigEmailList"
-          }
-        },
-        "type": "object"
-      },
-      "MetricBulkTagConfigDeleteRequest": {
-        "description": "Wrapper object for a single bulk tag deletion request.",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigDelete"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
-      },
-      "MetricBulkTagConfigEmailList": {
-        "description": "A list of account emails to notify when the configuration is applied.",
-        "example": [
-          "sue@example.com",
-          "bob@example.com"
-        ],
-        "items": {
-          "description": "An email address.",
-          "type": "string"
-        },
-        "type": "array"
-      },
-      "MetricBulkTagConfigNamePrefix": {
-        "description": "A text prefix to match against metric names.",
-        "example": "kafka.lag",
-        "type": "string"
-      },
-      "MetricBulkTagConfigResponse": {
-        "description": "Wrapper for a single bulk tag configuration status response.",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigStatus"
-          }
-        },
-        "type": "object"
-      },
-      "MetricBulkTagConfigStatus": {
-        "description": "The status of a request to bulk configure metric tags.\nIt contains the fields from the original request for reference.",
-        "properties": {
-          "attributes": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigStatusAttributes"
-          },
-          "id": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigNamePrefix"
-          },
-          "type": {
-            "$ref": "#/components/schemas/MetricBulkConfigureTagsType"
-          }
-        },
-        "required": [
-          "id",
-          "type"
-        ],
-        "type": "object"
-      },
-      "MetricBulkTagConfigStatusAttributes": {
-        "description": "Optional attributes for the status of a bulk tag configuration request.",
-        "properties": {
-          "emails": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigEmailList"
-          },
-          "exclude_tags_mode": {
-            "description": "When set to true, the configuration will exclude the configured tags and include any other submitted tags.\nWhen set to false, the configuration will include the configured tags and exclude any other submitted tags.",
-            "type": "boolean"
-          },
-          "status": {
-            "description": "The status of the request.",
-            "example": "Accepted",
-            "type": "string"
-          },
-          "tags": {
-            "$ref": "#/components/schemas/MetricBulkTagConfigTagNameList"
-          }
-        },
-        "type": "object"
-      },
-      "MetricBulkTagConfigTagNameList": {
-        "description": "A list of tag names to apply to the configuration.",
-        "example": [
-          "host",
-          "pod_name",
-          "is_shadow"
-        ],
-        "items": {
-          "description": "A metric tag name.",
-          "maxLength": 200,
-          "pattern": "^[A-Za-z][A-Za-z0-9\\.\\-\\_:\\/]*$",
-          "type": "string"
-        },
-        "type": "array"
-      },
       "MetricContentEncoding": {
         "default": "deflate",
         "description": "HTTP header used to compress the media-type.",
@@ -113500,7 +113464,7 @@
       },
       "NotificationChannelType": {
         "default": "notification_channels",
-        "description": "Indicates that the resource is of type 'notification_channels'.",
+        "description": "Indicates that the resource is of type `notification_channels`.",
         "enum": [
           "notification_channels"
         ],
@@ -124803,7 +124767,7 @@
       },
       "OnCallNotificationRuleType": {
         "default": "notification_rules",
-        "description": "Indicates that the resource is of type 'notification_rules'.",
+        "description": "Indicates that the resource is of type `notification_rules`.",
         "enum": [
           "notification_rules"
         ],
@@ -124821,6 +124785,734 @@
           }
         ]
       },
+      "OnCallPageAuthorRelationship": {
+        "description": "Reference to the entity that performed an action on the Page.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OnCallPageAuthorRelationshipData"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageAuthorRelationshipData": {
+        "description": "Reference to the author of a Page action.",
+        "nullable": true,
+        "properties": {
+          "id": {
+            "description": "The ID of the author.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "type": "string"
+          },
+          "type": {
+            "description": "The resource type of the author, for example `users`, `monitors`,\n`incident_authors`, or `security_signal`.",
+            "example": "users",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OnCallPageData": {
+        "description": "An On-Call Page.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/OnCallPageDataAttributes"
+          },
+          "id": {
+            "description": "The unique ID of the Page.",
+            "example": "15e74b8b-f865-48d0-bcc5-453323ed2c8f",
+            "format": "uuid",
+            "type": "string"
+          },
+          "relationships": {
+            "$ref": "#/components/schemas/OnCallPageDataRelationships"
+          },
+          "type": {
+            "$ref": "#/components/schemas/OnCallPageDataType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OnCallPageDataAttributes": {
+        "description": "The attributes of an On-Call Page.",
+        "properties": {
+          "acknowledged_at": {
+            "description": "The time when the Page was first acknowledged.",
+            "example": "2026-01-01T10:05:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "closed_at": {
+            "description": "The time when the Page was resolved.",
+            "example": "2026-01-01T10:30:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "comment_count": {
+            "description": "The number of comments on the Page.",
+            "example": 2,
+            "format": "int64",
+            "type": "integer"
+          },
+          "created_at": {
+            "description": "The time when the Page was created.",
+            "example": "2026-01-01T10:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "description": {
+            "description": "A short summary of the issue or context.",
+            "example": "Page details.",
+            "type": "string"
+          },
+          "escalation_policy_uuid": {
+            "description": "The ID of the escalation policy used to route the Page.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "key": {
+            "description": "An alternative numeric identifier of the Page, as displayed in the Datadog UI.",
+            "example": "25137717",
+            "type": "string"
+          },
+          "live_call": {
+            "$ref": "#/components/schemas/OnCallPageLiveCall"
+          },
+          "modified_at": {
+            "description": "The time when the Page was last modified.",
+            "example": "2026-01-01T10:30:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "release_at": {
+            "description": "The time when the snooze ends. Only set while the Page is snoozed, together with `release_origin`.",
+            "example": "2026-01-01T11:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "release_origin": {
+            "$ref": "#/components/schemas/OnCallPageReleaseOrigin"
+          },
+          "responders_added_at": {
+            "description": "The time when responders were first added to the Page.",
+            "example": "2026-01-01T10:01:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "services": {
+            "description": "The services associated with the Page.",
+            "example": [
+              "service-a"
+            ],
+            "items": {
+              "description": "A service name.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OnCallPageStatus"
+          },
+          "tags": {
+            "description": "Tags associated with the Page.",
+            "example": [
+              "service:test"
+            ],
+            "items": {
+              "description": "A tag.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": {
+            "description": "The title of the Page.",
+            "example": "Service: Test is down",
+            "type": "string"
+          },
+          "urgency": {
+            "$ref": "#/components/schemas/PageUrgency"
+          }
+        },
+        "required": [
+          "title",
+          "key",
+          "status",
+          "description",
+          "tags",
+          "urgency",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "OnCallPageDataRelationships": {
+        "description": "The relationships of an On-Call Page.",
+        "properties": {
+          "author": {
+            "$ref": "#/components/schemas/OnCallPageAuthorRelationship"
+          },
+          "closed_by": {
+            "$ref": "#/components/schemas/OnCallPageAuthorRelationship"
+          },
+          "jira_issue": {
+            "$ref": "#/components/schemas/OnCallPageJiraIssueRelationship"
+          },
+          "links": {
+            "$ref": "#/components/schemas/OnCallPageLinksRelationship"
+          },
+          "responders": {
+            "$ref": "#/components/schemas/OnCallPageRespondersRelationship"
+          },
+          "scheduled_action": {
+            "$ref": "#/components/schemas/OnCallPageScheduledActionRelationship"
+          },
+          "service_now_incident": {
+            "$ref": "#/components/schemas/OnCallPageServiceNowIncidentRelationship"
+          },
+          "target": {
+            "$ref": "#/components/schemas/OnCallPageTargetRelationship"
+          },
+          "team_routing_rule": {
+            "$ref": "#/components/schemas/OnCallPageTeamRoutingRuleRelationship"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageDataType": {
+        "default": "pages",
+        "description": "Indicates that the resource is of type `pages`.",
+        "enum": [
+          "pages"
+        ],
+        "example": "pages",
+        "type": "string",
+        "x-enum-varnames": [
+          "PAGES"
+        ]
+      },
+      "OnCallPageJiraIssueRelationship": {
+        "description": "The Jira issue linked to the Page.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OnCallPageJiraIssueRelationshipData"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageJiraIssueRelationshipData": {
+        "description": "Reference to a Jira issue.",
+        "properties": {
+          "id": {
+            "description": "The ID of the Jira issue, in the form `<account_id>:<issue_id>`.",
+            "example": "123456:10001",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/OnCallPageJiraIssueType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OnCallPageJiraIssueType": {
+        "default": "jira_issues",
+        "description": "Jira issue resource type.",
+        "enum": [
+          "jira_issues"
+        ],
+        "example": "jira_issues",
+        "type": "string",
+        "x-enum-varnames": [
+          "JIRA_ISSUES"
+        ]
+      },
+      "OnCallPageLink": {
+        "description": "A link between a Page and another Datadog resource, such as an incident.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/OnCallPageLinkAttributes"
+          },
+          "id": {
+            "description": "The ID of the link.",
+            "example": "00000000-0000-0000-0000-000000000003",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/OnCallPageLinkType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OnCallPageLinkAttributes": {
+        "description": "The attributes of a Page link. A Page can be the child of another Datadog resource\n(for example, when an incident triggers it), or the parent of one (for example, when the\nPage is escalated to an incident).",
+        "properties": {
+          "child_entity_id": {
+            "description": "The ID of the child resource.",
+            "example": "15e74b8b-f865-48d0-bcc5-453323ed2c8f",
+            "type": "string"
+          },
+          "child_entity_type": {
+            "$ref": "#/components/schemas/OnCallPageLinkEntityType"
+          },
+          "parent_entity_id": {
+            "description": "The ID of the parent resource.",
+            "example": "00000000-0000-0000-0000-000000000002",
+            "type": "string"
+          },
+          "parent_entity_type": {
+            "$ref": "#/components/schemas/OnCallPageLinkEntityType"
+          },
+          "relationship": {
+            "$ref": "#/components/schemas/OnCallPageLinkRelationshipType"
+          }
+        },
+        "required": [
+          "child_entity_id",
+          "child_entity_type",
+          "parent_entity_id",
+          "parent_entity_type",
+          "relationship"
+        ],
+        "type": "object"
+      },
+      "OnCallPageLinkEntityType": {
+        "description": "The type of a resource linked to a Page.",
+        "enum": [
+          "case",
+          "incident",
+          "page",
+          "agent_conversation"
+        ],
+        "example": "page",
+        "type": "string",
+        "x-enum-varnames": [
+          "CASE",
+          "INCIDENT",
+          "PAGE",
+          "AGENT_CONVERSATION"
+        ]
+      },
+      "OnCallPageLinkRelationshipData": {
+        "description": "Reference to a Page link.",
+        "properties": {
+          "id": {
+            "description": "The ID of the link.",
+            "example": "00000000-0000-0000-0000-000000000003",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/OnCallPageLinkType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OnCallPageLinkRelationshipType": {
+        "description": "How the parent resource relates to the child resource.",
+        "enum": [
+          "relates_to",
+          "causes",
+          "blocks",
+          "duplicates",
+          "parent_of",
+          "successor_of",
+          "escalates_to",
+          "pages"
+        ],
+        "example": "pages",
+        "type": "string",
+        "x-enum-varnames": [
+          "RELATES_TO",
+          "CAUSES",
+          "BLOCKS",
+          "DUPLICATES",
+          "PARENT_OF",
+          "SUCCESSOR_OF",
+          "ESCALATES_TO",
+          "PAGES"
+        ]
+      },
+      "OnCallPageLinkType": {
+        "default": "links",
+        "description": "Page link resource type.",
+        "enum": [
+          "links"
+        ],
+        "example": "links",
+        "type": "string",
+        "x-enum-varnames": [
+          "LINKS"
+        ]
+      },
+      "OnCallPageLinksRelationship": {
+        "description": "Links between the Page and other Datadog resources, such as incidents. Always empty when listing Pages.",
+        "properties": {
+          "data": {
+            "description": "The list of Page links.",
+            "items": {
+              "$ref": "#/components/schemas/OnCallPageLinkRelationshipData"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageLiveCall": {
+        "description": "Live call information for a Page triggered by a live call route.",
+        "properties": {
+          "call_over": {
+            "$ref": "#/components/schemas/OnCallPageLiveCallOver"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageLiveCallOutcome": {
+        "description": "The outcome of a live call that has ended.",
+        "enum": [
+          "success_call_answered",
+          "failure_no_responder",
+          "failure_caller_abandoned",
+          "failure_outside_support_hours",
+          "failure_internal_error"
+        ],
+        "example": "success_call_answered",
+        "type": "string",
+        "x-enum-varnames": [
+          "SUCCESS_CALL_ANSWERED",
+          "FAILURE_NO_RESPONDER",
+          "FAILURE_CALLER_ABANDONED",
+          "FAILURE_OUTSIDE_SUPPORT_HOURS",
+          "FAILURE_INTERNAL_ERROR"
+        ]
+      },
+      "OnCallPageLiveCallOver": {
+        "description": "Information about a live call that has ended.",
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/OnCallPageLiveCallOutcome"
+          },
+          "support_hours_start_at": {
+            "description": "When support hours start, if the call was placed outside support hours.",
+            "example": "2026-01-01T09:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageReleaseOrigin": {
+        "description": "What snoozed the Page. Only set while the Page is snoozed, together with `release_at`.\n`ack_timeout`: the acknowledgment timeout. `team_rules_active_hours`: the Page was\ntriggered outside of the active hours of the team's routing rules. `manual_snooze`:\na user snoozed the Page.",
+        "enum": [
+          "ack_timeout",
+          "team_rules_active_hours",
+          "manual_snooze"
+        ],
+        "example": "manual_snooze",
+        "type": "string",
+        "x-enum-varnames": [
+          "ACK_TIMEOUT",
+          "TEAM_RULES_ACTIVE_HOURS",
+          "MANUAL_SNOOZE"
+        ]
+      },
+      "OnCallPageRespondersRelationship": {
+        "description": "The users responding to the Page.",
+        "properties": {
+          "data": {
+            "description": "The list of responders.",
+            "items": {
+              "$ref": "#/components/schemas/OnCallPageUserRelationshipData"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageResponse": {
+        "description": "A single On-Call Page with its related included resources.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OnCallPageData"
+          },
+          "included": {
+            "description": "Resources related to the Page, such as users, teams, scheduled actions, and links.",
+            "items": {
+              "$ref": "#/components/schemas/OnCallPagesIncluded"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "OnCallPageScheduledAction": {
+        "description": "The next action scheduled on a Page, such as an escalation or an automatic resolution.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/OnCallPageScheduledActionAttributes"
+          },
+          "id": {
+            "description": "The ID of the scheduled action. Equal to the Page ID.",
+            "example": "15e74b8b-f865-48d0-bcc5-453323ed2c8f",
+            "type": "string"
+          },
+          "relationships": {
+            "$ref": "#/components/schemas/OnCallPageScheduledActionRelationships"
+          },
+          "type": {
+            "$ref": "#/components/schemas/OnCallPageScheduledActionType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OnCallPageScheduledActionAttributes": {
+        "description": "The attributes of a scheduled action.",
+        "properties": {
+          "at": {
+            "description": "The time when the action is scheduled to run.",
+            "example": "2026-01-01T10:15:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/OnCallPageScheduledActionAttributesType"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageScheduledActionAttributesType": {
+        "description": "The kind of action that is scheduled.",
+        "enum": [
+          "escalate",
+          "resolve",
+          "release",
+          "retrigger"
+        ],
+        "example": "escalate",
+        "type": "string",
+        "x-enum-varnames": [
+          "ESCALATE",
+          "RESOLVE",
+          "RELEASE",
+          "RETRIGGER"
+        ]
+      },
+      "OnCallPageScheduledActionRelationship": {
+        "description": "The next action scheduled on the Page, such as an escalation.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OnCallPageScheduledActionRelationshipData"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageScheduledActionRelationshipData": {
+        "description": "Reference to the next scheduled action on the Page.",
+        "nullable": true,
+        "properties": {
+          "id": {
+            "description": "The ID of the scheduled action. Equal to the Page ID.",
+            "example": "15e74b8b-f865-48d0-bcc5-453323ed2c8f",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/OnCallPageScheduledActionType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OnCallPageScheduledActionRelationships": {
+        "description": "The relationships of a scheduled action.",
+        "properties": {
+          "schedules": {
+            "$ref": "#/components/schemas/OnCallPageScheduledActionRelationshipsSchedules"
+          },
+          "users": {
+            "$ref": "#/components/schemas/OnCallPageScheduledActionRelationshipsUsers"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageScheduledActionRelationshipsSchedules": {
+        "description": "The schedules the action escalates to.",
+        "properties": {
+          "data": {
+            "description": "The list of schedules.",
+            "items": {
+              "$ref": "#/components/schemas/OnCallPageScheduledActionRelationshipsSchedulesData"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageScheduledActionRelationshipsSchedulesData": {
+        "description": "Reference to a schedule.",
+        "properties": {
+          "id": {
+            "description": "The schedule ID.",
+            "example": "3653d3c6-0c75-11ea-ad28-fb5701eabc7d",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ScheduleDataType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OnCallPageScheduledActionRelationshipsUsers": {
+        "description": "The users the action escalates to.",
+        "properties": {
+          "data": {
+            "description": "The list of users.",
+            "items": {
+              "$ref": "#/components/schemas/OnCallPageUserRelationshipData"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageScheduledActionType": {
+        "default": "scheduled_actions",
+        "description": "Scheduled action resource type.",
+        "enum": [
+          "scheduled_actions"
+        ],
+        "example": "scheduled_actions",
+        "type": "string",
+        "x-enum-varnames": [
+          "SCHEDULED_ACTIONS"
+        ]
+      },
+      "OnCallPageServiceNowIncidentRelationship": {
+        "description": "The ServiceNow incident linked to the Page.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OnCallPageServiceNowIncidentRelationshipData"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageServiceNowIncidentRelationshipData": {
+        "description": "Reference to a ServiceNow incident.",
+        "properties": {
+          "id": {
+            "description": "The ID of the ServiceNow incident.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/OnCallPageServiceNowIncidentType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OnCallPageServiceNowIncidentType": {
+        "default": "service_now_incidents",
+        "description": "ServiceNow incident resource type.",
+        "enum": [
+          "service_now_incidents"
+        ],
+        "example": "service_now_incidents",
+        "type": "string",
+        "x-enum-varnames": [
+          "SERVICE_NOW_INCIDENTS"
+        ]
+      },
+      "OnCallPageStatus": {
+        "description": "The current status of the On-Call Page.",
+        "enum": [
+          "triggered",
+          "acknowledged",
+          "resolved"
+        ],
+        "example": "triggered",
+        "type": "string",
+        "x-enum-varnames": [
+          "TRIGGERED",
+          "ACKNOWLEDGED",
+          "RESOLVED"
+        ]
+      },
+      "OnCallPageTargetRelationship": {
+        "description": "The team, user, or cross-organization handle that was paged.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OnCallPageTargetRelationshipData"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageTargetRelationshipData": {
+        "description": "Reference to the target of the Page.",
+        "nullable": true,
+        "properties": {
+          "id": {
+            "description": "The ID of the target.",
+            "example": "00000000-da3a-0000-0000-000000000000",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/OnCallPageTargetRelationshipDataType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OnCallPageTargetRelationshipDataType": {
+        "description": "The resource type of the Page target.",
+        "enum": [
+          "teams",
+          "users",
+          "cross_org_handles"
+        ],
+        "example": "teams",
+        "type": "string",
+        "x-enum-varnames": [
+          "TEAMS",
+          "USERS",
+          "CROSS_ORG_HANDLES"
+        ]
+      },
       "OnCallPageTargetType": {
         "description": "The kind of target, `team_id` | `team_handle` | `user_id`.",
         "enum": [
@@ -124834,6 +125526,119 @@
           "TEAM_ID",
           "TEAM_HANDLE",
           "USER_ID"
+        ]
+      },
+      "OnCallPageTeamRoutingRuleRelationship": {
+        "description": "The team routing rule that matched the Page.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OnCallPageTeamRoutingRuleRelationshipData"
+          }
+        },
+        "type": "object"
+      },
+      "OnCallPageTeamRoutingRuleRelationshipData": {
+        "description": "Reference to a team routing rule.",
+        "properties": {
+          "id": {
+            "description": "The ID of the team routing rule.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TeamRoutingRulesDataRelationshipsRulesDataItemsType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OnCallPageUserRelationshipData": {
+        "description": "Reference to a user.",
+        "properties": {
+          "id": {
+            "description": "The user ID.",
+            "example": "00000000-0000-0000-0000-000000000000",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ScheduleUserType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OnCallPagesIncluded": {
+        "description": "A resource related to a Page.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ScheduleUser"
+          },
+          {
+            "$ref": "#/components/schemas/TeamReference"
+          },
+          {
+            "$ref": "#/components/schemas/OnCallPageScheduledAction"
+          },
+          {
+            "$ref": "#/components/schemas/OnCallPageLink"
+          }
+        ]
+      },
+      "OnCallPagesResponse": {
+        "description": "A list of On-Call Pages with pagination metadata and related included resources.",
+        "properties": {
+          "data": {
+            "description": "A list of Pages.",
+            "items": {
+              "$ref": "#/components/schemas/OnCallPageData"
+            },
+            "type": "array"
+          },
+          "included": {
+            "description": "Resources related to the Pages, such as users, teams, and scheduled actions.",
+            "items": {
+              "$ref": "#/components/schemas/OnCallPagesIncluded"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/SchedulesResponseMeta"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "OnCallPagesSort": {
+        "default": "created_at",
+        "description": "Sorting options for Pages. Prefix a field with `-` to sort in descending order.",
+        "enum": [
+          "created_at",
+          "-created_at",
+          "modified_at",
+          "-modified_at",
+          "status",
+          "-status",
+          "priority",
+          "-priority"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "CREATED_AT_ASCENDING",
+          "CREATED_AT_DESCENDING",
+          "MODIFIED_AT_ASCENDING",
+          "MODIFIED_AT_DESCENDING",
+          "STATUS_ASCENDING",
+          "STATUS_DESCENDING",
+          "PRIORITY_ASCENDING",
+          "PRIORITY_DESCENDING"
         ]
       },
       "OnCallPhoneNotificationRuleMethod": {
@@ -128546,7 +129351,7 @@
       },
       "OverrideDataType": {
         "default": "overrides",
-        "description": "Indicates that the resource is of type 'overrides'.",
+        "description": "Indicates that the resource is of type `overrides`.",
         "enum": [
           "overrides"
         ],
@@ -128611,7 +129416,7 @@
       },
       "OverrideRelationshipsScheduleDataType": {
         "default": "schedules",
-        "description": "Indicates that the related resource is of type 'schedules'.",
+        "description": "Indicates that the related resource is of type `schedules`.",
         "enum": [
           "schedules"
         ],
@@ -128654,7 +129459,7 @@
       },
       "OverrideRelationshipsUserDataType": {
         "default": "users",
-        "description": "Indicates that the related resource is of type 'users'.",
+        "description": "Indicates that the related resource is of type `users`.",
         "enum": [
           "users"
         ],
@@ -140799,7 +141604,7 @@
             "type": "array"
           },
           "view": {
-            "description": "Active view name (for example, `active`, `dismissed`, `open`, `in-progress`, or `completed`).",
+            "description": "Status view to return: `all`, `active` (not dismissed), `dismissed`, `open`, `in-progress`,\nor `completed`. Defaults to `all`, which returns recommendations in every status.",
             "type": "string"
           }
         },
@@ -140818,7 +141623,7 @@
         ]
       },
       "RecommendationsFilterRequestScope": {
-        "description": "Recommendations scope. Defaults to `ccm`; use `experiment` for experimental recommendations or `*` for both.",
+        "description": "Recommendations scope. Defaults to `ccm`; use `experiment` for experimental recommendations\nor `*` for both.",
         "enum": [
           "ccm",
           "experiment",
@@ -140866,9 +141671,9 @@
             "type": "string"
           },
           "page_size": {
-            "description": "Number of items returned in this page (1–10000).",
+            "description": "Number of items returned in this page (1–5000).",
             "format": "int32",
-            "maximum": 10000,
+            "maximum": 5000,
             "minimum": 1,
             "type": "integer"
           },
@@ -143175,6 +143980,75 @@
           "SCHEDULE"
         ]
       },
+      "RerouteOnCallPageRequest": {
+        "description": "Full request to reroute an On-Call Page to a different team or user.",
+        "example": {
+          "data": {
+            "attributes": {
+              "comment": "Rerouting to the database team.",
+              "target": {
+                "identifier": "my-team",
+                "type": "team_handle"
+              }
+            },
+            "type": "reroute"
+          }
+        },
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RerouteOnCallPageRequestData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "RerouteOnCallPageRequestData": {
+        "description": "The data for rerouting an On-Call Page, including attributes and resource type.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/RerouteOnCallPageRequestDataAttributes"
+          },
+          "type": {
+            "$ref": "#/components/schemas/RerouteOnCallPageRequestDataType"
+          }
+        },
+        "required": [
+          "attributes",
+          "type"
+        ],
+        "type": "object"
+      },
+      "RerouteOnCallPageRequestDataAttributes": {
+        "description": "Details about where to reroute the On-Call Page.",
+        "properties": {
+          "comment": {
+            "description": "An optional comment explaining why the page is being rerouted.",
+            "example": "Rerouting to the database team.",
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/CreatePageRequestDataAttributesTarget"
+          }
+        },
+        "required": [
+          "target"
+        ],
+        "type": "object"
+      },
+      "RerouteOnCallPageRequestDataType": {
+        "default": "reroute",
+        "description": "The type of resource used when rerouting an On-Call Page.",
+        "enum": [
+          "reroute"
+        ],
+        "example": "reroute",
+        "type": "string",
+        "x-enum-varnames": [
+          "REROUTE"
+        ]
+      },
       "ResolveVulnerableSymbolsRequest": {
         "description": "The top-level request object for resolving vulnerable symbols in a set of packages.",
         "properties": {
@@ -144845,7 +145719,7 @@
         "description": "Triggers an escalation policy.",
         "properties": {
           "ack_timeout_minutes": {
-            "description": "The number of minutes before an acknowledged page is re-triggered.",
+            "description": "The number of minutes before an acknowledged Page is re-triggered.",
             "example": 30,
             "format": "int64",
             "type": "integer"
@@ -144943,7 +145817,7 @@
       },
       "RoutingRuleRelationshipsPolicyDataType": {
         "default": "policies",
-        "description": "Indicates that the resource is of type 'policies'.",
+        "description": "Indicates that the resource is of type `policies`.",
         "enum": [
           "policies"
         ],
@@ -144954,10 +145828,10 @@
         ]
       },
       "RoutingRuleRerouteToTeamAction": {
-        "description": "Reroutes the page to another team, which then evaluates it against its own routing rules. Each routing rule can include this action only once. It can be combined only with `send_slack_message` and `send_teams_message` actions. It can't be used with `escalation_policy` or `workflow` actions, or when the routing rule sets `policy_id`.",
+        "description": "Reroutes the Page to another team, which then evaluates it against its own routing rules. Each routing rule can include this action only once. It can be combined only with `send_slack_message` and `send_teams_message` actions. It can't be used with `escalation_policy` or `workflow` actions, or when the routing rule sets `policy_id`.",
         "properties": {
           "destination_team_id": {
-            "description": "The ID of the team to reroute the page to.",
+            "description": "The ID of the team to reroute the Page to.",
             "example": "00000000-0000-0000-0000-000000000000",
             "format": "uuid",
             "type": "string"
@@ -144974,7 +145848,7 @@
       },
       "RoutingRuleRerouteToTeamActionType": {
         "default": "reroute_to_team",
-        "description": "Indicates that the action reroutes the page to another team's routing rules.",
+        "description": "Indicates that the action reroutes the Page to another team's routing rules.",
         "enum": [
           "reroute_to_team"
         ],
@@ -152632,7 +153506,7 @@
         "type": "object"
       },
       "SchedulesResponseMeta": {
-        "description": "Metadata that is included in the response when listing schedules.",
+        "description": "Metadata that is included in the response when listing On-Call resources.",
         "properties": {
           "page": {
             "$ref": "#/components/schemas/SchedulesResponseMetaPage"
@@ -152641,7 +153515,7 @@
         "type": "object"
       },
       "SchedulesResponseMetaPage": {
-        "description": "Metadata related to paging information that is included in the response when listing schedules.",
+        "description": "Metadata related to pagination information that is included in the response when listing On-Call resources.",
         "properties": {
           "first_number": {
             "description": "First page number.",
@@ -159151,6 +160025,210 @@
         },
         "type": "object"
       },
+      "SecurityMonitoringRuleProposalError": {
+        "description": "The reason no rule could be generated. Only present when the status is `failed`.",
+        "properties": {
+          "kind": {
+            "description": "The kind of failure.\n- `translation_error`: no rule could be generated from the input. Reword the input\n  or add details, then start a new rule proposal.\n- `internal_error`: the proposal failed because of an internal error. Start a new\n  rule proposal to try again.",
+            "example": "translation_error",
+            "type": "string"
+          },
+          "message": {
+            "description": "A human-readable explanation of why no rule could be generated, when available.",
+            "example": "No log source matches the described activity.",
+            "type": "string"
+          },
+          "type": {
+            "description": "The type of failure within its kind, such as `NoRuleProduced`.",
+            "example": "NoRuleProduced",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "type": "object"
+      },
+      "SecurityMonitoringRuleProposalInputType": {
+        "description": "The type of input to generate the proposed rule from: `natural_language` for a\nplain-English description of the behavior to detect, `spl` for a Splunk SPL search or\nsaved search definition, or `kql` for a Microsoft KQL query. SPL inputs must be\nself-contained, with search macros expanded.",
+        "enum": [
+          "natural_language",
+          "spl",
+          "kql"
+        ],
+        "example": "natural_language",
+        "type": "string",
+        "x-enum-varnames": [
+          "NATURAL_LANGUAGE",
+          "SPL",
+          "KQL"
+        ]
+      },
+      "SecurityMonitoringRuleProposalResponse": {
+        "description": "Response containing a rule proposal.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SecurityMonitoringRuleProposalResponseData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "SecurityMonitoringRuleProposalResponseAttributes": {
+        "description": "Attributes of the rule proposal.",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/SecurityMonitoringRuleProposalError"
+          },
+          "rule": {
+            "additionalProperties": {},
+            "description": "The proposed Cloud SIEM detection rule in the same format as the create a detection\nrule endpoint. It is not saved in Cloud SIEM. Only present when the status is\n`completed`. Review the rule, then create it with the [create a\ndetection rule](https://docs.datadoghq.com/api/latest/security-monitoring/#create-a-detection-rule)\nendpoint.",
+            "type": "object"
+          },
+          "status": {
+            "description": "The status of the rule proposal. `pending` and `in_progress` mean the proposed rule is\nstill being generated. Poll the endpoint again later. `completed` and `failed` are final:\n`completed` proposals contain the proposed rule in `rule`, and `failed` proposals\ncontain the reason in `error`.",
+            "example": "completed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "SecurityMonitoringRuleProposalResponseData": {
+        "description": "Data of the rule proposal.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/SecurityMonitoringRuleProposalResponseAttributes"
+          },
+          "id": {
+            "description": "The ID of the rule proposal.",
+            "example": "c968cf83-56c2-4d54-a993-6c86dfb83527",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SecurityMonitoringRuleProposalType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "SecurityMonitoringRuleProposalStartRequest": {
+        "description": "Request to start a rule proposal.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SecurityMonitoringRuleProposalStartRequestData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "SecurityMonitoringRuleProposalStartRequestAttributes": {
+        "description": "Attributes of the rule proposal to start.",
+        "properties": {
+          "input": {
+            "description": "The natural-language description or rule to generate the proposed rule from, in the\nformat given by `inputType`.",
+            "example": "Detect repeated failed Okta logins followed by a successful login from the same IP.",
+            "maxLength": 65536,
+            "type": "string"
+          },
+          "inputType": {
+            "$ref": "#/components/schemas/SecurityMonitoringRuleProposalInputType"
+          }
+        },
+        "required": [
+          "inputType",
+          "input"
+        ],
+        "type": "object"
+      },
+      "SecurityMonitoringRuleProposalStartRequestData": {
+        "description": "Data of the rule proposal to start.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/SecurityMonitoringRuleProposalStartRequestAttributes"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SecurityMonitoringRuleProposalType"
+          }
+        },
+        "required": [
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "SecurityMonitoringRuleProposalStartResponse": {
+        "description": "Response to a started rule proposal.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SecurityMonitoringRuleProposalStartResponseData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "SecurityMonitoringRuleProposalStartResponseAttributes": {
+        "description": "Attributes of the started rule proposal.",
+        "properties": {
+          "status": {
+            "description": "The status of the rule proposal, one of `pending`, `in_progress`, `completed`, or\n`failed`. For a newly started rule proposal, the status is `pending`.",
+            "example": "pending",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "SecurityMonitoringRuleProposalStartResponseData": {
+        "description": "Data of the started rule proposal.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/SecurityMonitoringRuleProposalStartResponseAttributes"
+          },
+          "id": {
+            "description": "The ID of the rule proposal. Use it as `proposal_id` to check the proposal status and get the proposed rule.",
+            "example": "c968cf83-56c2-4d54-a993-6c86dfb83527",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SecurityMonitoringRuleProposalType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "SecurityMonitoringRuleProposalType": {
+        "default": "rule_proposals",
+        "description": "The rule proposal resource type. The value is always `rule_proposals`.",
+        "enum": [
+          "rule_proposals"
+        ],
+        "example": "rule_proposals",
+        "type": "string",
+        "x-enum-varnames": [
+          "RULE_PROPOSALS"
+        ]
+      },
       "SecurityMonitoringRuleQuery": {
         "description": "Query for matching rule.",
         "oneOf": [
@@ -162563,7 +163641,7 @@
             "$ref": "#/components/schemas/SensitiveDataScannerGroupResponse"
           },
           "meta": {
-            "$ref": "#/components/schemas/SensitiveDataScannerMetaVersionOnly"
+            "$ref": "#/components/schemas/SensitiveDataScannerMeta"
           }
         },
         "type": "object"
@@ -162575,7 +163653,7 @@
             "$ref": "#/components/schemas/SensitiveDataScannerRuleResponse"
           },
           "meta": {
-            "$ref": "#/components/schemas/SensitiveDataScannerMetaVersionOnly"
+            "$ref": "#/components/schemas/SensitiveDataScannerMeta"
           }
         },
         "type": "object"
@@ -162747,8 +163825,14 @@
       "SensitiveDataScannerGroupDeleteResponse": {
         "description": "Delete group response.",
         "properties": {
+          "data": {
+            "additionalProperties": {},
+            "description": "Always `null`.",
+            "nullable": true,
+            "type": "object"
+          },
           "meta": {
-            "$ref": "#/components/schemas/SensitiveDataScannerMetaVersionOnly"
+            "$ref": "#/components/schemas/SensitiveDataScannerMeta"
           }
         },
         "type": "object"
@@ -162879,8 +163963,14 @@
       "SensitiveDataScannerGroupUpdateResponse": {
         "description": "Update group response.",
         "properties": {
+          "data": {
+            "additionalProperties": {},
+            "description": "Always `null`.",
+            "nullable": true,
+            "type": "object"
+          },
           "meta": {
-            "$ref": "#/components/schemas/SensitiveDataScannerMetaVersionOnly"
+            "$ref": "#/components/schemas/SensitiveDataScannerMeta"
           }
         },
         "type": "object"
@@ -162922,41 +164012,7 @@
       },
       "SensitiveDataScannerMeta": {
         "additionalProperties": {},
-        "description": "Meta response containing information about the API.",
-        "properties": {
-          "count_limit": {
-            "description": "Maximum number of scanning rules allowed for the org.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "group_count_limit": {
-            "description": "Maximum number of scanning groups allowed for the org.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "has_highlight_enabled": {
-            "default": true,
-            "deprecated": true,
-            "description": "(Deprecated) Whether or not scanned events are highlighted in Logs or RUM for the org.",
-            "type": "boolean"
-          },
-          "has_multi_pass_enabled": {
-            "deprecated": true,
-            "description": "(Deprecated) Whether or not scanned events have multi-pass enabled.",
-            "type": "boolean"
-          },
-          "is_pci_compliant": {
-            "description": "Whether or not the org is compliant to the payment card industry standard.",
-            "type": "boolean"
-          },
-          "version": {
-            "description": "Version of the API.",
-            "example": 0,
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
-          }
-        },
+        "description": "Meta response. Always an empty object.",
         "type": "object"
       },
       "SensitiveDataScannerMetaVersionOnly": {
@@ -163159,8 +164215,14 @@
       "SensitiveDataScannerRuleDeleteResponse": {
         "description": "Delete rule response.",
         "properties": {
+          "data": {
+            "additionalProperties": {},
+            "description": "Always `null`.",
+            "nullable": true,
+            "type": "object"
+          },
           "meta": {
-            "$ref": "#/components/schemas/SensitiveDataScannerMetaVersionOnly"
+            "$ref": "#/components/schemas/SensitiveDataScannerMeta"
           }
         },
         "type": "object"
@@ -163265,8 +164327,14 @@
       "SensitiveDataScannerRuleUpdateResponse": {
         "description": "Update rule response.",
         "properties": {
+          "data": {
+            "additionalProperties": {},
+            "description": "Always `null`.",
+            "nullable": true,
+            "type": "object"
+          },
           "meta": {
-            "$ref": "#/components/schemas/SensitiveDataScannerMetaVersionOnly"
+            "$ref": "#/components/schemas/SensitiveDataScannerMeta"
           }
         },
         "type": "object"
@@ -166080,21 +167148,23 @@
       "ServiceRepositoryInfoRequestAttributes": {
         "description": "Attributes for the service repository info request.",
         "properties": {
+          "debug_id": {
+            "description": "The debug ID of a JavaScript source map, in UUID format. Alternative to `service` and `version`.",
+            "example": "00000000-0000-4000-8000-000000000001",
+            "format": "uuid",
+            "type": "string"
+          },
           "service": {
-            "description": "The name of the service.",
+            "description": "The name of the service. Required with `version` when `debug_id` is not set.",
             "example": "my-web-service",
             "type": "string"
           },
           "version": {
-            "description": "The version of the service.",
+            "description": "The version of the service. Required with `service` when `debug_id` is not set.",
             "example": "1.0.0",
             "type": "string"
           }
         },
-        "required": [
-          "service",
-          "version"
-        ],
         "type": "object"
       },
       "ServiceRepositoryInfoRequestData": {
@@ -166154,7 +167224,7 @@
             "$ref": "#/components/schemas/ServiceRepositoryInfoResponseAttributes"
           },
           "id": {
-            "description": "The identifier composed of the service name and version.",
+            "description": "The identifier composed of the service name and version, or the debug ID when the lookup was made by debug ID.",
             "example": "my-web-service:1.0.0",
             "type": "string"
           },
@@ -167429,7 +168499,7 @@
       },
       "ShiftDataRelationshipsUserDataType": {
         "default": "users",
-        "description": "Indicates that the related resource is of type 'users'.",
+        "description": "Indicates that the related resource is of type `users`.",
         "enum": [
           "users"
         ],
@@ -167441,7 +168511,7 @@
       },
       "ShiftDataType": {
         "default": "shifts",
-        "description": "Indicates that the resource is of type 'shifts'.",
+        "description": "Indicates that the resource is of type `shifts`.",
         "enum": [
           "shifts"
         ],
@@ -169758,6 +170828,19 @@
         "type": "string",
         "x-enum-varnames": [
           "DEBUG_ID"
+        ]
+      },
+      "SourcemapSymbolType": {
+        "description": "The WASM symbol representation.",
+        "enum": [
+          "dwarf",
+          "sourcemap"
+        ],
+        "example": "dwarf",
+        "type": "string",
+        "x-enum-varnames": [
+          "DWARF",
+          "SOURCEMAP"
         ]
       },
       "SourcemapsData": {
@@ -182329,7 +183412,7 @@
       },
       "TeamRoutingRulesDataRelationshipsRulesDataItemsType": {
         "default": "team_routing_rules",
-        "description": "Indicates that the resource is of type 'team_routing_rules'.",
+        "description": "Indicates that the resource is of type `team_routing_rules`.",
         "enum": [
           "team_routing_rules"
         ],
@@ -182437,7 +183520,7 @@
         "description": "Represents the attributes of a request to update or create team routing rules.",
         "properties": {
           "rules": {
-            "description": "A list of routing rule items that define how incoming pages should be handled.",
+            "description": "A list of routing rule items that define how incoming Pages should be handled.",
             "items": {
               "$ref": "#/components/schemas/TeamRoutingRulesRequestRule"
             },
@@ -216614,11 +217697,11 @@
     },
     "/api/v2/containers": {
       "get": {
-        "description": "Get all containers for your organization.",
+        "description": "Get all containers for your organization. Use `group_by` to return container groups with counts.\nGrouped results are limited by `page[size]` and do not support pagination.\n\nTo get CPU or memory metrics, use a `container` data source query with `/api/v2/query/scalar`\nor `/api/v2/query/timeseries`.",
         "operationId": "ListContainers",
         "parameters": [
           {
-            "description": "Comma-separated list of tags to filter containers by.",
+            "description": "Comma-separated `key:value` tags. A container must match every tag. Wildcards, negation\n(`-key:value`), spaces, and `IN (...)` are not supported. To cover several hosts, make one\nrequest per host.",
             "example": "env:prod,short_image:cassandra",
             "in": "query",
             "name": "filter[tags]",
@@ -216628,7 +217711,7 @@
             }
           },
           {
-            "description": "Comma-separated list of tags to group containers by.",
+            "description": "Comma-separated list of up to three tag keys to group containers by. Returns `container_group`\nobjects with counts and tags. Grouped results ignore `sort` and do not support pagination.\nContainers with multiple values for a grouping tag can appear in multiple groups.\nSumming group counts can overcount distinct containers.",
             "example": "datacenter,cluster",
             "in": "query",
             "name": "group_by",
@@ -216638,7 +217721,7 @@
             }
           },
           {
-            "description": "Attribute to sort containers by.",
+            "description": "Attribute to sort individual containers by: `name`, `created_at`, `started_at`, `state`,\n`container_id`, `host`, `image_name`, or `image_digest`. Defaults to `started_at` in ascending\norder. Prefix the attribute with `-` for descending order, such as `-started_at`.\nIgnored when `group_by` is specified.",
             "example": "started_at",
             "in": "query",
             "name": "sort",
@@ -216648,7 +217731,7 @@
             }
           },
           {
-            "description": "Maximum number of results returned.",
+            "description": "Maximum number of results returned. For grouped results, defaults to `100` with a maximum\nof `1000` groups.",
             "in": "query",
             "name": "page[size]",
             "required": false,
@@ -216694,6 +217777,39 @@
                         "pagination": {
                           "limit": 1000,
                           "total": 1,
+                          "type": "cursor_limit"
+                        }
+                      }
+                    }
+                  },
+                  "grouped": {
+                    "summary": "Containers grouped by short_image",
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "count": 3,
+                            "tags": {
+                              "short_image": "nginx"
+                            }
+                          },
+                          "id": "short_image:nginx",
+                          "relationships": {
+                            "containers": {
+                              "data": [],
+                              "links": {
+                                "related": "https://api.datadoghq.com/api/v2/containers?filter[tags]=short_image:nginx"
+                              }
+                            }
+                          },
+                          "type": "container_group"
+                        }
+                      ],
+                      "meta": {
+                        "pagination": {
+                          "limit": 100,
+                          "next_cursor": "",
+                          "total": 0,
                           "type": "cursor_limit"
                         }
                       }
@@ -221533,11 +222649,15 @@
         "operationId": "SearchCostRecommendations",
         "parameters": [
           {
-            "description": "Number of results per page (1–10000).",
+            "description": "Number of results per page, from 1 to 5000. Defaults to 50.",
             "in": "query",
             "name": "page[size]",
             "schema": {
-              "type": "string"
+              "default": 50,
+              "format": "int32",
+              "maximum": 5000,
+              "minimum": 1,
+              "type": "integer"
             }
           },
           {
@@ -221608,7 +222728,6 @@
                       "meta": {
                         "page": {
                           "filter": "@resource_table:aws_ec2_instance",
-                          "next_page_token": "",
                           "page_size": 100
                         }
                       }
@@ -221621,6 +222740,16 @@
               }
             },
             "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequestsResponse"
@@ -221641,6 +222770,12 @@
         "tags": [
           "Cloud Cost Management"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "cloud_cost_management_read"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
@@ -224500,718 +225635,6 @@
           }
         },
         "summary": "Count untagged findings by ownership confidence",
-        "tags": [
-          "CSM Ownership"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      }
-    },
-    "/api/v2/csm/ownership/{resource_id}": {
-      "get": {
-        "description": "Get all current ownership inferences for a resource, one per owner type (`user`, `team`, `service`, `unknown`).",
-        "operationId": "ListOwnershipInferences",
-        "parameters": [
-          {
-            "description": "The identifier of the resource to retrieve ownership inferences for.",
-            "in": "path",
-            "name": "resource_id",
-            "required": true,
-            "schema": {
-              "example": "test-resource",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "items": [
-                            {
-                              "checksum": "abc123",
-                              "confidence": "0.9500",
-                              "created_at": "2026-01-15T10:00:00Z",
-                              "evidence_versions": [
-                                {
-                                  "pipeline_id": "p1"
-                                }
-                              ],
-                              "explanation": "High confidence match",
-                              "id": "test-resource:team",
-                              "owner_type": "team",
-                              "primary_contact_ref": "ref:handle/team-a",
-                              "sources": [],
-                              "status": "suggested",
-                              "updated_at": "2026-01-15T10:00:00Z"
-                            }
-                          ]
-                        },
-                        "id": "test-resource",
-                        "type": "ownership_inferences"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/OwnershipInferenceListResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "List ownership inferences for a resource",
-        "tags": [
-          "CSM Ownership"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      }
-    },
-    "/api/v2/csm/ownership/{resource_id}/history": {
-      "get": {
-        "description": "List inference history entries for a resource across all owner types, ordered from most recent to oldest. Uses cursor-based pagination.",
-        "operationId": "ListOwnershipHistory",
-        "parameters": [
-          {
-            "description": "The identifier of the resource to retrieve inference history for.",
-            "in": "path",
-            "name": "resource_id",
-            "required": true,
-            "schema": {
-              "example": "res-1",
-              "type": "string"
-            }
-          },
-          {
-            "description": "An opaque, base64-encoded cursor token returned by a previous call in `pagination.next_cursor`. Omit to fetch the first page.",
-            "in": "query",
-            "name": "cursor",
-            "required": false,
-            "schema": {
-              "example": "eyJpZCI6OTh9",
-              "type": "string"
-            }
-          },
-          {
-            "description": "The maximum number of history entries to return per page.",
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 25,
-              "example": 25,
-              "format": "int32",
-              "maximum": 100,
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "items": [
-                            {
-                              "checksum": "",
-                              "confidence": "0.9000",
-                              "created_at": "2026-01-15T10:00:00Z",
-                              "evidence_versions": null,
-                              "explanation": "",
-                              "failed_at": null,
-                              "failure_reason": null,
-                              "id": 100,
-                              "owner_type": "team",
-                              "primary_contact_ref": "ref:handle/team-a",
-                              "resource_id": "res-1",
-                              "retry_schedule": null,
-                              "sources": [],
-                              "status": "suggested"
-                            }
-                          ],
-                          "pagination": {
-                            "has_more": false,
-                            "next_cursor": null
-                          }
-                        },
-                        "id": "res-1",
-                        "type": "ownership_history"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/OwnershipHistoryResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "List ownership inference history for a resource",
-        "tags": [
-          "CSM Ownership"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      }
-    },
-    "/api/v2/csm/ownership/{resource_id}/{owner_type}": {
-      "get": {
-        "description": "Get the current ownership inference for a resource for a specific owner type.\n\nThis endpoint supports ETag-based caching. Pass the previously returned `ETag` value in the `If-None-Match` request header to receive a `304 Not Modified` response when the inference has not changed.",
-        "operationId": "GetOwnershipInference",
-        "parameters": [
-          {
-            "description": "The identifier of the resource to retrieve the ownership inference for.",
-            "in": "path",
-            "name": "resource_id",
-            "required": true,
-            "schema": {
-              "example": "test-resource",
-              "type": "string"
-            }
-          },
-          {
-            "description": "The owner type of the inference to retrieve.",
-            "in": "path",
-            "name": "owner_type",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/OwnershipOwnerType"
-            }
-          },
-          {
-            "description": "A previously returned `ETag` value. When supplied and the resource has not changed, the endpoint returns `304 Not Modified`.",
-            "in": "header",
-            "name": "If-None-Match",
-            "required": false,
-            "schema": {
-              "example": "\"abc123\"",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "checksum": "abc123",
-                          "confidence": "0.9500",
-                          "created_at": "2026-01-15T10:00:00Z",
-                          "evidence_versions": [
-                            {
-                              "pipeline_id": "p1"
-                            }
-                          ],
-                          "explanation": "High confidence match",
-                          "owner_type": "team",
-                          "primary_contact_ref": "ref:handle/team-a",
-                          "sources": [],
-                          "status": "suggested",
-                          "updated_at": "2026-01-15T10:00:00Z"
-                        },
-                        "id": "test-resource:team",
-                        "type": "ownership_inference"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/OwnershipInferenceResponse"
-                }
-              }
-            },
-            "description": "OK",
-            "headers": {
-              "Cache-Control": {
-                "description": "The cache control directives applied to the response.",
-                "schema": {
-                  "example": "private, max-age=60",
-                  "type": "string"
-                }
-              },
-              "ETag": {
-                "description": "A strong validator that identifies the current state of the inference.",
-                "schema": {
-                  "example": "\"abc123\"",
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Get an ownership inference by owner type",
-        "tags": [
-          "CSM Ownership"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      }
-    },
-    "/api/v2/csm/ownership/{resource_id}/{owner_type}/evidence": {
-      "get": {
-        "description": "Get the evidence versions backing the current ownership inference for a resource and owner type.\n\nThis endpoint supports weak ETag caching. Pass the previously returned `ETag` value in the `If-None-Match` request header to receive a `304 Not Modified` response when the evidence has not changed.",
-        "operationId": "GetOwnershipEvidence",
-        "parameters": [
-          {
-            "description": "The identifier of the resource to retrieve evidence for.",
-            "in": "path",
-            "name": "resource_id",
-            "required": true,
-            "schema": {
-              "example": "test-resource",
-              "type": "string"
-            }
-          },
-          {
-            "description": "The owner type of the inference to retrieve evidence for.",
-            "in": "path",
-            "name": "owner_type",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/OwnershipOwnerType"
-            }
-          },
-          {
-            "description": "A previously returned weak `ETag` value. When supplied and the evidence has not changed, the endpoint returns `304 Not Modified`.",
-            "in": "header",
-            "name": "If-None-Match",
-            "required": false,
-            "schema": {
-              "example": "W/\"f2e126916327bda8\"",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "evidence_versions": [
-                            {
-                              "pipeline_id": "p1",
-                              "version": "v3"
-                            }
-                          ]
-                        },
-                        "id": "test-resource",
-                        "type": "ownership_evidence"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/OwnershipEvidenceResponse"
-                }
-              }
-            },
-            "description": "OK",
-            "headers": {
-              "ETag": {
-                "description": "A weak validator that identifies the current state of the evidence.",
-                "schema": {
-                  "example": "W/\"f2e126916327bda8\"",
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Get the evidence for an ownership inference",
-        "tags": [
-          "CSM Ownership"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      }
-    },
-    "/api/v2/csm/ownership/{resource_id}/{owner_type}/feedback": {
-      "post": {
-        "description": "Submit feedback on the current ownership inference for a resource and owner type. Valid actions are `confirm`, `reject`, `correct`, and `persist`.\n\nThe request must include the current inference `checksum` in `inference_checksum`. If the checksum does not match the current inference state, the endpoint returns `409 Conflict`.\n\nWhen `action` is `correct`, `corrected_owner_handle` and `corrected_owner_type` are required.",
-        "operationId": "CreateOwnershipFeedback",
-        "parameters": [
-          {
-            "description": "The identifier of the resource that the feedback applies to.",
-            "in": "path",
-            "name": "resource_id",
-            "required": true,
-            "schema": {
-              "example": "res-1",
-              "type": "string"
-            }
-          },
-          {
-            "description": "The type of owner that the feedback applies to.",
-            "in": "path",
-            "name": "owner_type",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/OwnershipOwnerType"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "examples": {
-                "default": {
-                  "value": {
-                    "data": {
-                      "attributes": {
-                        "action": "confirm",
-                        "inference_checksum": "abc123"
-                      },
-                      "type": "ownership_feedback"
-                    }
-                  }
-                }
-              },
-              "schema": {
-                "$ref": "#/components/schemas/OwnershipFeedbackRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "action": "confirm",
-                          "checksum": "abc123",
-                          "new_status": "suggested",
-                          "owner_type": "team",
-                          "previous_status": "suggested",
-                          "primary_contact_ref": "ref:handle/team-a",
-                          "updated_at": "2026-01-15T10:00:00Z"
-                        },
-                        "id": "res-1",
-                        "type": "ownership_feedback_result"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/OwnershipFeedbackResponse"
-                }
-              }
-            },
-            "description": "Created"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OwnershipInferenceResponse"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Submit feedback on an ownership inference",
-        "tags": [
-          "CSM Ownership"
-        ],
-        "x-unstable": "**Note**: This endpoint is in Preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
-      }
-    },
-    "/api/v2/csm/ownership/{resource_id}/{owner_type}/history": {
-      "get": {
-        "description": "List inference history entries for a resource filtered by owner type, ordered from most recent to oldest. Uses cursor-based pagination.",
-        "operationId": "ListOwnershipHistoryByOwnerType",
-        "parameters": [
-          {
-            "description": "The identifier of the resource to retrieve inference history for.",
-            "in": "path",
-            "name": "resource_id",
-            "required": true,
-            "schema": {
-              "example": "res-1",
-              "type": "string"
-            }
-          },
-          {
-            "description": "The owner type to filter history by.",
-            "in": "path",
-            "name": "owner_type",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/OwnershipOwnerType"
-            }
-          },
-          {
-            "description": "An opaque, base64-encoded cursor token returned by a previous call in `pagination.next_cursor`. Omit to fetch the first page.",
-            "in": "query",
-            "name": "cursor",
-            "required": false,
-            "schema": {
-              "example": "eyJpZCI6OTh9",
-              "type": "string"
-            }
-          },
-          {
-            "description": "The maximum number of history entries to return per page.",
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 25,
-              "example": 25,
-              "format": "int32",
-              "maximum": 100,
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "items": [
-                            {
-                              "checksum": "",
-                              "confidence": "0.9000",
-                              "created_at": "2026-01-15T10:00:00Z",
-                              "evidence_versions": null,
-                              "explanation": "",
-                              "failed_at": null,
-                              "failure_reason": null,
-                              "id": 100,
-                              "owner_type": "team",
-                              "primary_contact_ref": "ref:handle/team-a",
-                              "resource_id": "res-1",
-                              "retry_schedule": null,
-                              "sources": [],
-                              "status": "suggested"
-                            }
-                          ],
-                          "pagination": {
-                            "has_more": false,
-                            "next_cursor": null
-                          }
-                        },
-                        "id": "res-1",
-                        "type": "ownership_history"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/OwnershipHistoryResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "List ownership history by owner type",
         "tags": [
           "CSM Ownership"
         ],
@@ -228741,9 +229164,32 @@
                           },
                           "id": "1",
                           "type": "deletion_request"
+                        },
+                        {
+                          "attributes": {
+                            "created_at": "2024-01-01T00:00:00.000000Z",
+                            "created_by": "test@example.com",
+                            "displayed_total": 50,
+                            "from_time": 1672527600000,
+                            "is_created": true,
+                            "org_id": 123,
+                            "product": "logs",
+                            "query": "service:abc",
+                            "recoverable_until": "2024-01-11T02:00:00.000000Z",
+                            "source": "standard",
+                            "starting_at": "2024-01-01T02:00:00.000000Z",
+                            "status": "in_progress",
+                            "to_time": 1704063600000,
+                            "total_unrestricted": 50,
+                            "updated_at": "2024-01-01T02:00:00.000000Z"
+                          },
+                          "id": "2",
+                          "type": "deletion_request"
                         }
                       ],
                       "meta": {
+                        "available_slots": 3,
+                        "max_concurrent_requests": 5,
                         "next_page": "cGFnZTI=",
                         "product": "logs"
                       }
@@ -261995,9 +262441,13 @@
                               "namespace": "AWS/EC2"
                             }
                           ],
-                          "tag_filters": [
+                          "resource_type_tag_filters": [
                             {
-                              "namespace": "AWS/EC2"
+                              "expression": "env:production",
+                              "resource_types": [
+                                "instance"
+                              ],
+                              "service": "ec2"
                             }
                           ]
                         },
@@ -262221,9 +262671,13 @@
                               "namespace": "AWS/EC2"
                             }
                           ],
-                          "tag_filters": [
+                          "resource_type_tag_filters": [
                             {
-                              "namespace": "AWS/EC2"
+                              "expression": "env:production",
+                              "resource_types": [
+                                "instance"
+                              ],
+                              "service": "ec2"
                             }
                           ]
                         },
@@ -284621,237 +285075,6 @@
         }
       }
     },
-    "/api/v2/metrics/config/bulk-tags": {
-      "delete": {
-        "deprecated": true,
-        "description": "**Note**: This endpoint is deprecated. Use [Tag Indexing Rules](/api/latest/metrics/#create-a-tag-indexing-rule) (`POST /api/v2/metrics/tag-indexing-rules`) instead.\n\nDelete all custom lists of queryable tag keys for a set of existing count, gauge, rate, and distribution metrics.\nMetrics are selected by passing a metric name prefix.\nResults can be sent to a set of account email addresses, just like the same operation in the Datadog web app.\nCan only be used with application keys of users with the `Manage Tags for Metrics` permission.",
-        "operationId": "DeleteBulkTagsMetricsConfiguration",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "examples": {
-                "default": {
-                  "value": {
-                    "data": {
-                      "attributes": {
-                        "emails": [
-                          "sue@example.com",
-                          "bob@example.com"
-                        ]
-                      },
-                      "id": "kafka.lag",
-                      "type": "metric_bulk_configure_tags"
-                    }
-                  }
-                }
-              },
-              "schema": {
-                "$ref": "#/components/schemas/MetricBulkTagConfigDeleteRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "202": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "emails": [
-                            "test@example.com"
-                          ],
-                          "status": "Accepted"
-                        },
-                        "id": "kafka.lag",
-                        "type": "metric_bulk_configure_tags"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/MetricBulkTagConfigResponse"
-                }
-              }
-            },
-            "description": "Accepted"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIErrorResponse"
-                }
-              }
-            },
-            "description": "Too Many Requests"
-          }
-        },
-        "summary": "Delete tags for multiple metrics",
-        "tags": [
-          "Metrics"
-        ],
-        "x-codegen-request-body-name": "body",
-        "x-permission": {
-          "operator": "OR",
-          "permissions": [
-            "metric_tags_write"
-          ]
-        },
-        "x-sunset": "2026-11-01"
-      },
-      "post": {
-        "deprecated": true,
-        "description": "**Note**: This endpoint is deprecated. Use [Tag Indexing Rules](/api/latest/metrics/#create-a-tag-indexing-rule) (`POST /api/v2/metrics/tag-indexing-rules`) instead.\n\nCreate and define a list of queryable tag keys for a set of existing count, gauge, rate, and distribution metrics.\nMetrics are selected by passing a metric name prefix. Use the Delete method of this API path to remove tag configurations.\nResults can be sent to a set of account email addresses, just like the same operation in the Datadog web app.\nIf multiple calls include the same metric, the last configuration applied (not by submit order) is used, do not\nexpect deterministic ordering of concurrent calls. The `exclude_tags_mode` value will set all metrics that match the prefix to\nthe same exclusion state, metric tag configurations do not support mixed inclusion and exclusion for tags on the same metric.\nCan only be used with application keys of users with the `Manage Tags for Metrics` permission.",
-        "operationId": "CreateBulkTagsMetricsConfiguration",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "examples": {
-                "default": {
-                  "value": {
-                    "data": {
-                      "attributes": {
-                        "emails": [
-                          "sue@example.com",
-                          "bob@example.com"
-                        ],
-                        "tags": [
-                          "host",
-                          "pod_name",
-                          "is_shadow"
-                        ]
-                      },
-                      "id": "kafka.lag",
-                      "type": "metric_bulk_configure_tags"
-                    }
-                  }
-                }
-              },
-              "schema": {
-                "$ref": "#/components/schemas/MetricBulkTagConfigCreateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "202": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "attributes": {
-                          "emails": [
-                            "test@example.com"
-                          ],
-                          "tags": [
-                            "host"
-                          ]
-                        },
-                        "id": "kafka.lag",
-                        "type": "metric_bulk_configure_tags"
-                      }
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/MetricBulkTagConfigResponse"
-                }
-              }
-            },
-            "description": "Accepted"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIErrorResponse"
-                }
-              }
-            },
-            "description": "Too Many Requests"
-          }
-        },
-        "summary": "Configure tags for multiple metrics",
-        "tags": [
-          "Metrics"
-        ],
-        "x-codegen-request-body-name": "body",
-        "x-permission": {
-          "operator": "OR",
-          "permissions": [
-            "metric_tags_write"
-          ]
-        },
-        "x-sunset": "2026-11-01"
-      }
-    },
     "/api/v2/metrics/derived-metrics": {
       "post": {
         "description": "Create a derived metric for the org. The metric name is supplied as the resource `id`,\nand the `definition` sets the formula and the queries the formula is computed from.\nRequires the `Manage Tags for Metrics` permission.",
@@ -293779,6 +294002,206 @@
       }
     },
     "/api/v2/on-call/pages": {
+      "get": {
+        "description": "Retrieve a paginated list of On-Call Pages, optionally filtered by a search query and sorted by a field.",
+        "operationId": "ListOnCallPages",
+        "parameters": [
+          {
+            "description": "Number of On-Call Pages to return per page of results. The maximum allowed value is 1000.",
+            "in": "query",
+            "name": "page[size]",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "example": 100,
+              "format": "int64",
+              "maximum": 1000,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Page of results to return, starting at 0. `page[number]` multiplied by `page[size]` must be less than 50000.",
+            "in": "query",
+            "name": "page[number]",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search query to filter Pages. Supports filters such as `status`, `urgency`, `team`, `service`, and `tags`, for example `status:triggered`.",
+            "in": "query",
+            "name": "filter[query]",
+            "required": false,
+            "schema": {
+              "example": "status:triggered",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sort Pages by the given field. Only one field is allowed.",
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OnCallPagesSort"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "created_at": "2026-01-01T10:00:00Z",
+                            "description": "Page details.",
+                            "key": "25137717",
+                            "status": "triggered",
+                            "tags": [
+                              "service:test"
+                            ],
+                            "title": "Service: Test is down",
+                            "urgency": "high"
+                          },
+                          "id": "15e74b8b-f865-48d0-bcc5-453323ed2c8f",
+                          "relationships": {
+                            "author": {
+                              "data": {
+                                "id": "00000000-0000-0000-0000-000000000001",
+                                "type": "users"
+                              }
+                            },
+                            "closed_by": {
+                              "data": null
+                            },
+                            "responders": {
+                              "data": [
+                                {
+                                  "id": "00000000-0000-0000-0000-000000000001",
+                                  "type": "users"
+                                }
+                              ]
+                            },
+                            "scheduled_action": {
+                              "data": null
+                            },
+                            "target": {
+                              "data": {
+                                "id": "00000000-da3a-0000-0000-000000000000",
+                                "type": "teams"
+                              }
+                            }
+                          },
+                          "type": "pages"
+                        }
+                      ],
+                      "included": [
+                        {
+                          "attributes": {
+                            "email": "jane.doe@example.com",
+                            "name": "Jane Doe",
+                            "status": "active"
+                          },
+                          "id": "00000000-0000-0000-0000-000000000001",
+                          "type": "users"
+                        },
+                        {
+                          "attributes": {
+                            "avatar": "",
+                            "description": "",
+                            "handle": "my-team",
+                            "name": "My Team"
+                          },
+                          "id": "00000000-da3a-0000-0000-000000000000",
+                          "type": "teams"
+                        }
+                      ],
+                      "meta": {
+                        "page": {
+                          "first_number": 0,
+                          "last_number": 0,
+                          "next_number": null,
+                          "number": 0,
+                          "prev_number": null,
+                          "size": 100,
+                          "total": 1,
+                          "type": "number_size"
+                        }
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OnCallPagesResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedResponse"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
+          }
+        ],
+        "summary": "List On-Call Pages",
+        "tags": [
+          "On-Call"
+        ],
+        "x-pagination": {
+          "limitParam": "page[size]",
+          "pageParam": "page[number]",
+          "resultsPath": "data"
+        },
+        "x-permission": {
+          "operator": "AND",
+          "permissions": [
+            "on_call_read"
+          ]
+        }
+      },
       "post": {
         "description": "Trigger a new On-Call Page.",
         "operationId": "CreateOnCallPage",
@@ -293950,6 +294373,163 @@
         "tags": [
           "On-Call Paging"
         ]
+      }
+    },
+    "/api/v2/on-call/pages/{page_id}": {
+      "get": {
+        "description": "Get the details of an On-Call Page.",
+        "operationId": "GetOnCallPage",
+        "parameters": [
+          {
+            "description": "The ID of the Page, or its key.",
+            "in": "path",
+            "name": "page_id",
+            "required": true,
+            "schema": {
+              "example": "15e74b8b-f865-48d0-bcc5-453323ed2c8f",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "created_at": "2026-01-01T10:00:00Z",
+                          "description": "Page details.",
+                          "key": "25137717",
+                          "status": "triggered",
+                          "tags": [
+                            "service:test"
+                          ],
+                          "title": "Service: Test is down",
+                          "urgency": "high"
+                        },
+                        "id": "15e74b8b-f865-48d0-bcc5-453323ed2c8f",
+                        "relationships": {
+                          "author": {
+                            "data": {
+                              "id": "00000000-0000-0000-0000-000000000001",
+                              "type": "users"
+                            }
+                          },
+                          "closed_by": {
+                            "data": null
+                          },
+                          "links": {
+                            "data": [
+                              {
+                                "id": "00000000-0000-0000-0000-000000000003",
+                                "type": "links"
+                              }
+                            ]
+                          },
+                          "responders": {
+                            "data": [
+                              {
+                                "id": "00000000-0000-0000-0000-000000000001",
+                                "type": "users"
+                              }
+                            ]
+                          },
+                          "scheduled_action": {
+                            "data": null
+                          },
+                          "target": {
+                            "data": {
+                              "id": "00000000-da3a-0000-0000-000000000000",
+                              "type": "teams"
+                            }
+                          }
+                        },
+                        "type": "pages"
+                      },
+                      "included": [
+                        {
+                          "attributes": {
+                            "email": "jane.doe@example.com",
+                            "name": "Jane Doe",
+                            "status": "active"
+                          },
+                          "id": "00000000-0000-0000-0000-000000000001",
+                          "type": "users"
+                        },
+                        {
+                          "attributes": {
+                            "avatar": "",
+                            "description": "",
+                            "handle": "my-team",
+                            "name": "My Team"
+                          },
+                          "id": "00000000-da3a-0000-0000-000000000000",
+                          "type": "teams"
+                        },
+                        {
+                          "attributes": {
+                            "child_entity_id": "15e74b8b-f865-48d0-bcc5-453323ed2c8f",
+                            "child_entity_type": "page",
+                            "parent_entity_id": "00000000-0000-0000-0000-000000000002",
+                            "parent_entity_type": "case",
+                            "relationship": "pages"
+                          },
+                          "id": "00000000-0000-0000-0000-000000000003",
+                          "type": "links"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OnCallPageResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedResponse"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
+          }
+        ],
+        "summary": "Get On-Call Page",
+        "tags": [
+          "On-Call"
+        ],
+        "x-permission": {
+          "operator": "AND",
+          "permissions": [
+            "on_call_read"
+          ]
+        }
       }
     },
     "/api/v2/on-call/pages/{page_id}/acknowledge": {
@@ -294225,6 +294805,201 @@
           }
         ],
         "summary": "Escalate On-Call Page",
+        "tags": [
+          "On-Call Paging"
+        ]
+      }
+    },
+    "/api/v2/on-call/pages/{page_id}/reroute": {
+      "post": {
+        "description": "Reroutes an On-Call Page.",
+        "operationId": "RerouteOnCallPage",
+        "parameters": [
+          {
+            "description": "The page ID.",
+            "in": "path",
+            "name": "page_id",
+            "required": true,
+            "schema": {
+              "example": "15e74b8b-f865-48d0-bcc5-453323ed2c8f",
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "comment": "Rerouting to the database team.",
+                        "target": {
+                          "identifier": "my-team",
+                          "type": "team_handle"
+                        }
+                      },
+                      "type": "reroute"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/RerouteOnCallPageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://{site}",
+            "variables": {
+              "site": {
+                "default": "navy.oncall.datadoghq.com",
+                "description": "The globally available endpoint for On-Call.",
+                "enum": [
+                  "lava.oncall.datadoghq.com",
+                  "saffron.oncall.datadoghq.com",
+                  "navy.oncall.datadoghq.com",
+                  "coral.oncall.datadoghq.com",
+                  "teal.oncall.datadoghq.com",
+                  "beige.oncall.datadoghq.eu",
+                  "scarlet.oncall.datadoghq.com"
+                ],
+                "x-enum-varnames": [
+                  "LAVA",
+                  "SAFFRON",
+                  "NAVY",
+                  "CORAL",
+                  "TEAL",
+                  "BEIGE",
+                  "SCARLET"
+                ]
+              }
+            }
+          },
+          {
+            "url": "{protocol}://{name}",
+            "variables": {
+              "name": {
+                "default": "navy.oncall.datadoghq.com",
+                "description": "The full DNS name of the On-Call paging endpoint.",
+                "enum": [
+                  "lava.oncall.datadoghq.com",
+                  "saffron.oncall.datadoghq.com",
+                  "navy.oncall.datadoghq.com",
+                  "coral.oncall.datadoghq.com",
+                  "teal.oncall.datadoghq.com",
+                  "beige.oncall.datadoghq.eu",
+                  "scarlet.oncall.datadoghq.com"
+                ],
+                "x-enum-varnames": [
+                  "LAVA",
+                  "SAFFRON",
+                  "NAVY",
+                  "CORAL",
+                  "TEAL",
+                  "BEIGE",
+                  "SCARLET"
+                ]
+              },
+              "protocol": {
+                "default": "https",
+                "description": "The protocol for accessing the API."
+              }
+            }
+          },
+          {
+            "url": "https://{subdomain}.{site}",
+            "variables": {
+              "site": {
+                "default": "datadoghq.com",
+                "description": "The Datadog site where the On-Call paging endpoint is deployed.",
+                "enum": [
+                  "datadoghq.com",
+                  "datadoghq.eu"
+                ],
+                "x-enum-varnames": [
+                  "DATADOGHQ_COM",
+                  "DATADOGHQ_EU"
+                ]
+              },
+              "subdomain": {
+                "default": "navy.oncall",
+                "description": "The On-Call paging subdomain.",
+                "enum": [
+                  "lava.oncall",
+                  "saffron.oncall",
+                  "navy.oncall",
+                  "coral.oncall",
+                  "teal.oncall",
+                  "beige.oncall",
+                  "scarlet.oncall"
+                ],
+                "x-enum-varnames": [
+                  "LAVA",
+                  "SAFFRON",
+                  "NAVY",
+                  "CORAL",
+                  "TEAL",
+                  "BEIGE",
+                  "SCARLET"
+                ]
+              }
+            }
+          }
+        ],
+        "summary": "Reroute On-Call Page",
         "tags": [
           "On-Call Paging"
         ]
@@ -325423,6 +326198,718 @@
         "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
+    "/api/v2/security/ownership/{resource_id}": {
+      "get": {
+        "description": "Get all current ownership inferences for a resource, one per owner type (`user`, `team`, `service`, `unknown`).",
+        "operationId": "ListOwnershipInferences",
+        "parameters": [
+          {
+            "description": "The identifier of the resource to retrieve ownership inferences for.",
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "example": "test-resource",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "items": [
+                            {
+                              "checksum": "abc123",
+                              "confidence": "0.9500",
+                              "created_at": "2026-01-15T10:00:00Z",
+                              "evidence_versions": [
+                                {
+                                  "pipeline_id": "p1"
+                                }
+                              ],
+                              "explanation": "High confidence match",
+                              "id": "test-resource:team",
+                              "owner_type": "team",
+                              "primary_contact_ref": "ref:handle/team-a",
+                              "sources": [],
+                              "status": "suggested",
+                              "updated_at": "2026-01-15T10:00:00Z"
+                            }
+                          ]
+                        },
+                        "id": "test-resource",
+                        "type": "ownership_inferences"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OwnershipInferenceListResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "List ownership inferences for a resource",
+        "tags": [
+          "CSM Ownership"
+        ],
+        "x-unstable": "**Note**: This endpoint is in Preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/security/ownership/{resource_id}/history": {
+      "get": {
+        "description": "List inference history entries for a resource across all owner types, ordered from most recent to oldest. Uses cursor-based pagination.",
+        "operationId": "ListOwnershipHistory",
+        "parameters": [
+          {
+            "description": "The identifier of the resource to retrieve inference history for.",
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "example": "res-1",
+              "type": "string"
+            }
+          },
+          {
+            "description": "An opaque, base64-encoded cursor token returned by a previous call in `pagination.next_cursor`. Omit to fetch the first page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "example": "eyJpZCI6OTh9",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The maximum number of history entries to return per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "example": 25,
+              "format": "int32",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "items": [
+                            {
+                              "checksum": "",
+                              "confidence": "0.9000",
+                              "created_at": "2026-01-15T10:00:00Z",
+                              "evidence_versions": null,
+                              "explanation": "",
+                              "failed_at": null,
+                              "failure_reason": null,
+                              "id": 100,
+                              "owner_type": "team",
+                              "primary_contact_ref": "ref:handle/team-a",
+                              "resource_id": "res-1",
+                              "retry_schedule": null,
+                              "sources": [],
+                              "status": "suggested"
+                            }
+                          ],
+                          "pagination": {
+                            "has_more": false,
+                            "next_cursor": null
+                          }
+                        },
+                        "id": "res-1",
+                        "type": "ownership_history"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OwnershipHistoryResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "List ownership inference history for a resource",
+        "tags": [
+          "CSM Ownership"
+        ],
+        "x-unstable": "**Note**: This endpoint is in Preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/security/ownership/{resource_id}/{owner_type}": {
+      "get": {
+        "description": "Get the current ownership inference for a resource for a specific owner type.\n\nThis endpoint supports ETag-based caching. Pass the previously returned `ETag` value in the `If-None-Match` request header to receive a `304 Not Modified` response when the inference has not changed.",
+        "operationId": "GetOwnershipInference",
+        "parameters": [
+          {
+            "description": "The identifier of the resource to retrieve the ownership inference for.",
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "example": "test-resource",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The owner type of the inference to retrieve.",
+            "in": "path",
+            "name": "owner_type",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OwnershipOwnerType"
+            }
+          },
+          {
+            "description": "A previously returned `ETag` value. When supplied and the resource has not changed, the endpoint returns `304 Not Modified`.",
+            "in": "header",
+            "name": "If-None-Match",
+            "required": false,
+            "schema": {
+              "example": "\"abc123\"",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "checksum": "abc123",
+                          "confidence": "0.9500",
+                          "created_at": "2026-01-15T10:00:00Z",
+                          "evidence_versions": [
+                            {
+                              "pipeline_id": "p1"
+                            }
+                          ],
+                          "explanation": "High confidence match",
+                          "owner_type": "team",
+                          "primary_contact_ref": "ref:handle/team-a",
+                          "sources": [],
+                          "status": "suggested",
+                          "updated_at": "2026-01-15T10:00:00Z"
+                        },
+                        "id": "test-resource:team",
+                        "type": "ownership_inference"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OwnershipInferenceResponse"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "description": "The cache control directives applied to the response.",
+                "schema": {
+                  "example": "private, max-age=60",
+                  "type": "string"
+                }
+              },
+              "ETag": {
+                "description": "A strong validator that identifies the current state of the inference.",
+                "schema": {
+                  "example": "\"abc123\"",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Get an ownership inference by owner type",
+        "tags": [
+          "CSM Ownership"
+        ],
+        "x-unstable": "**Note**: This endpoint is in Preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/security/ownership/{resource_id}/{owner_type}/evidence": {
+      "get": {
+        "description": "Get the evidence versions backing the current ownership inference for a resource and owner type.\n\nThis endpoint supports weak ETag caching. Pass the previously returned `ETag` value in the `If-None-Match` request header to receive a `304 Not Modified` response when the evidence has not changed.",
+        "operationId": "GetOwnershipEvidence",
+        "parameters": [
+          {
+            "description": "The identifier of the resource to retrieve evidence for.",
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "example": "test-resource",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The owner type of the inference to retrieve evidence for.",
+            "in": "path",
+            "name": "owner_type",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OwnershipOwnerType"
+            }
+          },
+          {
+            "description": "A previously returned weak `ETag` value. When supplied and the evidence has not changed, the endpoint returns `304 Not Modified`.",
+            "in": "header",
+            "name": "If-None-Match",
+            "required": false,
+            "schema": {
+              "example": "W/\"f2e126916327bda8\"",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "evidence_versions": [
+                            {
+                              "pipeline_id": "p1",
+                              "version": "v3"
+                            }
+                          ]
+                        },
+                        "id": "test-resource",
+                        "type": "ownership_evidence"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OwnershipEvidenceResponse"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "A weak validator that identifies the current state of the evidence.",
+                "schema": {
+                  "example": "W/\"f2e126916327bda8\"",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Get the evidence for an ownership inference",
+        "tags": [
+          "CSM Ownership"
+        ],
+        "x-unstable": "**Note**: This endpoint is in Preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/security/ownership/{resource_id}/{owner_type}/feedback": {
+      "post": {
+        "description": "Submit feedback on the current ownership inference for a resource and owner type. Valid actions are `confirm`, `reject`, `correct`, and `persist`.\n\nThe request must include the current inference `checksum` in `inference_checksum`. If the checksum does not match the current inference state, the endpoint returns `409 Conflict`.\n\nWhen `action` is `correct`, `corrected_owner_handle` and `corrected_owner_type` are required.",
+        "operationId": "CreateOwnershipFeedback",
+        "parameters": [
+          {
+            "description": "The identifier of the resource that the feedback applies to.",
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "example": "res-1",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The type of owner that the feedback applies to.",
+            "in": "path",
+            "name": "owner_type",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OwnershipOwnerType"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "action": "confirm",
+                        "inference_checksum": "abc123"
+                      },
+                      "type": "ownership_feedback"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/OwnershipFeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "action": "confirm",
+                          "checksum": "abc123",
+                          "new_status": "suggested",
+                          "owner_type": "team",
+                          "previous_status": "suggested",
+                          "primary_contact_ref": "ref:handle/team-a",
+                          "updated_at": "2026-01-15T10:00:00Z"
+                        },
+                        "id": "res-1",
+                        "type": "ownership_feedback_result"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OwnershipFeedbackResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnershipInferenceResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Submit feedback on an ownership inference",
+        "tags": [
+          "CSM Ownership"
+        ],
+        "x-unstable": "**Note**: This endpoint is in Preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/security/ownership/{resource_id}/{owner_type}/history": {
+      "get": {
+        "description": "List inference history entries for a resource filtered by owner type, ordered from most recent to oldest. Uses cursor-based pagination.",
+        "operationId": "ListOwnershipHistoryByOwnerType",
+        "parameters": [
+          {
+            "description": "The identifier of the resource to retrieve inference history for.",
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "example": "res-1",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The owner type to filter history by.",
+            "in": "path",
+            "name": "owner_type",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OwnershipOwnerType"
+            }
+          },
+          {
+            "description": "An opaque, base64-encoded cursor token returned by a previous call in `pagination.next_cursor`. Omit to fetch the first page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "example": "eyJpZCI6OTh9",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The maximum number of history entries to return per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "example": 25,
+              "format": "int32",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "items": [
+                            {
+                              "checksum": "",
+                              "confidence": "0.9000",
+                              "created_at": "2026-01-15T10:00:00Z",
+                              "evidence_versions": null,
+                              "explanation": "",
+                              "failed_at": null,
+                              "failure_reason": null,
+                              "id": 100,
+                              "owner_type": "team",
+                              "primary_contact_ref": "ref:handle/team-a",
+                              "resource_id": "res-1",
+                              "retry_schedule": null,
+                              "sources": [],
+                              "status": "suggested"
+                            }
+                          ],
+                          "pagination": {
+                            "has_more": false,
+                            "next_cursor": null
+                          }
+                        },
+                        "id": "res-1",
+                        "type": "ownership_history"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OwnershipHistoryResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "List ownership history by owner type",
+        "tags": [
+          "CSM Ownership"
+        ],
+        "x-unstable": "**Note**: This endpoint is in Preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
     "/api/v2/security/sboms": {
       "get": {
         "description": "Get a list of assets SBOMs for an organization.\n\nThe `filter[asset_type]` parameter is required for initial requests (when no `page[token]` is provided).\nSubsequent pages encode the asset type in the pagination token, so `filter[asset_type]` is not required\nfor paginated requests. Mixing infrastructure asset types (`Host`, `HostImage`, `Image`, `ServerlessFunction`)\nwith code asset types (`Repository`, `Service`) in the same request is not supported and returns a 400 error.\n\n### Pagination\n\nPlease review the [Pagination section](#pagination) for the \"List Vulnerabilities\" endpoint.\n\n### Filtering\n\nPlease review the [Filtering section](#filtering) for the \"List Vulnerabilities\" endpoint.\n\n### Metadata\n\nPlease review the [Metadata section](#metadata) for the \"List Vulnerabilities\" endpoint.",
@@ -328285,7 +329772,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nTo request access, contact [Datadog support](https://docs.datadoghq.com/help/) or your Customer Success Manager."
       },
       "post": {
-        "description": "Create a batch migration in the `draft` status, together with 1 to 100 initial\nresources. Each resource holds one source rule to translate into a Cloud SIEM detection\nrule. To load more rules, add them with the add resources endpoint before starting the\nbatch migration. A batch migration can hold up to 1000 resources. The response does not\ninclude the created resources: list the resources of the batch migration to retrieve them.",
+        "description": "Create a batch migration in the `draft` status, together with 1 to 100 initial\nresources. Each resource holds one source rule to translate into a Cloud SIEM detection\nrule. To load more rules, add them with the add resources endpoint before starting the\nbatch migration. A batch migration can hold up to 1000 resources. The response does not\ninclude the created resources: list the resources of the batch migration to retrieve them.\nAlternatively, use the start-a-rule-proposal endpoint to get a single proposed rule.",
         "operationId": "CreateSecurityMonitoringBatchMigration",
         "requestBody": {
           "content": {
@@ -334476,6 +335963,211 @@
         }
       }
     },
+    "/api/v2/security_monitoring/rules/proposals": {
+      "post": {
+        "description": "Start generating a proposed Cloud SIEM detection rule from a natural-language\ndescription, or from an SPL or KQL rule. The proposal is based on your organization's\nlog sources, log fields, and existing detection rules. When logs from the matching\nsource are available, the proposed query is tested against your recent logs.\n\nThe proposed rule is generated asynchronously. This endpoint returns a proposal `id`\nwith the status `pending`. To get the proposed rule, pass this `id` to the get-a-rule-proposal\nendpoint and poll the endpoint until the status is `completed` or `failed`. A proposal\nusually takes a few minutes, and up to 10 minutes.\n\nThis endpoint does not create or modify any detection rules in Cloud SIEM. To translate\nmany rules at once, use batch migrations instead.",
+        "operationId": "StartSecurityMonitoringRuleProposal",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecurityMonitoringRuleProposalStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "status": "pending"
+                        },
+                        "id": "c968cf83-56c2-4d54-a993-6c86dfb83527",
+                        "type": "rule_proposals"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityMonitoringRuleProposalStartResponse"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "400": {
+            "$ref": "#/components/responses/SecurityMonitoringRuleProposalBadRequestResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/SecurityMonitoringRuleProposalUnauthorizedResponse"
+          },
+          "403": {
+            "$ref": "#/components/responses/SecurityMonitoringRuleProposalForbiddenResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "security_monitoring_rules_write"
+            ]
+          }
+        ],
+        "summary": "Start a rule proposal",
+        "tags": [
+          "Security Monitoring"
+        ],
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_rules_write"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nTo request access, contact [Datadog support](https://docs.datadoghq.com/help/) or your Customer Success Manager."
+      }
+    },
+    "/api/v2/security_monitoring/rules/proposals/{proposal_id}": {
+      "get": {
+        "description": "Get the status of a rule proposal started with the start-a-rule-proposal endpoint.\nWhile the status is `pending` or `in_progress`, the proposed rule is still being\ngenerated. Poll this endpoint again later. If the status is `completed`, the response's `rule` field contains\nthe proposed Cloud SIEM detection rule. If the status is `failed`, the response's `error` field contains\nthe reason a rule could not be generated.\n\nThis endpoint does not create or modify any detection rules in Cloud SIEM. To create the\nproposed rule, use the create-a-detection-rule endpoint.",
+        "operationId": "GetSecurityMonitoringRuleProposal",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SecurityMonitoringRuleProposalID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "rule": {
+                            "cases": [
+                              {
+                                "condition": "failed_login > 5 && successful_login > 0",
+                                "name": "Successful login after repeated failures",
+                                "status": "medium"
+                              }
+                            ],
+                            "isEnabled": false,
+                            "message": "Repeated failed Okta logins were followed by a successful login from the same IP.",
+                            "name": "Successful Okta login after repeated failures",
+                            "options": {
+                              "detectionMethod": "threshold",
+                              "evaluationWindow": 900,
+                              "keepAlive": 3600,
+                              "maxSignalDuration": 86400
+                            },
+                            "queries": [
+                              {
+                                "aggregation": "count",
+                                "groupByFields": [
+                                  "@network.client.ip"
+                                ],
+                                "name": "failed_login",
+                                "query": "source:okta @evt.name:user.session.start @evt.outcome:FAILURE"
+                              },
+                              {
+                                "aggregation": "count",
+                                "groupByFields": [
+                                  "@network.client.ip"
+                                ],
+                                "name": "successful_login",
+                                "query": "source:okta @evt.name:user.session.start @evt.outcome:SUCCESS"
+                              }
+                            ],
+                            "tags": [
+                              "source:okta"
+                            ],
+                            "type": "log_detection"
+                          },
+                          "status": "completed"
+                        },
+                        "id": "c968cf83-56c2-4d54-a993-6c86dfb83527",
+                        "type": "rule_proposals"
+                      }
+                    }
+                  },
+                  "failed": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "error": {
+                            "kind": "translation_error",
+                            "message": "No log source matches the described activity.",
+                            "type": "NoRuleProduced"
+                          },
+                          "status": "failed"
+                        },
+                        "id": "c968cf83-56c2-4d54-a993-6c86dfb83527",
+                        "type": "rule_proposals"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityMonitoringRuleProposalResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/SecurityMonitoringRuleProposalBadRequestResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/SecurityMonitoringRuleProposalUnauthorizedResponse"
+          },
+          "403": {
+            "$ref": "#/components/responses/SecurityMonitoringRuleProposalForbiddenResponse"
+          },
+          "404": {
+            "$ref": "#/components/responses/SecurityMonitoringRuleProposalNotFoundResponse"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "security_monitoring_rules_read"
+            ]
+          }
+        ],
+        "summary": "Get a rule proposal",
+        "tags": [
+          "Security Monitoring"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_rules_read"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nTo request access, contact [Datadog support](https://docs.datadoghq.com/help/) or your Customer Success Manager."
+      }
+    },
     "/api/v2/security_monitoring/rules/test": {
       "post": {
         "description": "Test a rule.",
@@ -335169,8 +336861,7 @@
           "permissions": [
             "security_monitoring_rules_write"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in beta and may be subject to changes."
+        }
       }
     },
     "/api/v2/security_monitoring/rules/{rule_id}/test": {
@@ -335373,8 +337064,7 @@
           "permissions": [
             "security_monitoring_rules_read"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in beta and may be subject to changes."
+        }
       }
     },
     "/api/v2/security_monitoring/sample_log_generation/subscriptions": {
@@ -337401,12 +339091,7 @@
                           "type": "sensitive_data_scanner_rule"
                         }
                       ],
-                      "meta": {
-                        "count_limit": 500,
-                        "group_count_limit": 20,
-                        "is_pci_compliant": false,
-                        "version": 1
-                      }
+                      "meta": {}
                     }
                   }
                 },
@@ -337494,9 +339179,7 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "meta": {
-                        "version": 1
-                      }
+                      "meta": {}
                     }
                   }
                 },
@@ -337631,9 +339314,7 @@
                         },
                         "type": "sensitive_data_scanner_group"
                       },
-                      "meta": {
-                        "version": 1
-                      }
+                      "meta": {}
                     }
                   }
                 },
@@ -337716,9 +339397,8 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "meta": {
-                        "version": 1
-                      }
+                      "data": null,
+                      "meta": {}
                     }
                   }
                 },
@@ -337827,9 +339507,7 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "meta": {
-                        "version": 1
-                      }
+                      "meta": {}
                     }
                   }
                 },
@@ -337998,9 +339676,7 @@
                         },
                         "type": "sensitive_data_scanner_rule"
                       },
-                      "meta": {
-                        "version": 1
-                      }
+                      "meta": {}
                     }
                   }
                 },
@@ -338083,9 +339759,7 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "meta": {
-                        "version": 1
-                      }
+                      "meta": {}
                     }
                   }
                 },
@@ -338221,9 +339895,7 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "meta": {
-                        "version": 1
-                      }
+                      "meta": {}
                     }
                   }
                 },
@@ -341103,6 +342775,14 @@
             }
           },
           {
+            "description": "WASM symbol representation. Only supported for `mapkind=wasm`.\nDefaults to `dwarf`, which requires `filter[build_id]`. `sourcemap`\nrequires `filter[service]` and `filter[version]`.",
+            "in": "query",
+            "name": "symbol_type",
+            "schema": {
+              "$ref": "#/components/schemas/SourcemapSymbolType"
+            }
+          },
+          {
             "description": "When set to `true`, returns the source maps that would be deleted\nwithout performing the actual deletion. When set to `false`,\nperforms the deletion.",
             "in": "query",
             "name": "dry_run",
@@ -341113,7 +342793,7 @@
             }
           },
           {
-            "description": "Filter by service names (multiple values allowed). Required for\n`js`, `jvm`, `react`, and `flutter` map kinds.",
+            "description": "Filter by service names (multiple values allowed). Required for\n`js`, `jvm`, `react`, and `flutter` map kinds, and for `wasm` with\n`symbol_type=sourcemap`.",
             "explode": true,
             "in": "query",
             "name": "filter[service]",
@@ -341129,7 +342809,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by version values (multiple values allowed, maximum 10).\nRequired for `js`, `jvm`, `react`, and `flutter` map kinds.",
+            "description": "Filter by version values (multiple values allowed, maximum 10).\nRequired for `js`, `jvm`, `react`, and `flutter` map kinds, and for\n`wasm` with `symbol_type=sourcemap`.",
             "explode": true,
             "in": "query",
             "name": "filter[version]",
@@ -341171,7 +342851,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by build ID values (multiple values allowed). Supported for `jvm`, `ndk`, `il2cpp`, `wasm`, and `portable_pdb`.",
+            "description": "Filter by build ID values (multiple values allowed). Supported for `jvm`,\n`ndk`, `il2cpp`, `wasm`, and `portable_pdb`. Required for `wasm` with\n`symbol_type=dwarf`.",
             "explode": true,
             "in": "query",
             "name": "filter[build_id]",
@@ -341561,6 +343241,14 @@
             }
           },
           {
+            "description": "WASM symbol representation. Only supported for `mapkind=wasm`.\nDefaults to `dwarf`, which requires `filter[build_id]`. `sourcemap`\nrequires `filter[service]` and `filter[version]`.",
+            "in": "query",
+            "name": "symbol_type",
+            "schema": {
+              "$ref": "#/components/schemas/SourcemapSymbolType"
+            }
+          },
+          {
             "description": "Cursor for the next page of a JavaScript listing. Use the value from\n`meta.page.next_cursor` and keep the same search mode and filters.\nOmit on the first request. Not supported for other map kinds or for\na specific `filter[debug_id]` lookup without `search_by=debug_id`.",
             "in": "query",
             "name": "page[after]",
@@ -341592,7 +343280,7 @@
             }
           },
           {
-            "description": "Filter by service names (multiple values allowed). Required for\n`jvm`, `react`, and `flutter` map kinds. Also required for `js` unless\nsearching by `filter[debug_id]` or browsing with `search_by=debug_id`.",
+            "description": "Filter by service names (multiple values allowed). Required for\n`jvm`, `react`, and `flutter` map kinds, and for `wasm` with\n`symbol_type=sourcemap`. Also required for `js` unless\nsearching by `filter[debug_id]` or browsing with `search_by=debug_id`.",
             "explode": true,
             "in": "query",
             "name": "filter[service]",
@@ -341608,7 +343296,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by version values (multiple values allowed). Required for\n`jvm`, `react`, and `flutter` map kinds. Also required for `js` unless\nsearching by `filter[debug_id]` or browsing with `search_by=debug_id`.",
+            "description": "Filter by version values (multiple values allowed). Required for\n`jvm`, `react`, and `flutter` map kinds, and for `wasm` with\n`symbol_type=sourcemap`. Also required for `js` unless\nsearching by `filter[debug_id]` or browsing with `search_by=debug_id`.",
             "explode": true,
             "in": "query",
             "name": "filter[version]",
@@ -341650,7 +343338,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by build ID values (multiple values allowed). Supported for `jvm`, `ndk`, `il2cpp`, `wasm`, and `portable_pdb`.",
+            "description": "Filter by build ID values (multiple values allowed). Supported for `jvm`,\n`ndk`, `il2cpp`, `wasm`, and `portable_pdb`. Required for `wasm` with\n`symbol_type=dwarf`.",
             "explode": true,
             "in": "query",
             "name": "filter[build_id]",
@@ -341931,6 +343619,14 @@
             }
           },
           {
+            "description": "WASM symbol representation. Only supported for `mapkind=wasm`.\nDefaults to `dwarf`, which requires `filter[build_id]`. `sourcemap`\nrequires `filter[service]` and `filter[version]`.",
+            "in": "query",
+            "name": "symbol_type",
+            "schema": {
+              "$ref": "#/components/schemas/SourcemapSymbolType"
+            }
+          },
+          {
             "description": "When set to `true`, returns the source maps that would be restored\nwithout performing the actual restoration. When set to `false`,\nperforms the restoration.",
             "in": "query",
             "name": "dry_run",
@@ -341941,7 +343637,7 @@
             }
           },
           {
-            "description": "Filter by service names (multiple values allowed). Required for\n`js`, `jvm`, `react`, and `flutter` map kinds.",
+            "description": "Filter by service names (multiple values allowed). Required for\n`js`, `jvm`, `react`, and `flutter` map kinds, and for `wasm` with\n`symbol_type=sourcemap`.",
             "explode": true,
             "in": "query",
             "name": "filter[service]",
@@ -341957,7 +343653,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by version values (multiple values allowed, maximum 10).\nRequired for `js`, `jvm`, `react`, and `flutter` map kinds.",
+            "description": "Filter by version values (multiple values allowed, maximum 10).\nRequired for `js`, `jvm`, `react`, and `flutter` map kinds, and for\n`wasm` with `symbol_type=sourcemap`.",
             "explode": true,
             "in": "query",
             "name": "filter[version]",
@@ -341999,7 +343695,7 @@
             "style": "form"
           },
           {
-            "description": "Filter by build ID values (multiple values allowed). Supported for `jvm`, `ndk`, `il2cpp`, `wasm`, and `portable_pdb`.",
+            "description": "Filter by build ID values (multiple values allowed). Supported for `jvm`,\n`ndk`, `il2cpp`, `wasm`, and `portable_pdb`. Required for `wasm` with\n`symbol_type=dwarf`.",
             "explode": true,
             "in": "query",
             "name": "filter[build_id]",
@@ -342236,7 +343932,7 @@
     },
     "/api/v2/sourcemaps/service_repository_info": {
       "post": {
-        "description": "Returns the repository URL and commit SHA associated with a given service and version.",
+        "description": "Returns the repository URL and commit SHA associated with a debug ID or a given service and version.\nProvide either `debug_id`, or both `service` and `version`. When `debug_id` is set, it takes precedence.",
         "operationId": "GetServiceRepositoryInfo",
         "requestBody": {
           "content": {
@@ -342286,6 +343982,16 @@
               }
             },
             "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
           },
           "401": {
             "content": {
@@ -365223,7 +366929,7 @@
       "name": "Container Images"
     },
     {
-      "description": "The Containers API allows you to query container data for your organization. See the [Container Monitoring page](https://docs.datadoghq.com/containers/) for more information.",
+      "description": "The Containers API allows you to query container data for your organization.\nSee the [Container Monitoring page](https://docs.datadoghq.com/containers/) for more information.",
       "name": "Containers"
     },
     {
@@ -365315,7 +367021,7 @@
       "name": "Events"
     },
     {
-      "description": "Execution policies control which actions Datadog Action Platform is allowed to run\nagainst your infrastructure, and where. Each policy pairs an effect (allow or deny)\nwith a pattern of actions, and can scope that decision to specific Kubernetes\nnamespaces, scripts, or remote shell paths.",
+      "description": "Execution policies control which actions Datadog Action Platform is allowed to run\nand where. Each policy pairs an effect (allow or deny) with a pattern of actions,\nand can scope that decision to specific resources.",
       "name": "Execution Policy"
     },
     {
