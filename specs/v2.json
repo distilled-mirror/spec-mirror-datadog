@@ -9684,13 +9684,13 @@
             "type": "array"
           },
           "id": {
-            "description": "The unique identifier of the targeting rule allocation.",
+            "description": "The unique identifier of the targeting rule allocation. Use this ID with the allocation management endpoints, such as `/api/v2/allocations/{allocation_id}`. It is not included in SDK evaluation results or exposure events.",
             "example": "550e8400-e29b-41d4-a716-446655440020",
             "format": "uuid",
             "type": "string"
           },
           "key": {
-            "description": "The unique key of the targeting rule allocation.",
+            "description": "The unique key of the targeting rule allocation. SDKs report this key in flag evaluation results and exposure events to indicate which targeting rule assigned the variant. Use it to match evaluation or experiment data to this rule.",
             "example": "prod-rollout",
             "type": "string"
           },
@@ -9766,7 +9766,7 @@
             "$ref": "#/components/schemas/Allocation"
           },
           "id": {
-            "description": "The unique identifier of the targeting rule allocation.",
+            "description": "The unique identifier of the targeting rule allocation. Use this ID with the allocation management endpoints, such as `/api/v2/allocations/{allocation_id}`. It is not included in SDK evaluation results or exposure events.",
             "example": "550e8400-e29b-41d4-a716-446655440020",
             "format": "uuid",
             "type": "string"
@@ -9932,7 +9932,7 @@
             "type": "string"
           },
           "allocation_id": {
-            "description": "The targeting rule allocation ID this progressive rollout belongs to.",
+            "description": "The unique identifier (UUID) of the targeting rule allocation this progressive rollout belongs to. This is not the allocation key that SDKs report in evaluation results and exposure events.",
             "example": "550e8400-e29b-41d4-a716-446655440020",
             "format": "uuid",
             "type": "string"
@@ -64621,7 +64621,7 @@
         "nullable": true,
         "properties": {
           "allocation_key": {
-            "description": "Key of the feature flag allocation linked to the experiment.",
+            "description": "Key of the feature flag allocation linked to the experiment. Matches the allocation key that SDKs report in flag evaluation results and exposure events.",
             "type": "string"
           },
           "entry_point": {
@@ -68895,7 +68895,7 @@
             "type": "object"
           },
           "default_allocation_key": {
-            "description": "The allocation key used for the default variant.",
+            "description": "A system-generated allocation key, in the format `allocation-default-<hash>`, that SDKs report in flag evaluation results and exposure events when a subject receives the environment's default variant because no targeting rule matched. It has no corresponding allocation ID and cannot be used with the allocation endpoints.",
             "example": "allocation-default-123abc",
             "type": "string"
           },
@@ -68939,7 +68939,7 @@
             "type": "boolean"
           },
           "override_allocation_key": {
-            "description": "The allocation key used for the override variant.",
+            "description": "A system-generated allocation key, in the format `allocation-override-<hash>`, that SDKs report in flag evaluation results and exposure events when the environment's override variant is served. It has no corresponding allocation ID and cannot be used with the allocation endpoints.",
             "example": "allocation-override-123abc",
             "type": "string"
           },
@@ -68974,7 +68974,7 @@
         "description": "Environment-specific settings for a feature flag in list responses.",
         "properties": {
           "default_allocation_key": {
-            "description": "The allocation key used for the default variant.",
+            "description": "A system-generated allocation key, in the format `allocation-default-<hash>`, that SDKs report in flag evaluation results and exposure events when a subject receives the environment's default variant because no targeting rule matched. It has no corresponding allocation ID and cannot be used with the allocation endpoints.",
             "example": "allocation-default-123abc",
             "type": "string"
           },
@@ -69018,7 +69018,7 @@
             "type": "boolean"
           },
           "override_allocation_key": {
-            "description": "The allocation key used for the override variant.",
+            "description": "A system-generated allocation key, in the format `allocation-override-<hash>`, that SDKs report in flag evaluation results and exposure events when the environment's override variant is served. It has no corresponding allocation ID and cannot be used with the allocation endpoints.",
             "example": "allocation-override-123abc",
             "type": "string"
           },
@@ -112555,6 +112555,9 @@
           },
           "recipients": {
             "$ref": "#/components/schemas/MonitorNotificationRuleRecipients"
+          },
+          "rule_options": {
+            "$ref": "#/components/schemas/MonitorNotificationRuleOptions"
           }
         },
         "required": [
@@ -112755,6 +112758,20 @@
         "minLength": 1,
         "type": "string"
       },
+      "MonitorNotificationRuleOptions": {
+        "description": "Additional options for the monitor notification rule.",
+        "properties": {
+          "is_threaded": {
+            "description": "Whether notifications from this rule are threaded. When `true`, follow-up notifications for the same monitor alert are posted in Slack as replies to the first notification.\nCannot be `true` when `bundle_config` is set.",
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "is_threaded"
+        ],
+        "type": "object"
+      },
       "MonitorNotificationRuleRecipients": {
         "description": "A list of recipients to notify. Uses the same format as the monitor `message` field. Must not start with an '@'. Cannot be used with `conditional_recipients`.",
         "example": [
@@ -112862,6 +112879,9 @@
           },
           "recipients": {
             "$ref": "#/components/schemas/MonitorNotificationRuleRecipients"
+          },
+          "rule_options": {
+            "$ref": "#/components/schemas/MonitorNotificationRuleOptions"
           }
         },
         "type": "object"
@@ -192642,13 +192662,13 @@
             "type": "array"
           },
           "id": {
-            "description": "The unique identifier of the targeting rule allocation.",
+            "description": "The unique identifier of the targeting rule allocation. Use this ID with the allocation management endpoints, such as `/api/v2/allocations/{allocation_id}`. It is not included in SDK evaluation results or exposure events.",
             "example": "550e8400-e29b-41d4-a716-446655440020",
             "format": "uuid",
             "type": "string"
           },
           "key": {
-            "description": "The unique key of the targeting rule allocation.",
+            "description": "The unique key of the targeting rule allocation. SDKs report this key in flag evaluation results and exposure events to indicate which targeting rule assigned the variant. Use it to match evaluation or experiment data to this rule.",
             "example": "prod-rollout",
             "type": "string"
           },
