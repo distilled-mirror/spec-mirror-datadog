@@ -12599,14 +12599,12 @@
       "MonitorFormulaAndFunctionCostDataSource": {
         "description": "Data source for cost queries.",
         "enum": [
-          "metrics",
           "cloud_cost",
           "datadog_usage"
         ],
         "example": "cloud_cost",
         "type": "string",
         "x-enum-varnames": [
-          "METRICS",
           "CLOUD_COST",
           "DATADOG_USAGE"
         ]
@@ -13144,6 +13142,44 @@
           "NETWORK_PATH"
         ]
       },
+      "MonitorFormulaAndFunctionMetricQueryDataSource": {
+        "description": "Data source for metrics queries.",
+        "enum": [
+          "metrics"
+        ],
+        "example": "metrics",
+        "type": "string",
+        "x-enum-varnames": [
+          "METRICS"
+        ]
+      },
+      "MonitorFormulaAndFunctionMetricQueryDefinition": {
+        "description": "A formula and functions metrics query. The `aggregator` field is required for `cost alert` monitors and not allowed for metric or query alert monitors.",
+        "properties": {
+          "aggregator": {
+            "$ref": "#/components/schemas/MonitorFormulaAndFunctionCostAggregator"
+          },
+          "data_source": {
+            "$ref": "#/components/schemas/MonitorFormulaAndFunctionMetricQueryDataSource"
+          },
+          "name": {
+            "description": "Name of the query for use in formulas.",
+            "example": "query1",
+            "type": "string"
+          },
+          "query": {
+            "description": "The metrics query definition.",
+            "example": "avg:system.cpu.user{*}",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "data_source",
+          "query"
+        ],
+        "type": "object"
+      },
       "MonitorFormulaAndFunctionMetricsAggregator": {
         "description": "Aggregator for metrics queries.",
         "enum": [
@@ -13237,6 +13273,9 @@
           },
           {
             "$ref": "#/components/schemas/MonitorFormulaAndFunctionAggregateFilteredQueryDefinition"
+          },
+          {
+            "$ref": "#/components/schemas/MonitorFormulaAndFunctionMetricQueryDefinition"
           }
         ]
       },
