@@ -3252,7 +3252,7 @@
         }
       },
       "TraceIDPathParameter": {
-        "description": "The trace ID. Accepts either a hexadecimal string of up to 32 characters (128-bit trace ID)\nor a decimal string of up to 39 digits. Hexadecimal IDs are case-insensitive, and shorter\nvalues are left-padded with zeros.\nUse the `trace_id` attribute of a span returned by the Search spans or Get a list of spans endpoints.\nValues in any other format, such as UUIDs, return `400 Bad Request`. A well-formed ID with\nno matching trace returns `404 Not Found`.",
+        "description": "The trace ID. Accepts either a hexadecimal string of up to 32 characters (128-bit trace ID)\nor a decimal string of up to 39 digits. Hexadecimal IDs are case-insensitive, and shorter\nvalues are left-padded with zeros. Values made only of digits are treated as decimal.\nUse the `trace_id` attribute of a span returned by the Search spans or Get a list of spans endpoints.\nValues in any other format, such as UUIDs, return `400 Bad Request`. A well-formed ID with\nno matching trace returns `404 Not Found`.",
         "example": "0000000000000000abc1230000000000",
         "in": "path",
         "name": "trace_id",
@@ -4896,12 +4896,12 @@
           },
           "traceID": {
             "description": "The lower 64 bits of the trace ID, as an unsigned 64-bit integer.",
-            "example": 12345678901234567000,
+            "example": 12376211733897806000,
             "format": "int64",
             "type": "integer"
           },
           "traceIDFull": {
-            "description": "The full 128-bit trace ID, encoded as a 32-character hexadecimal string.",
+            "description": "The trace ID as requested: a decimal ID is returned unchanged, and a hexadecimal ID is lowercased and\nleft-padded with zeros to 32 characters.",
             "example": "0000000000000000abc1230000000000",
             "type": "string"
           },
@@ -7159,6 +7159,19 @@
         },
         "type": "object"
       },
+      "AccessPolicyEffect": {
+        "description": "The effect applied when an email address matches the policy. Deny policies take precedence over allow policies.",
+        "enum": [
+          "allow",
+          "deny"
+        ],
+        "example": "allow",
+        "type": "string",
+        "x-enum-varnames": [
+          "ALLOW",
+          "DENY"
+        ]
+      },
       "AccessTokenListItem": {
         "description": "An access token entry returned by the personal access tokens list endpoint. May represent either a personal or a service access token.",
         "properties": {
@@ -7605,6 +7618,9 @@
             "$ref": "#/components/schemas/GeminiIntegration"
           },
           {
+            "$ref": "#/components/schemas/GithubIntegration"
+          },
+          {
             "$ref": "#/components/schemas/GitlabIntegration"
           },
           {
@@ -7680,6 +7696,9 @@
           },
           {
             "$ref": "#/components/schemas/GeminiIntegrationUpdate"
+          },
+          {
+            "$ref": "#/components/schemas/GithubIntegrationUpdate"
           },
           {
             "$ref": "#/components/schemas/GitlabIntegrationUpdate"
@@ -43662,6 +43681,52 @@
           "CREATE_SNAPSHOT"
         ]
       },
+      "CreateStatusPageEmailAccessPolicyRequest": {
+        "description": "Request object for creating a status page email access policy.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CreateStatusPageEmailAccessPolicyRequestData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "CreateStatusPageEmailAccessPolicyRequestData": {
+        "description": "The data object for creating a status page email access policy.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/CreateStatusPageEmailAccessPolicyRequestDataAttributes"
+          },
+          "type": {
+            "$ref": "#/components/schemas/StatusPageEmailAccessPolicyType"
+          }
+        },
+        "required": [
+          "attributes",
+          "type"
+        ],
+        "type": "object"
+      },
+      "CreateStatusPageEmailAccessPolicyRequestDataAttributes": {
+        "description": "Attributes for creating a status page email access policy.",
+        "properties": {
+          "effect": {
+            "$ref": "#/components/schemas/AccessPolicyEffect"
+          },
+          "pattern": {
+            "description": "The email address pattern matched by the policy. Supports an exact address (`user@example.com`), all addresses in a domain (`@example.com`), or all addresses in subdomains (`@*.example.com`).",
+            "example": "@example.com",
+            "type": "string"
+          }
+        },
+        "required": [
+          "effect",
+          "pattern"
+        ],
+        "type": "object"
+      },
       "CreateStatusPageRequest": {
         "description": "Request object for creating a status page.",
         "example": {
@@ -43701,6 +43766,7 @@
               "email_header_image": "data:image/png;base64,pQSLAw0KGgoAAAANSUhEUgAAAQ4AASJKFF",
               "favicon": "data:image/png;base64,kWMRNw0KGgoAAAANSUhEUgAAAEAAAABACA",
               "name": "Status Page US1",
+              "slack_app_icon": "data:image/png;base64,mXRTqw0KGgoAAAANSUhEUgAAAEAAAABACA",
               "subscriptions_enabled": true,
               "type": "public",
               "visualization_type": "bars_and_uptime_percentage"
@@ -43776,7 +43842,7 @@
             "type": "array"
           },
           "domain_prefix": {
-            "description": "The subdomain of the status page's url taking the form `https://{domain_prefix}.statuspage.datadoghq.com`. Globally unique across Datadog Status Pages.",
+            "description": "The subdomain of the status page URL. Public pages use `https://{domain_prefix}.statuspage.datadoghq.com`, while private pages use `https://{domain_prefix}.private.statuspage.datadoghq.com`. Globally unique across Datadog Status Pages.",
             "example": "status-page-us1",
             "type": "string"
           },
@@ -43785,10 +43851,18 @@
             "example": "data:image/png;base64,pQSLAw0KGgoAAAANSUhEUgAAAQ4AASJKFF",
             "type": "string"
           },
+          "email_notifications_enabled": {
+            "description": "Whether email notifications are enabled for the status page. Must be enabled when `subscriptions_enabled` is `true`.",
+            "type": "boolean"
+          },
           "favicon": {
             "description": "Base64-encoded image data displayed in the browser tab.",
             "example": "data:image/png;base64,kWMRNw0KGgoAAAANSUhEUgAAAEAAAABACA",
             "type": "string"
+          },
+          "ms_teams_subscriptions_enabled": {
+            "description": "Whether Microsoft Teams subscriptions are enabled for the status page.",
+            "type": "boolean"
           },
           "name": {
             "description": "The name of the status page.",
@@ -43800,7 +43874,8 @@
             "type": "boolean"
           },
           "slack_app_icon": {
-            "description": "The Slack app icon URL for the status page.",
+            "description": "The base64-encoded image data used as the Slack app icon.",
+            "example": "data:image/png;base64,mXRTqw0KGgoAAAANSUhEUgAAAEAAAABACA",
             "type": "string"
           },
           "slack_subscriptions_enabled": {
@@ -43895,16 +43970,18 @@
         "type": "object"
       },
       "CreateStatusPageRequestDataAttributesType": {
-        "description": "The type of the status page controlling how the status page is accessed.",
+        "description": "The type of the status page controlling how the status page is accessed. Public pages are accessible to anyone, internal pages are accessible to authenticated users in the Datadog organization, and private pages are accessible only to users matching an allow email access policy and no deny email access policy.",
         "enum": [
           "public",
-          "internal"
+          "internal",
+          "private"
         ],
         "example": "public",
         "type": "string",
         "x-enum-varnames": [
           "PUBLIC",
-          "INTERNAL"
+          "INTERNAL",
+          "PRIVATE"
         ]
       },
       "CreateStatusPageRequestDataAttributesVisualizationLayout": {
@@ -84113,6 +84190,318 @@
         "description": "Git Repository URL",
         "example": "https://github.com/organization/example-repository",
         "type": "string"
+      },
+      "GithubApp": {
+        "description": "GitHub App credentials.",
+        "properties": {
+          "github_app_id": {
+            "$ref": "#/components/schemas/GithubAppGithubAppId"
+          },
+          "github_installation_id": {
+            "$ref": "#/components/schemas/GithubAppGithubInstallationId"
+          },
+          "hostname": {
+            "$ref": "#/components/schemas/GithubAppHostname"
+          },
+          "private_key": {
+            "$ref": "#/components/schemas/GithubAppPrivateKey"
+          },
+          "type": {
+            "$ref": "#/components/schemas/GithubAppType"
+          }
+        },
+        "required": [
+          "type",
+          "github_app_id",
+          "github_installation_id",
+          "private_key"
+        ],
+        "type": "object"
+      },
+      "GithubAppGithubAppId": {
+        "description": "The numeric ID of the GitHub App.",
+        "example": "123456",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActionConnectionLiteralValue"
+          },
+          {
+            "$ref": "#/components/schemas/ActionConnectionAWSSecretsManagerReference"
+          }
+        ]
+      },
+      "GithubAppGithubInstallationId": {
+        "description": "The installation ID of the GitHub App.",
+        "example": "789012",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActionConnectionLiteralValue"
+          },
+          {
+            "$ref": "#/components/schemas/ActionConnectionAWSSecretsManagerReference"
+          }
+        ]
+      },
+      "GithubAppHostname": {
+        "description": "Hostname of the GitHub Enterprise Server. Omit this field for github.com.",
+        "example": "github.example.com",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActionConnectionLiteralValue"
+          },
+          {
+            "$ref": "#/components/schemas/ActionConnectionAWSSecretsManagerReference"
+          }
+        ]
+      },
+      "GithubAppPrivateKey": {
+        "description": "PEM-encoded RSA private key for the GitHub App.",
+        "example": "",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActionConnectionLiteralValue"
+          },
+          {
+            "$ref": "#/components/schemas/ActionConnectionAWSSecretsManagerReference"
+          }
+        ]
+      },
+      "GithubAppType": {
+        "description": "The credential type for `GithubApp`.",
+        "enum": [
+          "GithubApp"
+        ],
+        "example": "GithubApp",
+        "type": "string",
+        "x-enum-varnames": [
+          "GITHUBAPP"
+        ]
+      },
+      "GithubAppUpdate": {
+        "description": "Update to GitHub App credentials.",
+        "properties": {
+          "github_app_id": {
+            "$ref": "#/components/schemas/GithubAppUpdateGithubAppId"
+          },
+          "github_installation_id": {
+            "$ref": "#/components/schemas/GithubAppUpdateGithubInstallationId"
+          },
+          "hostname": {
+            "$ref": "#/components/schemas/GithubAppUpdateHostname"
+          },
+          "private_key": {
+            "$ref": "#/components/schemas/GithubAppUpdatePrivateKey"
+          },
+          "type": {
+            "$ref": "#/components/schemas/GithubAppType"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "GithubAppUpdateGithubAppId": {
+        "description": "The numeric ID of the GitHub App.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActionConnectionLiteralValue"
+          },
+          {
+            "$ref": "#/components/schemas/ActionConnectionAWSSecretsManagerReference"
+          }
+        ]
+      },
+      "GithubAppUpdateGithubInstallationId": {
+        "description": "The installation ID of the GitHub App.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActionConnectionLiteralValue"
+          },
+          {
+            "$ref": "#/components/schemas/ActionConnectionAWSSecretsManagerReference"
+          }
+        ]
+      },
+      "GithubAppUpdateHostname": {
+        "description": "Hostname of the GitHub Enterprise Server. Omit this field for github.com.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActionConnectionLiteralValue"
+          },
+          {
+            "$ref": "#/components/schemas/ActionConnectionAWSSecretsManagerReference"
+          }
+        ]
+      },
+      "GithubAppUpdatePrivateKey": {
+        "description": "PEM-encoded RSA private key for the GitHub App.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActionConnectionLiteralValue"
+          },
+          {
+            "$ref": "#/components/schemas/ActionConnectionAWSSecretsManagerReference"
+          }
+        ]
+      },
+      "GithubCredentials": {
+        "description": "Supported GitHub connection credentials.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/GithubApp"
+          },
+          {
+            "$ref": "#/components/schemas/GithubPersonalAccessToken"
+          }
+        ]
+      },
+      "GithubCredentialsUpdate": {
+        "description": "Supported GitHub connection credentials for an update.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/GithubAppUpdate"
+          },
+          {
+            "$ref": "#/components/schemas/GithubPersonalAccessTokenUpdate"
+          }
+        ]
+      },
+      "GithubIntegration": {
+        "description": "GitHub connection integration.",
+        "properties": {
+          "credentials": {
+            "$ref": "#/components/schemas/GithubCredentials"
+          },
+          "type": {
+            "$ref": "#/components/schemas/GithubIntegrationType"
+          }
+        },
+        "required": [
+          "type",
+          "credentials"
+        ],
+        "type": "object"
+      },
+      "GithubIntegrationType": {
+        "description": "The GitHub integration type.",
+        "enum": [
+          "Github"
+        ],
+        "example": "Github",
+        "type": "string",
+        "x-enum-varnames": [
+          "GITHUB"
+        ]
+      },
+      "GithubIntegrationUpdate": {
+        "description": "GitHub connection integration update.",
+        "properties": {
+          "credentials": {
+            "$ref": "#/components/schemas/GithubCredentialsUpdate"
+          },
+          "type": {
+            "$ref": "#/components/schemas/GithubIntegrationType"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "GithubPersonalAccessToken": {
+        "description": "GitHub personal access token credentials.",
+        "properties": {
+          "access_token": {
+            "$ref": "#/components/schemas/GithubPersonalAccessTokenAccessToken"
+          },
+          "hostname": {
+            "$ref": "#/components/schemas/GithubPersonalAccessTokenHostname"
+          },
+          "type": {
+            "$ref": "#/components/schemas/GithubPersonalAccessTokenType"
+          }
+        },
+        "required": [
+          "type",
+          "access_token"
+        ],
+        "type": "object"
+      },
+      "GithubPersonalAccessTokenAccessToken": {
+        "description": "GitHub personal access token.",
+        "example": "",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActionConnectionLiteralValue"
+          },
+          {
+            "$ref": "#/components/schemas/ActionConnectionAWSSecretsManagerReference"
+          }
+        ]
+      },
+      "GithubPersonalAccessTokenHostname": {
+        "description": "Hostname of the GitHub Enterprise Server. Omit this field for github.com.",
+        "example": "github.example.com",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActionConnectionLiteralValue"
+          },
+          {
+            "$ref": "#/components/schemas/ActionConnectionAWSSecretsManagerReference"
+          }
+        ]
+      },
+      "GithubPersonalAccessTokenType": {
+        "description": "The credential type for `GithubPersonalAccessToken`.",
+        "enum": [
+          "GithubPersonalAccessToken"
+        ],
+        "example": "GithubPersonalAccessToken",
+        "type": "string",
+        "x-enum-varnames": [
+          "GITHUBPERSONALACCESSTOKEN"
+        ]
+      },
+      "GithubPersonalAccessTokenUpdate": {
+        "description": "Update to GitHub personal access token credentials.",
+        "properties": {
+          "access_token": {
+            "$ref": "#/components/schemas/GithubPersonalAccessTokenUpdateAccessToken"
+          },
+          "hostname": {
+            "$ref": "#/components/schemas/GithubPersonalAccessTokenUpdateHostname"
+          },
+          "type": {
+            "$ref": "#/components/schemas/GithubPersonalAccessTokenType"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "GithubPersonalAccessTokenUpdateAccessToken": {
+        "description": "GitHub personal access token.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActionConnectionLiteralValue"
+          },
+          {
+            "$ref": "#/components/schemas/ActionConnectionAWSSecretsManagerReference"
+          }
+        ]
+      },
+      "GithubPersonalAccessTokenUpdateHostname": {
+        "description": "Hostname of the GitHub Enterprise Server. Omit this field for github.com.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActionConnectionLiteralValue"
+          },
+          {
+            "$ref": "#/components/schemas/ActionConnectionAWSSecretsManagerReference"
+          }
+        ]
       },
       "GithubWebhookTrigger": {
         "description": "Trigger a workflow from a GitHub webhook. To trigger a workflow from GitHub, you must set a `webhookSecret`. In your GitHub Webhook Settings, set the Payload URL to \"base_url\"/api/v2/workflows/\"workflow_id\"/webhook?orgId=\"org_id\", select application/json for the content type, and be highly recommend enabling SSL verification for security. The workflow must be published.",
@@ -140140,6 +140529,7 @@
               "email_header_image": "data:image/png;base64,pQSLAw0KGgoAAAANSUhEUgAAAQ4AASJKFF",
               "favicon": "data:image/png;base64,kWMRNw0KGgoAAAANSUhEUgAAAEAAAABACA",
               "name": "Status Page US1 East",
+              "slack_app_icon": "data:image/png;base64,mXRTqw0KGgoAAAANSUhEUgAAAEAAAABACA",
               "subscriptions_enabled": false,
               "type": "internal",
               "visualization_type": "bars_only"
@@ -140187,7 +140577,7 @@
             "type": "string"
           },
           "domain_prefix": {
-            "description": "The subdomain of the status page's url taking the form `https://{domain_prefix}.statuspage.datadoghq.com`. Globally unique across Datadog Status Pages.",
+            "description": "The subdomain of the status page URL. Public pages use `https://{domain_prefix}.statuspage.datadoghq.com`, while private pages use `https://{domain_prefix}.private.statuspage.datadoghq.com`. Globally unique across Datadog Status Pages.",
             "example": "status-page-us1",
             "type": "string"
           },
@@ -140196,10 +140586,18 @@
             "example": "data:image/png;base64,pQSLAw0KGgoAAAANSUhEUgAAAQ4AASJKFF",
             "type": "string"
           },
+          "email_notifications_enabled": {
+            "description": "Whether email notifications are enabled for the status page. Must be enabled when `subscriptions_enabled` is `true`.",
+            "type": "boolean"
+          },
           "favicon": {
             "description": "The base64-encoded image data displayed in the browser tab.",
             "example": "data:image/png;base64,kWMRNw0KGgoAAAANSUhEUgAAAEAAAABACA",
             "type": "string"
+          },
+          "ms_teams_subscriptions_enabled": {
+            "description": "Whether Microsoft Teams subscriptions are enabled for the status page.",
+            "type": "boolean"
           },
           "name": {
             "description": "The name of the status page.",
@@ -140211,7 +140609,8 @@
             "type": "boolean"
           },
           "slack_app_icon": {
-            "description": "The Slack app icon URL for the status page.",
+            "description": "The base64-encoded image data used as the Slack app icon.",
+            "example": "data:image/png;base64,mXRTqw0KGgoAAAANSUhEUgAAAEAAAABACA",
             "type": "string"
           },
           "slack_subscriptions_enabled": {
@@ -146938,7 +147337,7 @@
             "$ref": "#/components/schemas/PrunedTraceAttributes"
           },
           "id": {
-            "description": "The full 128-bit trace ID, encoded as a 32-character hexadecimal string.",
+            "description": "The trace ID as requested: a decimal ID is returned unchanged, and a hexadecimal ID is lowercased and\nleft-padded with zeros to 32 characters.",
             "example": "0000000000000000abc1230000000000",
             "type": "string"
           },
@@ -181128,14 +181527,14 @@
             "type": "object"
           },
           "compute": {
-            "description": "The compute data.",
+            "description": "Map of compute ID (`c0`, `c1`, ... in request order) to the computed value, or to a list of\n`{time, value}` points for a `timeseries` compute.",
             "type": "object"
           },
           "computes": {
             "additionalProperties": {
               "$ref": "#/components/schemas/SpansAggregateBucketValue"
             },
-            "description": "A map of the metric name -> value for regular compute or list of values for a timeseries.",
+            "description": "Not returned by this endpoint. Read the values from `compute` instead.",
             "type": "object"
           }
         },
@@ -181478,7 +181877,7 @@
             "type": "array"
           },
           "trace_id": {
-            "description": "Id of the trace to which the span belongs.",
+            "description": "ID of the trace to which the span belongs: a 32-character hexadecimal string for 128-bit trace IDs,\nor a decimal string for 64-bit trace IDs. Pass it unchanged to Get a trace by ID.",
             "example": "1234567890987654321",
             "type": "string"
           },
@@ -181491,7 +181890,7 @@
         "type": "object"
       },
       "SpansCompute": {
-        "description": "A compute rule to compute metrics or timeseries.\nAll computes in a request must have the same `type`, and `timeseries` computes must use the same `interval`.\nTo get both totals and timeseries, send separate requests.",
+        "description": "A compute rule to compute metrics or timeseries.\nAll computes in a request must have the same `type` (defaults to `total` when omitted),\nand `timeseries` computes must use the same `interval`.\nTo get both totals and timeseries, send separate requests.",
         "properties": {
           "aggregation": {
             "$ref": "#/components/schemas/SpansAggregationFunction"
@@ -182099,7 +182498,7 @@
           },
           "query": {
             "default": "*",
-            "description": "The search query - following the span search syntax.",
+            "description": "The search query, following the\n[span search syntax](https://docs.datadoghq.com/tracing/trace_explorer/query_syntax/).\nReserved fields (`service`, `env`, `version`, `resource_name`, `operation_name`, `status`, `span_id`,\n`trace_id`, `type`) take no `@` prefix, and neither do tags such as `host` or primary tags such as\n`datacenter`. Span attributes need one, for example `@span.kind:server` or `@http.status_code:500`.\nWrap values that contain special characters such as `:`, `{`, `}`, `(`, `)`, or spaces in double quotes,\nfor example `@http.route:\"/api/v1/users/{id}\"` or `resource_name:\"GET /api/v1/users\"`.\nWildcards do not work inside quotes, so to combine a wildcard with special characters, escape each one\nwith `\\` instead, for example `resource_name:Clients\\:\\:*`.",
             "example": "service:web* AND @http.status_code:[200 TO 299]",
             "type": "string"
           },
@@ -182691,12 +183090,16 @@
             "type": "boolean"
           },
           "domain_prefix": {
-            "description": "The subdomain of the status page's url taking the form `https://{domain_prefix}.statuspage.datadoghq.com`. Globally unique across Datadog Status Pages.",
+            "description": "The subdomain of the status page URL. Public pages use `https://{domain_prefix}.statuspage.datadoghq.com`, while private pages use `https://{domain_prefix}.private.statuspage.datadoghq.com`. Globally unique across Datadog Status Pages.",
             "type": "string"
           },
           "email_header_image": {
             "description": "Base64-encoded image data included in email notifications sent to status page subscribers.",
             "type": "string"
+          },
+          "email_notifications_enabled": {
+            "description": "Whether email notifications are enabled for the status page. Must be enabled when `subscriptions_enabled` is `true`.",
+            "type": "boolean"
           },
           "enabled": {
             "description": "Whether the status page is enabled.",
@@ -182710,6 +183113,10 @@
             "description": "Timestamp of when the status page was last modified.",
             "format": "date-time",
             "type": "string"
+          },
+          "ms_teams_subscriptions_enabled": {
+            "description": "Whether Microsoft Teams subscriptions are enabled for the status page.",
+            "type": "boolean"
           },
           "name": {
             "description": "The name of the status page.",
@@ -182935,13 +183342,17 @@
             "type": "boolean"
           },
           "domain_prefix": {
-            "description": "The subdomain of the status page's url taking the form `https://{domain_prefix}.statuspage.datadoghq.com`. Globally unique across Datadog Status Pages.",
+            "description": "The subdomain of the status page URL. Public pages use `https://{domain_prefix}.statuspage.datadoghq.com`, while private pages use `https://{domain_prefix}.private.statuspage.datadoghq.com`. Globally unique across Datadog Status Pages.",
             "type": "string"
           },
           "email_header_image": {
             "description": "Base64-encoded image data included in email notifications sent to status page subscribers.",
             "nullable": true,
             "type": "string"
+          },
+          "email_notifications_enabled": {
+            "description": "Whether email notifications are enabled for the status page. Must be enabled when `subscriptions_enabled` is `true`.",
+            "type": "boolean"
           },
           "enabled": {
             "description": "Whether the status page is enabled.",
@@ -182957,6 +183368,10 @@
             "format": "date-time",
             "type": "string"
           },
+          "ms_teams_subscriptions_enabled": {
+            "description": "Whether Microsoft Teams subscriptions are enabled for the status page.",
+            "type": "boolean"
+          },
           "name": {
             "description": "The name of the status page.",
             "type": "string"
@@ -182971,6 +183386,7 @@
           },
           "slack_app_icon": {
             "description": "The Slack app icon URL for the status page.",
+            "nullable": true,
             "type": "string"
           },
           "slack_subscriptions_enabled": {
@@ -183136,6 +183552,201 @@
         "type": "string",
         "x-enum-varnames": [
           "STATUS_PAGES"
+        ]
+      },
+      "StatusPageEmailAccessPolicyArrayResponse": {
+        "description": "Response object for a list of status page email access policies.",
+        "properties": {
+          "data": {
+            "description": "A list of status page email access policy data objects.",
+            "items": {
+              "$ref": "#/components/schemas/StatusPageEmailAccessPolicyData"
+            },
+            "type": "array"
+          },
+          "included": {
+            "description": "Resources related to the email access policies, when requested using the `include` query parameter.",
+            "items": {
+              "$ref": "#/components/schemas/StatusPageEmailAccessPolicyIncluded"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "StatusPageEmailAccessPolicyData": {
+        "description": "The data object for a status page email access policy.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/StatusPageEmailAccessPolicyDataAttributes"
+          },
+          "id": {
+            "description": "The ID of the email access policy.",
+            "example": "1234abcd-12ab-34cd-56ef-123456abcdef",
+            "format": "uuid",
+            "type": "string"
+          },
+          "relationships": {
+            "$ref": "#/components/schemas/StatusPageEmailAccessPolicyDataRelationships"
+          },
+          "type": {
+            "$ref": "#/components/schemas/StatusPageEmailAccessPolicyType"
+          }
+        },
+        "required": [
+          "attributes",
+          "id",
+          "relationships",
+          "type"
+        ],
+        "type": "object"
+      },
+      "StatusPageEmailAccessPolicyDataAttributes": {
+        "description": "Attributes of a status page email access policy.",
+        "properties": {
+          "created_at": {
+            "description": "Timestamp of when the email access policy was created.",
+            "example": "2026-01-01T00:00:00.000Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "effect": {
+            "$ref": "#/components/schemas/AccessPolicyEffect"
+          },
+          "pattern": {
+            "description": "The email address pattern matched by the policy.",
+            "example": "@example.com",
+            "type": "string"
+          }
+        },
+        "required": [
+          "created_at",
+          "effect",
+          "pattern"
+        ],
+        "type": "object"
+      },
+      "StatusPageEmailAccessPolicyDataRelationships": {
+        "description": "Relationships of a status page email access policy.",
+        "properties": {
+          "created_by_user": {
+            "$ref": "#/components/schemas/StatusPageEmailAccessPolicyDataRelationshipsCreatedByUser"
+          },
+          "status_page": {
+            "$ref": "#/components/schemas/StatusPageEmailAccessPolicyDataRelationshipsStatusPage"
+          }
+        },
+        "required": [
+          "created_by_user",
+          "status_page"
+        ],
+        "type": "object"
+      },
+      "StatusPageEmailAccessPolicyDataRelationshipsCreatedByUser": {
+        "description": "The Datadog user who created the email access policy.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StatusPageEmailAccessPolicyDataRelationshipsCreatedByUserData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "StatusPageEmailAccessPolicyDataRelationshipsCreatedByUserData": {
+        "description": "The data object identifying the Datadog user who created the email access policy.",
+        "properties": {
+          "id": {
+            "description": "The ID of the Datadog user who created the email access policy.",
+            "example": "1234abcd-12ab-34cd-56ef-123456abcdef",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/StatusPagesUserType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "StatusPageEmailAccessPolicyDataRelationshipsStatusPage": {
+        "description": "The status page associated with the email access policy.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StatusPageEmailAccessPolicyDataRelationshipsStatusPageData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "StatusPageEmailAccessPolicyDataRelationshipsStatusPageData": {
+        "description": "The data object identifying the status page associated with the email access policy.",
+        "properties": {
+          "id": {
+            "description": "The ID of the status page associated with the email access policy.",
+            "example": "1234abcd-12ab-34cd-56ef-123456abcdef",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/StatusPageDataType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "StatusPageEmailAccessPolicyIncluded": {
+        "description": "An included resource related to a status page email access policy.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/StatusPagesUser"
+          },
+          {
+            "$ref": "#/components/schemas/StatusPageAsIncluded"
+          }
+        ]
+      },
+      "StatusPageEmailAccessPolicyResponse": {
+        "description": "Response object for a status page email access policy.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StatusPageEmailAccessPolicyData"
+          },
+          "included": {
+            "description": "Resources related to the email access policy, when requested using the `include` query parameter.",
+            "items": {
+              "$ref": "#/components/schemas/StatusPageEmailAccessPolicyIncluded"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "StatusPageEmailAccessPolicyType": {
+        "default": "email_access_policies",
+        "description": "Status page email access policy resource type.",
+        "enum": [
+          "email_access_policies"
+        ],
+        "example": "email_access_policies",
+        "type": "string",
+        "x-enum-varnames": [
+          "EMAIL_ACCESS_POLICIES"
         ]
       },
       "StatusPagesComponent": {
@@ -184507,7 +185118,7 @@
             "$ref": "#/components/schemas/SummarizedSpan"
           },
           "traceId": {
-            "description": "The full 128-bit trace ID, encoded as a 32-character hexadecimal string.",
+            "description": "The trace ID as requested: a decimal ID is returned unchanged, and a hexadecimal ID is lowercased and\nleft-padded with zeros to 32 characters.",
             "example": "0000000000000000abc1230000000000",
             "type": "string"
           }
@@ -198564,8 +199175,8 @@
             "$ref": "#/components/schemas/TraceAttributes"
           },
           "id": {
-            "description": "The full 128-bit trace ID, encoded as a 32-character hexadecimal string.",
-            "example": "0000000000000000abc1230000000000",
+            "description": "The lower 64 bits of the trace ID, as a decimal string.\nThe full trace ID is in each span's `traceIDFull`.",
+            "example": "12376211733897805824",
             "type": "string"
           },
           "type": {
@@ -203181,7 +203792,7 @@
             "type": "boolean"
           },
           "pending_usage_limit": {
-            "description": "The non-negative, whole-number limit to schedule for the organization-wide quota in the usage units defined by the quota namespace. It is not checked against current usage. Each write schedules the value for 00:00 UTC on the first day of the next calendar month and replaces any previously scheduled change; the server computes `pending_effective_from`. Omit this field to leave any scheduled change unchanged, including when raising `usage_limit`; use `DELETE /api/v2/usage/quotas/{quota_namespace}/{id}/pending` to cancel one.",
+            "description": "The limit to apply to the organization-wide quota at 00:00 UTC on the first day of the next calendar month. Must be a non-negative integer in the usage units defined by the quota namespace. This value is not checked against current usage.\n\nSetting this field replaces any previously scheduled limit. The server sets `pending_effective_from`.\n\nOmitting this field preserves the scheduled change, even when increasing `usage_limit`. Setting `enforced=false` clears the scheduled change. To cancel it explicitly, use `DELETE /api/v2/usage/quotas/{quota_namespace}/{id}/pending`.",
             "example": 50000,
             "format": "int64",
             "minimum": 0,
@@ -338039,46 +338650,6 @@
         "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
-    "/api/v2/security/cloud_workload/policy/download": {
-      "get": {
-        "description": "The download endpoint generates a Workload Protection policy file from your currently active\nWorkload Protection agent rules, and downloads them as a `.policy` file. This file can then be deployed to\nyour agents to update the policy running in your environment.\n\n**Note**: This endpoint should only be used for the Government (US1-FED) site.",
-        "operationId": "DownloadCloudWorkloadPolicyFile",
-        "responses": {
-          "200": {
-            "content": {
-              "application/yaml": {
-                "examples": {
-                  "default": {
-                    "value": ""
-                  }
-                },
-                "schema": {
-                  "format": "binary",
-                  "type": "string"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "403": {
-            "$ref": "#/components/responses/NotAuthorizedResponse"
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequestsResponse"
-          }
-        },
-        "summary": "Download the Workload Protection policy (US1-FED)",
-        "tags": [
-          "CSM Threats"
-        ],
-        "x-permission": {
-          "operator": "OR",
-          "permissions": [
-            "security_monitoring_cws_agent_rules_read"
-          ]
-        }
-      }
-    },
     "/api/v2/security/findings": {
       "get": {
         "description": "Get a list of security findings that match a search query. [See the schema for security findings](https://docs.datadoghq.com/security/guide/findings-schema/).\n\n### Query Syntax\n\nThis endpoint uses the logs query syntax. Findings attributes (living in the attributes.attributes. namespace) are prefixed by @ when queried. Tags are queried without a prefix.\n\nExample: `@severity:(critical OR high) @status:open team:platform`",
@@ -361752,7 +362323,7 @@
                             "by": {
                               "host": "my-hostname"
                             },
-                            "computes": {
+                            "compute": {
                               "c0": 19
                             }
                           },
@@ -361779,6 +362350,16 @@
           },
           "403": {
             "$ref": "#/components/responses/ForbiddenResponse"
+          },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorResponse"
+                }
+              }
+            },
+            "description": "Request Timeout"
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequestsResponse"
@@ -361814,7 +362395,7 @@
         "operationId": "ListSpansGet",
         "parameters": [
           {
-            "description": "Search query following spans syntax.",
+            "description": "The search query, following the\n[span search syntax](https://docs.datadoghq.com/tracing/trace_explorer/query_syntax/).\nReserved fields (`service`, `env`, `version`, `resource_name`, `operation_name`, `status`, `span_id`,\n`trace_id`, `type`) take no `@` prefix, and neither do tags such as `host` or primary tags such as\n`datacenter`. Span attributes need one, for example `@span.kind:server` or `@http.status_code:500`.\nWrap values that contain special characters such as `:`, `{`, `}`, `(`, `)`, or spaces in double quotes,\nfor example `@http.route:\"/api/v1/users/{id}\"` or `resource_name:\"GET /api/v1/users\"`.\nWildcards do not work inside quotes, so to combine a wildcard with special characters, escape each one\nwith `\\` instead, for example `resource_name:Clients\\:\\:*`.",
             "example": "@datacenter:us @role:db",
             "in": "query",
             "name": "filter[query]",
@@ -365968,6 +366549,7 @@
                         "email_header_image": "data:image/png;base64,pQSLAw0KGgoAAAANSUhEUgAAAQ4AASJKFF",
                         "favicon": "data:image/png;base64,kWMRNw0KGgoAAAANSUhEUgAAAEAAAABACA",
                         "name": "Status Page US1",
+                        "slack_app_icon": "data:image/png;base64,mXRTqw0KGgoAAAANSUhEUgAAAEAAAABACA",
                         "subscriptions_enabled": true,
                         "type": "public",
                         "visualization_type": "bars_and_uptime_percentage"
@@ -366457,6 +367039,7 @@
                         "email_header_image": "data:image/png;base64,pQSLAw0KGgoAAAANSUhEUgAAAQ4AASJKFF",
                         "favicon": "data:image/png;base64,kWMRNw0KGgoAAAANSUhEUgAAAEAAAABACA",
                         "name": "Status Page US1 East",
+                        "slack_app_icon": "data:image/png;base64,mXRTqw0KGgoAAAANSUhEUgAAAEAAAABACA",
                         "subscriptions_enabled": false,
                         "type": "internal",
                         "visualization_type": "bars_only"
@@ -366520,6 +367103,372 @@
           }
         ],
         "summary": "Update status page",
+        "tags": [
+          "Status Pages"
+        ],
+        "x-permission": {
+          "operator": "AND",
+          "permissions": [
+            "status_pages_settings_write"
+          ]
+        }
+      }
+    },
+    "/api/v2/statuspages/{page_id}/access_policies/email": {
+      "get": {
+        "description": "Lists the email access policies for a private status page.",
+        "operationId": "ListEmailAccessPolicies",
+        "parameters": [
+          {
+            "description": "The ID of the private status page.",
+            "in": "path",
+            "name": "page_id",
+            "required": true,
+            "schema": {
+              "example": "1234abcd-12ab-34cd-56ef-123456abcdef",
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated list of resources to include. Supported values: created_by_user, status_page.",
+            "in": "query",
+            "name": "include",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "created_at": "2026-01-01T00:00:00.000Z",
+                            "effect": "allow",
+                            "pattern": "@example.com"
+                          },
+                          "id": "00000000-0000-0000-0000-000000000001",
+                          "relationships": {
+                            "created_by_user": {
+                              "data": {
+                                "id": "00000000-0000-0000-0000-000000000003",
+                                "type": "users"
+                              }
+                            },
+                            "status_page": {
+                              "data": {
+                                "id": "00000000-0000-0000-0000-000000000002",
+                                "type": "status_pages"
+                              }
+                            }
+                          },
+                          "type": "email_access_policies"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/StatusPageEmailAccessPolicyArrayResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "status_pages_settings_read"
+            ]
+          }
+        ],
+        "summary": "List email access policies",
+        "tags": [
+          "Status Pages"
+        ],
+        "x-permission": {
+          "operator": "AND",
+          "permissions": [
+            "status_pages_settings_read"
+          ]
+        }
+      },
+      "post": {
+        "description": "Creates an email access policy for a private status page.",
+        "operationId": "CreateEmailAccessPolicy",
+        "parameters": [
+          {
+            "description": "The ID of the private status page.",
+            "in": "path",
+            "name": "page_id",
+            "required": true,
+            "schema": {
+              "example": "1234abcd-12ab-34cd-56ef-123456abcdef",
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated list of resources to include. Supported values: created_by_user, status_page.",
+            "in": "query",
+            "name": "include",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "effect": "allow",
+                        "pattern": "@example.com"
+                      },
+                      "type": "email_access_policies"
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/CreateStatusPageEmailAccessPolicyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "created_at": "2026-01-01T00:00:00.000Z",
+                          "effect": "allow",
+                          "pattern": "@example.com"
+                        },
+                        "id": "00000000-0000-0000-0000-000000000001",
+                        "relationships": {
+                          "created_by_user": {
+                            "data": {
+                              "id": "00000000-0000-0000-0000-000000000003",
+                              "type": "users"
+                            }
+                          },
+                          "status_page": {
+                            "data": {
+                              "id": "00000000-0000-0000-0000-000000000002",
+                              "type": "status_pages"
+                            }
+                          }
+                        },
+                        "type": "email_access_policies"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/StatusPageEmailAccessPolicyResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "status_pages_settings_write"
+            ]
+          }
+        ],
+        "summary": "Create an email access policy",
+        "tags": [
+          "Status Pages"
+        ],
+        "x-permission": {
+          "operator": "AND",
+          "permissions": [
+            "status_pages_settings_write"
+          ]
+        }
+      }
+    },
+    "/api/v2/statuspages/{page_id}/access_policies/email/{policy_id}": {
+      "delete": {
+        "description": "Deletes an email access policy from a private status page.",
+        "operationId": "DeleteEmailAccessPolicy",
+        "parameters": [
+          {
+            "description": "The ID of the private status page.",
+            "in": "path",
+            "name": "page_id",
+            "required": true,
+            "schema": {
+              "example": "1234abcd-12ab-34cd-56ef-123456abcdef",
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The ID of the email access policy.",
+            "in": "path",
+            "name": "policy_id",
+            "required": true,
+            "schema": {
+              "example": "1234abcd-12ab-34cd-56ef-123456abcdef",
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "status_pages_settings_write"
+            ]
+          }
+        ],
+        "summary": "Delete an email access policy",
         "tags": [
           "Status Pages"
         ],
@@ -369167,7 +370116,7 @@
     },
     "/api/v2/statuspages/{page_id}/publish": {
       "post": {
-        "description": "Publishes a status page. For pages of type `public`, makes the status page available on the public internet and requires the `status_pages_public_page_publish` permission. For pages of type `internal`, makes the status page available under the `status-pages/$domain_prefix/view` route within the Datadog organization and requires the `status_pages_internal_page_publish` permission.",
+        "description": "Publishes a status page. For pages of type `public`, makes the status page available on the public internet and requires the `status_pages_public_page_publish` permission. For pages of type `internal`, makes the status page available under the `status-pages/$domain_prefix/view` route within the Datadog organization and requires the `status_pages_internal_page_publish` permission. For pages of type `private`, makes the status page available to users authorized by its email access policies and requires the `status_pages_private_page_publish` permission. A private status page must have at least one email access policy before it can be published.",
         "operationId": "PublishStatusPage",
         "parameters": [
           {
@@ -369197,6 +370146,7 @@
           {
             "AuthZ": [
               "status_pages_internal_page_publish",
+              "status_pages_private_page_publish",
               "status_pages_public_page_publish"
             ]
           }
@@ -369209,14 +370159,15 @@
           "operator": "OR",
           "permissions": [
             "status_pages_public_page_publish",
-            "status_pages_internal_page_publish"
+            "status_pages_internal_page_publish",
+            "status_pages_private_page_publish"
           ]
         }
       }
     },
     "/api/v2/statuspages/{page_id}/unpublish": {
       "post": {
-        "description": "Unpublishes a status page. For pages of type `public`, removes the status page from the public internet and requires the `status_pages_public_page_publish` permission. For pages of type `internal`, removes the `status-pages/$domain_prefix/view` route from the Datadog organization and requires the `status_pages_internal_page_publish` permission.",
+        "description": "Unpublishes a status page. For pages of type `public`, removes the status page from the public internet and requires the `status_pages_public_page_publish` permission. For pages of type `internal`, removes the `status-pages/$domain_prefix/view` route from the Datadog organization and requires the `status_pages_internal_page_publish` permission. For pages of type `private`, removes access to the private status page and requires the `status_pages_private_page_publish` permission.",
         "operationId": "UnpublishStatusPage",
         "parameters": [
           {
@@ -369246,6 +370197,7 @@
           {
             "AuthZ": [
               "status_pages_internal_page_publish",
+              "status_pages_private_page_publish",
               "status_pages_public_page_publish"
             ]
           }
@@ -369258,7 +370210,8 @@
           "operator": "OR",
           "permissions": [
             "status_pages_public_page_publish",
-            "status_pages_internal_page_publish"
+            "status_pages_internal_page_publish",
+            "status_pages_private_page_publish"
           ]
         }
       }
@@ -377791,17 +378744,17 @@
     },
     "/api/v2/trace/{trace_id}": {
       "get": {
-        "description": "Retrieve a full APM trace by its trace ID, including every span in the trace.\nTraces are returned from live storage when available and fall back to longer-term storage.\nA `400 Bad Request` response means the trace ID is malformed. A `404 Not Found` response means\nno trace with this ID is available, such as when the trace is outside the retention period.\nThis endpoint is rate limited to `60` requests per minute per organization.",
+        "description": "Retrieve a full APM trace by its trace ID, including every span in the trace.\nTraces are returned from live storage when available and fall back to longer-term storage.\nA `400 Bad Request` response means the trace ID is malformed. A `404 Not Found` response means\nno trace with this ID is available, such as when the trace is outside the retention period.\nThis endpoint is rate limited to `60` requests per minute per organization.\nFor very large traces, use Get a pruned trace by ID, or set `include_fields` to keep only the tags you need.",
         "operationId": "GetTraceByID",
         "parameters": [
           {
             "$ref": "#/components/parameters/TraceIDPathParameter"
           },
           {
-            "description": "List of span fields to include in the response. When omitted, every available field is returned.\nValues may be passed as repeated query parameters or as a single comma-separated value.",
+            "description": "Tag keys to keep in each span's `meta` and `metrics`, for example `http.status_code` or `error.message`.\nEach value is matched against tag keys by exact name, with or without a leading `@`.\nPassing `meta` or `metrics` doesn't return the whole map.\nCore span fields such as `service`, `resource`, `name`, `duration`, IDs, and timestamps, and the `env` tag\nin `meta`, are always returned.\nWhen omitted, all tags are returned.\nValues may be passed as repeated query parameters or as a single comma-separated value.",
             "example": [
-              "service",
-              "resource"
+              "http.status_code",
+              "error.message"
             ],
             "in": "query",
             "name": "include_fields",
@@ -377842,13 +378795,13 @@
                               "service": "web-store",
                               "spanID": 9876543210987655000,
                               "startTime": 1716800000000000000,
-                              "traceID": 12345678901234567000,
+                              "traceID": 12376211733897806000,
                               "traceIDFull": "0000000000000000abc1230000000000",
                               "type": "web"
                             }
                           ]
                         },
-                        "id": "0000000000000000abc1230000000000",
+                        "id": "12376211733897805824",
                         "type": "trace"
                       }
                     }
@@ -379513,7 +380466,7 @@
     },
     "/api/v2/usage/quotas/{quota_namespace}": {
       "get": {
-        "description": "Lists usage quotas for the caller's organization in a quota namespace. You can optionally include\ndescendant organizations in the same datacenter as the caller. Requires the `billing_read` or\n`billing_edit` permission.",
+        "description": "Lists usage quotas for the caller's organization in a quota namespace. You can optionally include\ndescendant organizations in the same data center as the caller. Requires the `billing_read` or\n`billing_edit` permission.",
         "operationId": "ListQuotas",
         "parameters": [
           {
@@ -379527,7 +380480,7 @@
             }
           },
           {
-            "description": "Whether to include quotas configured on descendant organizations in the caller's organization hierarchy. Only descendants in the same datacenter are supported.",
+            "description": "Whether to include quotas configured on descendant organizations in the caller's organization hierarchy. Only descendants in the same data center are supported.",
             "in": "query",
             "name": "include_descendants",
             "required": false,
@@ -379680,7 +380633,7 @@
             }
           },
           {
-            "description": "Whether to write every item in the request to the caller's organization and all of its descendant organizations, instead of only the caller's organization. Only descendants in the same datacenter are supported. For a user-handle scope, the quota is applied only to the caller's organization and to descendant organizations where that user handle exists; the item fails only if the handle exists in none of them.",
+            "description": "Whether to write every item in the request to the caller's organization and all of its descendant organizations, instead of only the caller's organization. Only descendants in the same data center are supported. For a user-handle scope, the quota is applied only to the caller's organization and to descendant organizations where that user handle exists; the item fails only if the handle exists in none of them.",
             "in": "query",
             "name": "include_descendants",
             "required": false,
@@ -379847,6 +380800,17 @@
         "operationId": "DeleteQuota",
         "parameters": [
           {
+            "description": "Allow access to authorized descendant organizations in the same data center. When false, an identifier belonging to any other organization returns 403. Defaults to true for ID-based operations to preserve existing descendant access.",
+            "in": "query",
+            "name": "include_descendants",
+            "required": false,
+            "schema": {
+              "default": true,
+              "example": false,
+              "type": "boolean"
+            }
+          },
+          {
             "description": "The product-specific namespace whose usage quotas are being managed.",
             "in": "path",
             "name": "quota_namespace",
@@ -379918,10 +380882,146 @@
         },
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
+      "get": {
+        "description": "Returns a usage quota's current configuration by its opaque identifier. Scheduled limits are returned separately until they take effect, after which they are returned as the current limit.\n\nBy default, you can retrieve quotas from your organization and authorized descendant organizations in the same data center. Set `include_descendants=false` to restrict access to your organization.\n\nA quota remains readable after its associated user, role, or team is deleted. Requires `billing_read` or `billing_edit`.",
+        "operationId": "GetQuota",
+        "parameters": [
+          {
+            "description": "Allow access to authorized descendant organizations in the same data center. When false, an identifier belonging to any other organization returns 403. Defaults to true for ID-based operations to preserve existing descendant access.",
+            "in": "query",
+            "name": "include_descendants",
+            "required": false,
+            "schema": {
+              "default": true,
+              "example": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "The product-specific namespace whose usage quotas are being managed.",
+            "in": "path",
+            "name": "quota_namespace",
+            "required": true,
+            "schema": {
+              "example": "ai_credits",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The opaque quota identifier returned by a previous list or create request. Clients must pass this value verbatim.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "example": "MTIzNB9haV9jcmVkaXRzH3VzZXJfaGFuZGxlOl9fQUxMX18",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "enforced": false,
+                          "org_public_id": "abcdef12345",
+                          "usage_limit": 120000
+                        },
+                        "id": "MTIzNB9haV9jcmVkaXRzH3VzZXJfaGFuZGxlOl9fQUxMX18",
+                        "type": "quotas"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/UsageQuotaResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "billing_read"
+            ]
+          },
+          {
+            "AuthZ": [
+              "billing_edit"
+            ]
+          }
+        ],
+        "summary": "Get a usage quota",
+        "tags": [
+          "Usage Metering"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "billing_read",
+            "billing_edit"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      },
       "patch": {
-        "description": "Updates the supplied fields on a usage quota and leaves omitted fields unchanged. For an organization-wide quota, `pending_usage_limit` schedules a limit for the next usage period. The quota must belong to the caller's organization or one of its descendants, and its opaque identifier must belong to the requested quota namespace. Requires the `billing_edit` permission.",
+        "description": "Updates the supplied fields on a usage quota. Setting `enforced=false` clears any pending change atomically, including when enforcement is already disabled. Other immediate updates preserve future pending changes when `pending_usage_limit` is omitted. For an organization-wide quota, `pending_usage_limit` schedules a limit for the next usage period. The quota must belong to the caller's organization or one of its descendants, and its opaque identifier must belong to the requested quota namespace. Requires the `billing_edit` permission.",
         "operationId": "UpdateQuota",
         "parameters": [
+          {
+            "description": "Allow access to authorized descendant organizations in the same data center. When false, an identifier belonging to any other organization returns 403. Defaults to true for ID-based operations to preserve existing descendant access.",
+            "in": "query",
+            "name": "include_descendants",
+            "required": false,
+            "schema": {
+              "default": true,
+              "example": false,
+              "type": "boolean"
+            }
+          },
           {
             "description": "The product-specific namespace whose usage quotas are being managed.",
             "in": "path",
@@ -380057,6 +381157,17 @@
         "description": "Cancels the limit change scheduled to take effect at the start of the next usage period, leaving the usage quota and its current limit unchanged. Returns `404` when the quota does not exist, has no scheduled change, or its scheduled change has already taken effect; in every case the quota is left unchanged. The quota must belong to the caller's organization or one of its descendants, and its opaque identifier must belong to the requested quota namespace. Requires the `billing_edit` permission.",
         "operationId": "DeletePendingQuota",
         "parameters": [
+          {
+            "description": "Allow access to authorized descendant organizations in the same data center. When false, an identifier belonging to any other organization returns 403. Defaults to true for ID-based operations to preserve existing descendant access.",
+            "in": "query",
+            "name": "include_descendants",
+            "required": false,
+            "schema": {
+              "default": true,
+              "example": false,
+              "type": "boolean"
+            }
+          },
           {
             "description": "The product-specific namespace whose usage quotas are being managed.",
             "in": "path",
@@ -386687,7 +387798,7 @@
       "name": "AWS Logs Integration"
     },
     {
-      "description": "Action connections extend your installed integrations and allow you to take action in your third-party systems\n(e.g. AWS, GitLab, and Statuspage) with Datadog’s Workflow Automation and App Builder products.\n\nDatadog’s Integrations automatically provide authentication for Slack, Microsoft Teams, PagerDuty, Opsgenie,\nJIRA, GitHub, and Statuspage. You do not need additional connections in order to access these tools within\nWorkflow Automation and App Builder.\n\nWe offer granular access control for editing and resolving connections.",
+      "description": "Action connections extend your installed integrations and allow you to take action in your third-party systems\n(e.g. AWS, GitLab, and Statuspage) with Datadog’s Workflow Automation and App Builder products.\n\nDatadog’s Integrations automatically provide authentication for Slack, Microsoft Teams, PagerDuty, Opsgenie,\nJIRA, GitHub, and Statuspage. You do not need additional connections in order to access these tools within\nWorkflow Automation and App Builder.\n\nTo authenticate with your own GitHub App or personal access token, create a GitHub connection.\n\nWe offer granular access control for editing and resolving connections.",
       "externalDocs": {
         "description": "Find out more at",
         "url": "https://docs.datadoghq.com/service_management/workflows/connections/"
