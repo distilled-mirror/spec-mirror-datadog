@@ -1097,7 +1097,7 @@
         }
       },
       "GetIssueIncludeQueryParameter": {
-        "description": "Comma-separated list of relationship objects that should be included in the response.\nPossible values are `assignee`, `case`, `team_owners`, and `samples`.",
+        "description": "Comma-separated list of relationship objects that should be included in the response. Possible values are `assignee`, `bits_investigation`, `case`, `pull_requests`, `samples`, `team_owners`, and `watches`.\nValues must not contain spaces. `case` and `assignee` return nothing, without an error, if the caller lacks the `cases_read` permission.",
         "explode": false,
         "in": "query",
         "name": "include",
@@ -2324,6 +2324,7 @@
       },
       "ProductName": {
         "description": "Name of the product to be deleted. Only `logs` is supported.",
+        "example": "logs",
         "in": "path",
         "name": "product",
         "required": true,
@@ -2703,7 +2704,7 @@
         }
       },
       "SearchIssuesIncludeQueryParameter": {
-        "description": "Comma-separated list of relationship objects that should be included in the response. Possible values are `issue`, `issue.assignee`, `issue.case`, and `issue.team_owners`.",
+        "description": "Comma-separated list of relationship objects that should be included in the response. Possible values are `issue`, `issue.assignee`, `issue.bits_investigation`, `issue.case`, `issue.impacted_sessions`, `issue.impacted_users`, `issue.pull_requests`, `issue.team_owners`, and `issue.watches`.",
         "explode": false,
         "in": "query",
         "name": "include",
@@ -3852,6 +3853,13 @@
           "action": {
             "$ref": "#/components/schemas/AIGuardAction"
           },
+          "extra_tags": {
+            "description": "The span tags that tracers should add to the `ai_guard` span. Each item contains a\nbackend-defined key and value, and clients should not assume a fixed set of keys.\nExample keys include `ai_guard.evaluate_id` and `ai_guard.evaluation_context`.",
+            "items": {
+              "$ref": "#/components/schemas/AIGuardExtraTag"
+            },
+            "type": "array"
+          },
           "global_prob": {
             "description": "The global threat probability, between `0` and `1`. Included only when computed.",
             "example": 0.005218505859375,
@@ -4025,6 +4033,26 @@
         "x-enum-varnames": [
           "EVALUATIONS"
         ]
+      },
+      "AIGuardExtraTag": {
+        "description": "A span tag for tracers to add to the `ai_guard` span.",
+        "properties": {
+          "key": {
+            "description": "The span tag key.",
+            "example": "ai_guard.evaluate_id",
+            "type": "string"
+          },
+          "value": {
+            "description": "The span tag value.",
+            "example": "a76a703c-324f-42ed-af33-9b17d65e28af",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ],
+        "type": "object"
       },
       "AIGuardGlobalConfidenceThreshold": {
         "description": "The global confidence threshold applied to every threat category.",
@@ -20645,6 +20673,38 @@
           "UPSERT_ARBITRARY_RULE"
         ]
       },
+      "ArbitraryRuleMappingTransform": {
+        "description": "Only supported for `proportional_timeseries` and `even_timeseries` rules. Creates a synthetic tag from timeseries input rows before `tag_transforms` are applied.",
+        "properties": {
+          "mapping": {
+            "additionalProperties": {},
+            "description": "Recursive mapping node. Each `match_on_values` branch contains a value and a nested node.",
+            "example": {
+              "default": "other",
+              "match_on_tag": "service",
+              "match_on_values": [
+                {
+                  "node": {
+                    "default": "web-team"
+                  },
+                  "value": "web-store"
+                }
+              ]
+            },
+            "type": "object"
+          },
+          "synthetic_tag": {
+            "description": "The name of the synthetic tag created by the mapping.",
+            "example": "team",
+            "type": "string"
+          }
+        },
+        "required": [
+          "synthetic_tag",
+          "mapping"
+        ],
+        "type": "object"
+      },
       "ArbitraryRuleResponse": {
         "description": "The definition of `ArbitraryRuleResponse` object.",
         "example": {
@@ -20963,6 +21023,10 @@
             "example": false,
             "type": "boolean"
           },
+          "is_ootb": {
+            "description": "Whether the rule is an out-of-the-box rule provided by Datadog. Omitted when `false`.",
+            "type": "boolean"
+          },
           "last_modified_user_uuid": {
             "description": "The `attributes` `last_modified_user_uuid`.",
             "example": "",
@@ -20994,6 +21058,9 @@
             "description": "The `attributes` `rejected`.",
             "type": "boolean"
           },
+          "rule_category": {
+            "$ref": "#/components/schemas/ArbitraryRuleResponseDataAttributesRuleCategory"
+          },
           "rule_name": {
             "description": "The `attributes` `rule_name`.",
             "example": "",
@@ -21011,6 +21078,16 @@
             "description": "The `attributes` `updated`.",
             "example": "",
             "format": "date-time",
+            "type": "string"
+          },
+          "valid_from_date": {
+            "description": "The first date the rule applies to. Omitted when the rule has no start date.",
+            "format": "date",
+            "type": "string"
+          },
+          "valid_through_date": {
+            "description": "The last date the rule applies to. Omitted when the rule has no end date.",
+            "format": "date",
             "type": "string"
           },
           "version": {
@@ -21069,6 +21146,18 @@
         ],
         "type": "object"
       },
+      "ArbitraryRuleResponseDataAttributesRuleCategory": {
+        "description": "Rule category. Omitted for custom rules.",
+        "enum": [
+          "custom",
+          "ai_gateway"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "CUSTOM",
+          "AI_GATEWAY"
+        ]
+      },
       "ArbitraryRuleResponseDataAttributesStrategy": {
         "description": "The definition of `ArbitraryRuleResponseDataAttributesStrategy` object.",
         "properties": {
@@ -21125,10 +21214,29 @@
             "description": "The `strategy` `granularity`.",
             "type": "string"
           },
+          "mapping_transform": {
+            "$ref": "#/components/schemas/ArbitraryRuleMappingTransform"
+          },
           "method": {
             "description": "The `strategy` `method`.",
             "example": "",
             "type": "string"
+          },
+          "static_tags": {
+            "description": "Tags added to every cost row allocated by the rule.",
+            "items": {
+              "$ref": "#/components/schemas/ArbitraryRuleResponseDataAttributesStrategyAllocatedByItemsAllocatedTagsItems"
+            },
+            "type": "array"
+          },
+          "supporting_timeseries": {
+            "additionalProperties": {},
+            "description": "Integration metrics query used to calculate coverage.",
+            "nullable": true,
+            "type": "object"
+          },
+          "tag_transforms": {
+            "$ref": "#/components/schemas/ArbitraryRuleTagTransforms"
           }
         },
         "required": [
@@ -21370,6 +21478,78 @@
         "type": "string",
         "x-enum-varnames": [
           "ARBITRARY_RULE_STATUS"
+        ]
+      },
+      "ArbitraryRuleTagTransforms": {
+        "description": "Only supported for `proportional_timeseries` and `even_timeseries` rules. Applies tag key renames and tag value transforms to timeseries input rows after `mapping_transform`.",
+        "properties": {
+          "tag_key_rename": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Map of source tag key to renamed tag key.",
+            "type": "object"
+          },
+          "tag_value_transforms": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ArbitraryRuleTagValueTransform"
+            },
+            "description": "Map of tag key to the transform applied to its values.",
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "ArbitraryRuleTagValueTransform": {
+        "description": "A transform applied to the values of one tag key.",
+        "properties": {
+          "default": {
+            "description": "The value used when no `map` entry matches.",
+            "type": "string"
+          },
+          "map": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Lookup map from input value to output value, for `lookup_map`.",
+            "type": "object"
+          },
+          "pattern": {
+            "description": "The regular expression, for `regex_extract` and `regex_replace`.",
+            "type": "string"
+          },
+          "replacement": {
+            "description": "The replacement string, for `string_replace` and `regex_replace`.",
+            "type": "string"
+          },
+          "target": {
+            "description": "The substring to replace, for `string_replace`.",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ArbitraryRuleTagValueTransformType"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "ArbitraryRuleTagValueTransformType": {
+        "description": "The kind of transform.",
+        "enum": [
+          "string_replace",
+          "regex_extract",
+          "regex_replace",
+          "lookup_map"
+        ],
+        "example": "string_replace",
+        "type": "string",
+        "x-enum-varnames": [
+          "STRING_REPLACE",
+          "REGEX_EXTRACT",
+          "REGEX_REPLACE",
+          "LOOKUP_MAP"
         ]
       },
       "ArchiveSearchCreateRehydration": {
@@ -23862,7 +24042,6 @@
           },
           "created_at": {
             "description": "The timestamp when the AWS CUR config was created.",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{6}$",
             "type": "string"
           },
           "error_messages": {
@@ -23898,12 +24077,10 @@
           },
           "status_updated_at": {
             "description": "The timestamp when the AWS CUR config status was updated.",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{6}$",
             "type": "string"
           },
           "updated_at": {
             "description": "The timestamp when the AWS CUR config status was updated.",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{6}$",
             "type": "string"
           }
         },
@@ -24099,14 +24276,14 @@
               "account_id": "123456789123",
               "bucket_name": "dd-cost-bucket",
               "bucket_region": "us-east-1",
-              "created_at": "2023-01-01T12:00:00.000000",
+              "created_at": "2023-01-01T12:00:00Z",
               "error_messages": [],
               "months": 36,
               "report_name": "dd-report-name",
               "report_prefix": "dd-report-prefix",
               "status": "active",
-              "status_updated_at": "2023-01-01T12:00:00.000000",
-              "updated_at": "2023-01-01T12:00:00.000000"
+              "status_updated_at": "2023-01-01T12:00:00Z",
+              "updated_at": "2023-01-01T12:00:00Z"
             },
             "id": "123456789123",
             "type": "aws_cur_config"
@@ -24959,7 +25136,6 @@
           },
           "created_at": {
             "description": "The timestamp when the Azure config was created.",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{6}$",
             "type": "string"
           },
           "dataset_type": {
@@ -25009,7 +25185,6 @@
           },
           "status_updated_at": {
             "description": "The timestamp when the Azure config status was last updated.",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{6}$",
             "type": "string"
           },
           "storage_account": {
@@ -25024,7 +25199,6 @@
           },
           "updated_at": {
             "description": "The timestamp when the Azure config was last updated.",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{6}$",
             "type": "string"
           }
         },
@@ -57995,6 +58169,566 @@
         },
         "type": "object"
       },
+      "DeviceBaseArray": {
+        "description": "Response body for the list devices endpoint.",
+        "properties": {
+          "data": {
+            "description": "List of devices matching the request.",
+            "items": {
+              "$ref": "#/components/schemas/DeviceBaseData"
+            },
+            "type": "array"
+          },
+          "links": {
+            "$ref": "#/components/schemas/DeviceBaseArrayLinks"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/DeviceBaseArrayMeta"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "DeviceBaseArrayLinks": {
+        "description": "Links related to the current page of devices.",
+        "properties": {
+          "next": {
+            "description": "URL of the next page of devices. Present only when more devices remain.",
+            "example": "/api/v2/eudm/devices?page%5Bcursor%5D=TEFQVE9QLURFTU8tMDAx&page%5Blimit%5D=1",
+            "type": "string"
+          },
+          "self": {
+            "description": "URL of the current request.",
+            "example": "/api/v2/eudm/devices?page%5Blimit%5D=1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DeviceBaseArrayMeta": {
+        "description": "Metadata about the list devices response.",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/DeviceBaseArrayMetaPage"
+          }
+        },
+        "type": "object"
+      },
+      "DeviceBaseArrayMetaPage": {
+        "description": "Pagination information for the list devices response.",
+        "properties": {
+          "after": {
+            "description": "Cursor to pass as `page[cursor]` to get the next page.\nPresent only when more devices remain.",
+            "example": "TEFQVE9QLURFTU8tMDAx",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DeviceBaseData": {
+        "description": "A single device entry as returned by the list devices endpoint.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/DeviceBaseDataAttributes"
+          },
+          "id": {
+            "description": "Unique identifier of the device. Matches the Datadog host identifier.",
+            "example": "LAPTOP-DEMO-001",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DeviceDetailsDataType"
+          }
+        },
+        "required": [
+          "type",
+          "id"
+        ],
+        "type": "object"
+      },
+      "DeviceBaseDataAttributes": {
+        "description": "Common health and identity attributes shared by every End User Device Monitoring device record.",
+        "properties": {
+          "agent_key": {
+            "description": "Public key of the Datadog Agent installed on the device.",
+            "type": "string"
+          },
+          "agent_version": {
+            "description": "Version of the Datadog Agent installed on the device.",
+            "type": "string"
+          },
+          "battery_critical": {
+            "description": "Whether the device's battery health has degraded to a critical level.",
+            "type": "boolean"
+          },
+          "battery_max_capacity_pct": {
+            "description": "Maximum battery capacity expressed as a percentage of the device's design capacity.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "cpu_cores": {
+            "description": "Number of physical CPU cores on the device.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "cpu_logical_processors": {
+            "description": "Number of logical CPU processors (hardware threads) on the device.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "cpu_model": {
+            "description": "Human-readable name of the device's CPU model.",
+            "type": "string"
+          },
+          "cpu_usage": {
+            "description": "Average CPU usage on the device, as a percentage between 0 and 100.",
+            "format": "double",
+            "type": "number"
+          },
+          "disk_usage": {
+            "description": "Average disk usage on the device, as a percentage between 0 and 100.",
+            "format": "double",
+            "type": "number"
+          },
+          "employee": {
+            "$ref": "#/components/schemas/DeviceEmployee"
+          },
+          "geo_ip": {
+            "$ref": "#/components/schemas/DeviceGeoIP"
+          },
+          "ip_address": {
+            "description": "Last observed IPv4 or IPv6 address of the device.",
+            "type": "string"
+          },
+          "issues": {
+            "description": "List of issue identifiers currently affecting the device.",
+            "items": {
+              "description": "Identifier of a single issue currently affecting the device.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "kernel_name": {
+            "description": "Name of the operating system kernel running on the device.",
+            "type": "string"
+          },
+          "last_reboot": {
+            "description": "Timestamp of the most recent device reboot, in RFC 3339 format.",
+            "type": "string"
+          },
+          "last_seen": {
+            "description": "Timestamp of the most recent telemetry received from the device, in RFC 3339 format.",
+            "type": "string"
+          },
+          "manufacturer": {
+            "description": "Manufacturer of the device.",
+            "type": "string"
+          },
+          "mem_usage": {
+            "description": "Average memory usage on the device, as a percentage between 0 and 100.",
+            "format": "double",
+            "type": "number"
+          },
+          "memory_total_kb": {
+            "description": "Total amount of physical memory available on the device, in kilobytes.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "model_name": {
+            "description": "Marketing or product name of the device model.",
+            "type": "string"
+          },
+          "model_number": {
+            "description": "Manufacturer-assigned model number of the device.",
+            "type": "string"
+          },
+          "os": {
+            "description": "Operating system family running on the device, as reported by the Datadog Agent\n(for example, `macOS`, `Windows`, or `linux`). Empty when unknown.",
+            "type": "string"
+          },
+          "os_version": {
+            "description": "Operating system version running on the device.",
+            "type": "string"
+          },
+          "resource_id": {
+            "description": "Datadog resource identifier for the device.",
+            "type": "string"
+          },
+          "serial_number": {
+            "description": "Serial number assigned to the device by its manufacturer.",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DeviceStatus"
+          },
+          "type": {
+            "description": "Hardware type of the device (for example, `laptop` or `desktop`). `unknown` when the type cannot be determined.",
+            "type": "string"
+          },
+          "uptime": {
+            "description": "Time elapsed since the device last booted, in seconds.",
+            "format": "double",
+            "type": "number"
+          },
+          "wlan_bssid": {
+            "description": "BSSID (MAC address of the access point) of the wireless network the device is\ncurrently connected to.",
+            "type": "string"
+          },
+          "wlan_rssi": {
+            "description": "Received signal strength indicator of the device's current wireless connection, in dBm.",
+            "format": "double",
+            "type": "number"
+          },
+          "wlan_ssid": {
+            "description": "SSID of the wireless network the device is currently connected to.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DeviceDetails": {
+        "description": "Response body for the get device endpoint, returning a single device with full attribute detail.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DeviceDetailsData"
+          }
+        },
+        "type": "object"
+      },
+      "DeviceDetailsData": {
+        "description": "A single device entry with full attribute detail.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/DeviceDetailsDataAttributes"
+          },
+          "id": {
+            "description": "Unique identifier of the device. Matches the Datadog host identifier.",
+            "example": "LAPTOP-DEMO-001",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/DeviceDetailsDataType"
+          }
+        },
+        "required": [
+          "type",
+          "id"
+        ],
+        "type": "object"
+      },
+      "DeviceDetailsDataAttributes": {
+        "description": "Extended set of attributes for a single End User Device Monitoring device,\nincluding Cloud Network Monitoring and battery metrics.",
+        "properties": {
+          "agent_key": {
+            "description": "Public key of the Datadog Agent installed on the device.",
+            "type": "string"
+          },
+          "agent_version": {
+            "description": "Version of the Datadog Agent installed on the device.",
+            "type": "string"
+          },
+          "battery_charge_pct": {
+            "description": "Current battery charge level as a percentage between 0 and 100.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "battery_charge_rate": {
+            "description": "Rate at which the battery is charging or discharging, in milliamperes.\nNegative values indicate discharge.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "battery_critical": {
+            "description": "Whether the device's battery health has degraded to a critical level.",
+            "type": "boolean"
+          },
+          "battery_cycle_count": {
+            "description": "Number of full charge cycles the battery has gone through.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "battery_max_capacity_pct": {
+            "description": "Maximum battery capacity expressed as a percentage of the device's design capacity.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "cnm_enabled": {
+            "description": "Whether Cloud Network Monitoring is enabled on the device.",
+            "type": "boolean"
+          },
+          "cpu_cores": {
+            "description": "Number of physical CPU cores on the device.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "cpu_logical_processors": {
+            "description": "Number of logical CPU processors (hardware threads) on the device.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "cpu_model": {
+            "description": "Human-readable name of the device's CPU model.",
+            "type": "string"
+          },
+          "cpu_usage": {
+            "description": "Average CPU usage on the device, as a percentage between 0 and 100.",
+            "format": "double",
+            "type": "number"
+          },
+          "disk_usage": {
+            "description": "Average disk usage on the device, as a percentage between 0 and 100.",
+            "format": "double",
+            "type": "number"
+          },
+          "employee": {
+            "$ref": "#/components/schemas/DeviceEmployee"
+          },
+          "geo_ip": {
+            "$ref": "#/components/schemas/DeviceGeoIP"
+          },
+          "ip_address": {
+            "description": "Last observed IPv4 or IPv6 address of the device.",
+            "type": "string"
+          },
+          "issues": {
+            "description": "List of issue identifiers currently affecting the device.",
+            "items": {
+              "description": "Identifier of a single issue currently affecting the device.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "kernel_name": {
+            "description": "Name of the operating system kernel running on the device.",
+            "type": "string"
+          },
+          "last_reboot": {
+            "description": "Timestamp of the most recent device reboot, in RFC 3339 format.",
+            "type": "string"
+          },
+          "last_seen": {
+            "description": "Timestamp of the most recent telemetry received from the device, in RFC 3339 format.",
+            "type": "string"
+          },
+          "manufacturer": {
+            "description": "Manufacturer of the device.",
+            "type": "string"
+          },
+          "mem_usage": {
+            "description": "Average memory usage on the device, as a percentage between 0 and 100.",
+            "format": "double",
+            "type": "number"
+          },
+          "memory_total_kb": {
+            "description": "Total amount of physical memory available on the device, in kilobytes.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "model_name": {
+            "description": "Marketing or product name of the device model.",
+            "type": "string"
+          },
+          "model_number": {
+            "description": "Manufacturer-assigned model number of the device.",
+            "type": "string"
+          },
+          "os": {
+            "description": "Operating system family running on the device, as reported by the Datadog Agent\n(for example, `macOS`, `Windows`, or `linux`). Empty when unknown.",
+            "type": "string"
+          },
+          "os_version": {
+            "description": "Operating system version running on the device.",
+            "type": "string"
+          },
+          "packet_sent": {
+            "description": "Number of TCP packets sent by the device over the query window,\nas reported by Cloud Network Monitoring.",
+            "format": "double",
+            "type": "number"
+          },
+          "resource_id": {
+            "description": "Datadog resource identifier for the device.",
+            "type": "string"
+          },
+          "retransmit": {
+            "description": "Number of TCP packets retransmitted by the device over the query window.",
+            "format": "double",
+            "type": "number"
+          },
+          "retransmit_pct": {
+            "description": "Percentage of sent TCP packets that were retransmitted, between 0 and 100.",
+            "format": "double",
+            "type": "number"
+          },
+          "serial_number": {
+            "description": "Serial number assigned to the device by its manufacturer.",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DeviceStatus"
+          },
+          "tcp_canceled": {
+            "description": "Number of TCP connection attempts canceled by the device over the query window.",
+            "format": "double",
+            "type": "number"
+          },
+          "tcp_established": {
+            "description": "Number of TCP connections established by the device over the query window.",
+            "format": "double",
+            "type": "number"
+          },
+          "tcp_establishment_failure_pct": {
+            "description": "Percentage of TCP connection attempts that failed, between 0 and 100.",
+            "format": "double",
+            "type": "number"
+          },
+          "tcp_establishment_failures": {
+            "description": "Number of TCP connection attempts that failed over the query window.",
+            "format": "double",
+            "type": "number"
+          },
+          "tcp_host_unreachable": {
+            "description": "Number of TCP connection attempts that failed because the host was unreachable.",
+            "format": "double",
+            "type": "number"
+          },
+          "tcp_network_unreachable": {
+            "description": "Number of TCP connection attempts that failed because the network was unreachable.",
+            "format": "double",
+            "type": "number"
+          },
+          "tcp_refusals": {
+            "description": "Number of TCP connection attempts refused by the remote host over the query window.",
+            "format": "double",
+            "type": "number"
+          },
+          "tcp_timeouts": {
+            "description": "Number of TCP connection attempts that timed out over the query window.",
+            "format": "double",
+            "type": "number"
+          },
+          "type": {
+            "description": "Hardware type of the device (for example, `laptop` or `desktop`). `unknown` when the type cannot be determined.",
+            "type": "string"
+          },
+          "uptime": {
+            "description": "Time elapsed since the device last booted, in seconds.",
+            "format": "double",
+            "type": "number"
+          },
+          "wlan_bssid": {
+            "description": "BSSID (MAC address of the access point) of the wireless network the device is\ncurrently connected to.",
+            "type": "string"
+          },
+          "wlan_rssi": {
+            "description": "Received signal strength indicator of the device's current wireless connection, in dBm.",
+            "format": "double",
+            "type": "number"
+          },
+          "wlan_ssid": {
+            "description": "SSID of the wireless network the device is currently connected to.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DeviceDetailsDataType": {
+        "default": "devices",
+        "description": "Devices resource type.",
+        "enum": [
+          "devices"
+        ],
+        "example": "devices",
+        "type": "string",
+        "x-enum-varnames": [
+          "DEVICES"
+        ]
+      },
+      "DeviceEmployee": {
+        "description": "Directory information about the employee associated with the device,\nsourced from a customer reference table.\nAbsent when no reference table is configured or the device has no match.",
+        "properties": {
+          "city": {
+            "description": "City where the employee is based.",
+            "type": "string"
+          },
+          "country": {
+            "description": "Country where the employee is based.",
+            "type": "string"
+          },
+          "department": {
+            "description": "Department the employee belongs to.",
+            "type": "string"
+          },
+          "email": {
+            "description": "Email address of the employee.",
+            "type": "string"
+          },
+          "name": {
+            "description": "Full name of the employee.",
+            "type": "string"
+          },
+          "office": {
+            "description": "Office the employee is assigned to.",
+            "type": "string"
+          },
+          "team": {
+            "description": "Team the employee belongs to.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DeviceGeoIP": {
+        "description": "Location derived from the device's public IP address.\nAbsent when no location data is available.",
+        "properties": {
+          "geo_city": {
+            "description": "City resolved from the device's public IP address.",
+            "type": "string"
+          },
+          "geo_country_iso_code": {
+            "description": "ISO 3166-1 alpha-2 country code resolved from the device's public IP address.",
+            "type": "string"
+          },
+          "geo_latitude": {
+            "description": "Latitude resolved from the device's public IP address.",
+            "format": "double",
+            "type": "number"
+          },
+          "geo_longitude": {
+            "description": "Longitude resolved from the device's public IP address.",
+            "format": "double",
+            "type": "number"
+          },
+          "geo_subdivision_iso_code": {
+            "description": "ISO 3166-2 subdivision code (for example, a state or province)\nresolved from the device's public IP address.",
+            "type": "string"
+          },
+          "public_ip_address": {
+            "description": "Public IPv4 or IPv6 address of the device.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DeviceStatus": {
+        "description": "Health status of the device, computed from its issues and recent telemetry.\n`inactive` means the device stopped reporting. `unknown` means no telemetry is available yet.",
+        "enum": [
+          "healthy",
+          "degraded",
+          "critical",
+          "inactive",
+          "unknown"
+        ],
+        "example": "healthy",
+        "type": "string",
+        "x-enum-varnames": [
+          "HEALTHY",
+          "DEGRADED",
+          "CRITICAL",
+          "INACTIVE",
+          "UNKNOWN"
+        ]
+      },
       "DeviceTagsBySource": {
         "description": "Tags associated with a device from a specific source.",
         "properties": {
@@ -81108,6 +81842,51 @@
           }
         ]
       },
+      "GCPCudMetadataConfig": {
+        "description": "The BigQuery table the committed use discount (CUD) metadata is read from. Only returned when CUD metadata is configured for the account.",
+        "properties": {
+          "dataset_id": {
+            "description": "The BigQuery dataset ID of the CUD metadata export.",
+            "example": "billing_cud_metadata",
+            "type": "string"
+          },
+          "project_id": {
+            "description": "The Google Cloud project ID of the CUD metadata export.",
+            "example": "my-cud-project-123",
+            "type": "string"
+          },
+          "table_id": {
+            "description": "The BigQuery table ID of the CUD metadata export.",
+            "example": "cud_metadata_export",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "dataset_id",
+          "table_id"
+        ],
+        "type": "object"
+      },
+      "GCPCudMetadataErrorCodes": {
+        "description": "The error codes reported for the committed use discount (CUD) metadata export. Only returned when CUD metadata is configured for the account.",
+        "items": {
+          "description": "A CUD metadata error code.",
+          "format": "int32",
+          "maximum": 2147483647,
+          "type": "integer"
+        },
+        "type": "array"
+      },
+      "GCPCudMetadataState": {
+        "description": "The state of the Google Cloud committed use discount (CUD) metadata export. Only returned when CUD metadata is configured for the account.",
+        "type": "string"
+      },
+      "GCPCudMetadataStatusUpdatedAt": {
+        "description": "The timestamp when the committed use discount (CUD) metadata state was last updated. Only returned when CUD metadata is configured for the account.",
+        "example": "2023-01-01T12:00:00Z",
+        "type": "string"
+      },
       "GCPIntegration": {
         "description": "The definition of the `GCPIntegration` object.",
         "properties": {
@@ -81640,8 +82419,19 @@
           },
           "created_at": {
             "description": "The timestamp when the Google Cloud Usage Cost config was created.",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{6}$",
             "type": "string"
+          },
+          "cud_metadata_config": {
+            "$ref": "#/components/schemas/GCPCudMetadataConfig"
+          },
+          "cud_metadata_error_codes": {
+            "$ref": "#/components/schemas/GCPCudMetadataErrorCodes"
+          },
+          "cud_metadata_state": {
+            "$ref": "#/components/schemas/GCPCudMetadataState"
+          },
+          "cud_metadata_status_updated_at": {
+            "$ref": "#/components/schemas/GCPCudMetadataStatusUpdatedAt"
           },
           "dataset": {
             "description": "The export dataset name used for the Google Cloud Usage Cost Report.",
@@ -81691,12 +82481,10 @@
           },
           "status_updated_at": {
             "description": "The timestamp when the Google Cloud Usage Cost config status was updated.",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{6}$",
             "type": "string"
           },
           "updated_at": {
             "description": "The timestamp when the Google Cloud Usage Cost config status was updated.",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{6}$",
             "type": "string"
           }
         },
@@ -82067,7 +82855,7 @@
             "attributes": {
               "account_id": "123456_A123BC_12AB34",
               "bucket_name": "dd-cost-bucket",
-              "created_at": "2023-01-01T12:00:00.000000",
+              "created_at": "2023-01-01T12:00:00Z",
               "dataset": "billing",
               "error_messages": [],
               "export_prefix": "datadog_cloud_cost_usage_export",
@@ -82076,8 +82864,8 @@
               "project_id": "my-project-123",
               "service_account": "dd-ccm-gcp-integration@my-environment.iam.gserviceaccount.com",
               "status": "active",
-              "status_updated_at": "2023-01-01T12:00:00.000000",
-              "updated_at": "2023-01-01T12:00:00.000000"
+              "status_updated_at": "2023-01-01T12:00:00Z",
+              "updated_at": "2023-01-01T12:00:00Z"
             },
             "id": "123456789123",
             "type": "gcp_uc_config"
@@ -82123,6 +82911,18 @@
           "created_at": {
             "description": "The `attributes` `created_at`.",
             "type": "string"
+          },
+          "cud_metadata_config": {
+            "$ref": "#/components/schemas/GCPCudMetadataConfig"
+          },
+          "cud_metadata_error_codes": {
+            "$ref": "#/components/schemas/GCPCudMetadataErrorCodes"
+          },
+          "cud_metadata_state": {
+            "$ref": "#/components/schemas/GCPCudMetadataState"
+          },
+          "cud_metadata_status_updated_at": {
+            "$ref": "#/components/schemas/GCPCudMetadataStatusUpdatedAt"
           },
           "dataset": {
             "description": "The `attributes` `dataset`.",
@@ -83125,17 +83925,23 @@
         "description": "Relationship object that should be included in the response.",
         "enum": [
           "assignee",
+          "bits_investigation",
           "case",
+          "pull_requests",
+          "samples",
           "team_owners",
-          "samples"
+          "watches"
         ],
         "example": "case",
         "type": "string",
         "x-enum-varnames": [
           "ASSIGNEE",
+          "BITS_INVESTIGATION",
           "CASE",
+          "PULL_REQUESTS",
+          "SAMPLES",
           "TEAM_OWNERS",
-          "SAMPLES"
+          "WATCHES"
         ]
       },
       "GetMappingResponse": {
@@ -98197,6 +99003,47 @@
         },
         "type": "object"
       },
+      "IssueBitsInvestigationReference": {
+        "description": "The Bits AI investigation linked to the issue.",
+        "properties": {
+          "id": {
+            "description": "Bits AI investigation identifier.",
+            "example": "6c2b3c2e-6b8f-4c3a-9a7e-1d2f3a4b5c6d",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/IssueBitsInvestigationType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "IssueBitsInvestigationRelationship": {
+        "description": "Bits AI investigation linked to the issue, returned when `bits_investigation` is requested\nin the `include` query parameter.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/IssueBitsInvestigationReference"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "IssueBitsInvestigationType": {
+        "description": "Type of the object.",
+        "enum": [
+          "bits_investigation"
+        ],
+        "example": "bits_investigation",
+        "type": "string",
+        "x-enum-varnames": [
+          "BITS_INVESTIGATION"
+        ]
+      },
       "IssueCase": {
         "description": "The case attached to the issue.",
         "properties": {
@@ -98286,6 +99133,12 @@
           },
           "status": {
             "$ref": "#/components/schemas/CaseStatus"
+          },
+          "status_group": {
+            "$ref": "#/components/schemas/CaseStatusGroup"
+          },
+          "status_name": {
+            "$ref": "#/components/schemas/CaseStatusName"
           },
           "title": {
             "description": "Title of the case.",
@@ -98498,6 +99351,12 @@
             "$ref": "#/components/schemas/IssueTeam"
           },
           {
+            "$ref": "#/components/schemas/IssuePullRequest"
+          },
+          {
+            "$ref": "#/components/schemas/IssueWatch"
+          },
+          {
             "$ref": "#/components/schemas/IssueSample"
           }
         ]
@@ -98530,6 +99389,7 @@
           "SCALA",
           "SWIFT",
           "TERRAFORM",
+          "TF",
           "TYPESCRIPT",
           "UNKNOWN"
         ],
@@ -98561,6 +99421,7 @@
           "SCALA",
           "SWIFT",
           "TERRAFORM",
+          "TF",
           "TYPESCRIPT",
           "UNKNOWN"
         ]
@@ -98571,6 +99432,7 @@
           "ANDROID",
           "BACKEND",
           "BROWSER",
+          "ELECTRON",
           "FLUTTER",
           "IOS",
           "REACT_NATIVE",
@@ -98583,12 +99445,127 @@
           "ANDROID",
           "BACKEND",
           "BROWSER",
+          "ELECTRON",
           "FLUTTER",
           "IOS",
           "REACT_NATIVE",
           "ROKU",
           "UNKNOWN"
         ]
+      },
+      "IssuePullRequest": {
+        "description": "A pull request linked to an issue.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/IssuePullRequestAttributes"
+          },
+          "id": {
+            "description": "Pull request link identifier.",
+            "example": "b3c1d2e4-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/IssuePullRequestType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "IssuePullRequestAttributes": {
+        "description": "Object containing the information of a pull request linked to an issue.",
+        "properties": {
+          "closed_at": {
+            "description": "Timestamp of when the pull request was closed. Omitted if the pull request is not closed.",
+            "example": "2025-01-02T00:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "linked_at": {
+            "description": "Timestamp of when the pull request was linked to the issue.",
+            "example": "2025-01-01T00:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "merged_at": {
+            "description": "Timestamp of when the pull request was merged. Omitted if the pull request is not merged.",
+            "example": "2025-01-02T00:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/IssuePullRequestReason"
+          },
+          "url": {
+            "description": "URL of the pull request.",
+            "example": "https://github.com/DataDog/example/pull/123",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "IssuePullRequestReason": {
+        "description": "Why the pull request is linked to the issue. `fix` means the pull request fixes the issue, and `trigger` means the pull request introduced the issue.",
+        "enum": [
+          "unknown",
+          "fix",
+          "trigger"
+        ],
+        "example": "fix",
+        "type": "string",
+        "x-enum-varnames": [
+          "UNKNOWN",
+          "FIX",
+          "TRIGGER"
+        ]
+      },
+      "IssuePullRequestReference": {
+        "description": "A pull request linked to the issue.",
+        "properties": {
+          "id": {
+            "description": "Pull request link identifier.",
+            "example": "b3c1d2e4-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/IssuePullRequestType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "IssuePullRequestType": {
+        "description": "Type of the object.",
+        "enum": [
+          "error_tracking_pull_request"
+        ],
+        "example": "error_tracking_pull_request",
+        "type": "string",
+        "x-enum-varnames": [
+          "ERROR_TRACKING_PULL_REQUEST"
+        ]
+      },
+      "IssuePullRequestsRelationship": {
+        "description": "Relationship between the issue and its linked pull requests. Returned when `pull_requests` is included and the issue has linked pull requests.",
+        "properties": {
+          "data": {
+            "description": "Array of pull requests linked to the issue.",
+            "items": {
+              "$ref": "#/components/schemas/IssuePullRequestReference"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
       },
       "IssueReference": {
         "description": "The issue the search result corresponds to.",
@@ -98636,19 +99613,28 @@
         "type": "object"
       },
       "IssueRelationships": {
-        "description": "Relationship between the issue and an assignee, case and/or teams.",
+        "description": "Relationship between the issue and other resources, such as an assignee, case, teams, pull requests, watches, samples, or a Bits AI investigation.",
         "properties": {
           "assignee": {
             "$ref": "#/components/schemas/IssueAssigneeRelationship"
           },
+          "bits_investigation": {
+            "$ref": "#/components/schemas/IssueBitsInvestigationRelationship"
+          },
           "case": {
             "$ref": "#/components/schemas/IssueCaseRelationship"
+          },
+          "pull_requests": {
+            "$ref": "#/components/schemas/IssuePullRequestsRelationship"
           },
           "samples": {
             "$ref": "#/components/schemas/IssueSamplesRelationship"
           },
           "team_owners": {
             "$ref": "#/components/schemas/IssueTeamOwnersRelationship"
+          },
+          "watches": {
+            "$ref": "#/components/schemas/IssueWatchesRelationship"
           }
         },
         "type": "object"
@@ -99333,6 +100319,195 @@
           "USER"
         ]
       },
+      "IssueWatch": {
+        "description": "An active watch on an issue. A watch moves an ignored issue back to open when its condition is met.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/IssueWatchAttributes"
+          },
+          "id": {
+            "description": "Watch identifier.",
+            "example": "e7a1c3b5-2d4f-4a6b-8c9d-0e1f2a3b4c5d",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/IssueWatchType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "IssueWatchAction": {
+        "description": "Action applied to the issue when the watch condition is met.",
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/IssueState"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/IssueWatchActionKind"
+          },
+          "to": {
+            "$ref": "#/components/schemas/IssueState"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "type": "object"
+      },
+      "IssueWatchActionKind": {
+        "description": "Kind of watch action.",
+        "enum": [
+          "CHANGE_ISSUE_STATE"
+        ],
+        "example": "CHANGE_ISSUE_STATE",
+        "type": "string",
+        "x-enum-varnames": [
+          "CHANGE_ISSUE_STATE"
+        ]
+      },
+      "IssueWatchAttributes": {
+        "description": "Object containing the information of a watch.",
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/IssueWatchAction"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/IssueWatchCondition"
+          },
+          "started_at": {
+            "description": "Timestamp of when the watch started.",
+            "example": "2025-01-01T00:00:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IssueWatchStatus"
+          }
+        },
+        "type": "object"
+      },
+      "IssueWatchCondition": {
+        "description": "Condition that triggers the watch action. The fields that are set depend on `kind`:\n`OCCURRENCES` uses `threshold`, `CARDINALITY` uses `threshold` and `projection`,\n`ELAPSED_TIME` uses `duration`, and `ANY` and `ALL` use `operands`.",
+        "properties": {
+          "duration": {
+            "description": "Time that must elapse before the condition is met, as a Go duration string.",
+            "example": "168h0m0s",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/IssueWatchConditionKind"
+          },
+          "operands": {
+            "description": "Nested conditions combined by `ANY` or `ALL`.",
+            "items": {
+              "$ref": "#/components/schemas/IssueWatchCondition"
+            },
+            "type": "array"
+          },
+          "projection": {
+            "description": "Attributes whose distinct values are counted for `CARDINALITY`.",
+            "example": [
+              "@usr.id"
+            ],
+            "items": {
+              "description": "Attribute path.",
+              "example": "@usr.id",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "threshold": {
+            "description": "Number of occurrences, or of distinct values for `CARDINALITY`, that triggers the condition.",
+            "example": 100,
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "type": "object"
+      },
+      "IssueWatchConditionKind": {
+        "description": "Kind of watch condition.",
+        "enum": [
+          "OCCURRENCES",
+          "CARDINALITY",
+          "ELAPSED_TIME",
+          "ANY",
+          "ALL"
+        ],
+        "example": "OCCURRENCES",
+        "type": "string",
+        "x-enum-varnames": [
+          "OCCURRENCES",
+          "CARDINALITY",
+          "ELAPSED_TIME",
+          "ANY",
+          "ALL"
+        ]
+      },
+      "IssueWatchReference": {
+        "description": "An active watch on the issue.",
+        "properties": {
+          "id": {
+            "description": "Watch identifier.",
+            "example": "e7a1c3b5-2d4f-4a6b-8c9d-0e1f2a3b4c5d",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/IssueWatchType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "IssueWatchStatus": {
+        "description": "Status of the watch.",
+        "enum": [
+          "ACTIVE"
+        ],
+        "example": "ACTIVE",
+        "type": "string",
+        "x-enum-varnames": [
+          "ACTIVE"
+        ]
+      },
+      "IssueWatchType": {
+        "description": "Type of the object.",
+        "enum": [
+          "error_tracking_issue_watch"
+        ],
+        "example": "error_tracking_issue_watch",
+        "type": "string",
+        "x-enum-varnames": [
+          "ERROR_TRACKING_ISSUE_WATCH"
+        ]
+      },
+      "IssueWatchesRelationship": {
+        "description": "Relationship between the issue and its active watches. Returned when `watches` is included and the issue has an active watch.",
+        "properties": {
+          "data": {
+            "description": "Array of active watches on the issue.",
+            "items": {
+              "$ref": "#/components/schemas/IssueWatchReference"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "IssuesSearchRequest": {
         "description": "Search issues request payload.",
         "properties": {
@@ -99543,13 +100718,13 @@
         "description": "Object containing the information of a search result.",
         "properties": {
           "impacted_sessions": {
-            "description": "Count of sessions impacted by the issue over the queried time window.",
+            "description": "Count of sessions impacted by the issue over the queried time window.\nReturned for RUM, LLM Observability, browser, and mobile searches,\nor when `issue.impacted_sessions` is requested in the `include` query parameter.\nOmitted when zero unless requested in the `include` query parameter.",
             "example": 12,
             "format": "int64",
             "type": "integer"
           },
           "impacted_users": {
-            "description": "Count of users impacted by the issue over the queried time window.",
+            "description": "Count of users impacted by the issue over the queried time window.\nReturned for RUM, browser, and mobile searches,\nor when `issue.impacted_users` is requested in the `include` query parameter.\nOmitted when zero unless requested in the `include` query parameter.",
             "example": 4,
             "format": "int64",
             "type": "integer"
@@ -99577,6 +100752,12 @@
           },
           {
             "$ref": "#/components/schemas/IssueTeam"
+          },
+          {
+            "$ref": "#/components/schemas/IssuePullRequest"
+          },
+          {
+            "$ref": "#/components/schemas/IssueWatch"
           }
         ]
       },
@@ -149118,10 +150299,11 @@
         "description": "The definition of a RUM operation's journey, used to detect it from RUM events.",
         "properties": {
           "rum_steps": {
-            "description": "The ordered list of steps composing the RUM journey.",
+            "description": "The ordered list of steps composing the RUM journey.\n`null` when the operation has no steps. On create and update, `null` and an empty list are equivalent.",
             "items": {
               "$ref": "#/components/schemas/RUMOperationJourneyStep"
             },
+            "nullable": true,
             "type": "array"
           }
         },
@@ -149278,6 +150460,7 @@
             "items": {
               "type": "string"
             },
+            "nullable": true,
             "type": "array"
           },
           "journey_rum": {
@@ -149302,6 +150485,7 @@
             "items": {
               "type": "string"
             },
+            "nullable": true,
             "type": "array"
           },
           "updated_at": {
@@ -149666,7 +150850,8 @@
         "type": "object"
       },
       "RUMOperationUser": {
-        "description": "A Datadog user referenced by a RUM operation.",
+        "description": "A Datadog user referenced by a RUM operation. `null` when the user could not be resolved.",
+        "nullable": true,
         "properties": {
           "email": {
             "description": "The email of the user.",
@@ -149685,6 +150870,7 @@
           },
           "uuid": {
             "description": "The UUID of the user.",
+            "example": "abc12345-1234-5678-abcd-ef1234567890",
             "readOnly": true,
             "type": "string"
           }
@@ -149700,6 +150886,9 @@
             },
             "type": "array"
           },
+          "links": {
+            "$ref": "#/components/schemas/RUMOperationsListResponseLinks"
+          },
           "meta": {
             "$ref": "#/components/schemas/RUMOperationsListResponseMeta"
           }
@@ -149707,6 +150896,37 @@
         "required": [
           "data"
         ],
+        "type": "object"
+      },
+      "RUMOperationsListResponseLinks": {
+        "description": "Pagination links for a list of RUM operations.",
+        "properties": {
+          "first": {
+            "description": "Link to the first page.",
+            "example": "https://api.datadoghq.com/api/v2/rum/operations/search?page[limit]=50&page[offset]=0",
+            "type": "string"
+          },
+          "last": {
+            "description": "Link to the last page.",
+            "example": "https://api.datadoghq.com/api/v2/rum/operations/search?page[limit]=50&page[offset]=150",
+            "type": "string"
+          },
+          "next": {
+            "description": "Link to the next page.",
+            "example": "https://api.datadoghq.com/api/v2/rum/operations/search?page[limit]=50&page[offset]=100",
+            "type": "string"
+          },
+          "prev": {
+            "description": "Link to the previous page.",
+            "example": "https://api.datadoghq.com/api/v2/rum/operations/search?page[limit]=50&page[offset]=0",
+            "type": "string"
+          },
+          "self": {
+            "description": "Link to the current page.",
+            "example": "https://api.datadoghq.com/api/v2/rum/operations/search?page[limit]=50&page[offset]=50",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "RUMOperationsListResponseMeta": {
@@ -155014,7 +156234,7 @@
         "example": {
           "data": {
             "attributes": {
-              "Query": "example:query AND test:true"
+              "query": "example:query AND test:true"
             },
             "type": "validate_query"
           }
@@ -155048,14 +156268,14 @@
       "RulesValidateQueryRequestDataAttributes": {
         "description": "The definition of `RulesValidateQueryRequestDataAttributes` object.",
         "properties": {
-          "Query": {
-            "description": "The `attributes` `Query`.",
-            "example": "",
+          "query": {
+            "description": "The tag pipeline rule query to validate, in Datadog tag query syntax: `tag:value` terms combined with `AND`, `OR`, and `NOT`.",
+            "example": "example:query AND test:true",
             "type": "string"
           }
         },
         "required": [
-          "Query"
+          "query"
         ],
         "type": "object"
       },
@@ -163497,16 +164717,26 @@
         "enum": [
           "issue",
           "issue.assignee",
+          "issue.bits_investigation",
           "issue.case",
-          "issue.team_owners"
+          "issue.impacted_sessions",
+          "issue.impacted_users",
+          "issue.pull_requests",
+          "issue.team_owners",
+          "issue.watches"
         ],
         "example": "issue.case",
         "type": "string",
         "x-enum-varnames": [
           "ISSUE",
           "ISSUE_ASSIGNEE",
+          "ISSUE_BITS_INVESTIGATION",
           "ISSUE_CASE",
-          "ISSUE_TEAM_OWNERS"
+          "ISSUE_IMPACTED_SESSIONS",
+          "ISSUE_IMPACTED_USERS",
+          "ISSUE_PULL_REQUESTS",
+          "ISSUE_TEAM_OWNERS",
+          "ISSUE_WATCHES"
         ]
       },
       "SeatAssignmentsDataType": {
@@ -190995,18 +192225,21 @@
             "type": "array"
           },
           "metric_name_matches": {
-            "description": "Metric name prefixes (glob patterns) this rule applies to.",
+            "description": "Metric name prefixes (glob patterns) this rule applies to. At most 50 patterns, each at most 200 characters.",
             "example": [
               "dd.test.*"
             ],
             "items": {
+              "maxLength": 200,
               "type": "string"
             },
+            "maxItems": 50,
             "type": "array"
           },
           "name": {
-            "description": "Human-readable name for the rule.",
+            "description": "Human-readable name for the rule. At most 200 characters.",
             "example": "my-indexing-rule",
+            "maxLength": 200,
             "type": "string"
           },
           "options": {
@@ -191390,7 +192623,7 @@
         "description": "Attributes for the reorder operation.",
         "properties": {
           "rule_ids": {
-            "description": "Ordered list of tag indexing rule UUIDs. The server assigns rule_order 1, 2, … matching position in this list.",
+            "description": "Ordered list of tag indexing rule UUIDs. The server assigns rule_order 1, 2, … matching position in this list. Must contain the UUID of every active rule in the org (at most 1,000); omitting any active rule returns a 400 error.",
             "example": [
               "00000000-0000-0000-0000-000000000001",
               "00000000-0000-0000-0000-000000000002"
@@ -191398,6 +192631,7 @@
             "items": {
               "type": "string"
             },
+            "maxItems": 1000,
             "type": "array"
           }
         },
@@ -191468,18 +192702,21 @@
             "type": "array"
           },
           "metric_name_matches": {
-            "description": "Metric name prefixes (glob patterns) this rule applies to.",
+            "description": "Metric name prefixes (glob patterns) this rule applies to. At most 50 patterns, each at most 200 characters.",
             "example": [
               "dd.test.*"
             ],
             "items": {
+              "maxLength": 200,
               "type": "string"
             },
+            "maxItems": 50,
             "type": "array"
           },
           "name": {
-            "description": "Human-readable name for the rule.",
+            "description": "Human-readable name for the rule. At most 200 characters.",
             "example": "my-indexing-rule",
+            "maxLength": 200,
             "type": "string"
           },
           "options": {
@@ -200013,7 +201250,7 @@
                 {
                   "account_id": "1234abcd-1234-abcd-1234-1234abcd1234",
                   "client_id": "1234abcd-1234-abcd-1234-1234abcd1234",
-                  "created_at": "2023-01-01T12:00:00.000000",
+                  "created_at": "2023-01-01T12:00:00Z",
                   "dataset_type": "actual",
                   "error_messages": [],
                   "export_name": "dd-actual-export",
@@ -200022,10 +201259,10 @@
                   "months": 36,
                   "scope": "/subscriptions/1234abcd-1234-abcd-1234-1234abcd1234",
                   "status": "active",
-                  "status_updated_at": "2023-01-01T12:00:00.000000",
+                  "status_updated_at": "2023-01-01T12:00:00Z",
                   "storage_account": "dd-storage-account",
                   "storage_container": "dd-storage-container",
-                  "updated_at": "2023-01-01T12:00:00.000000"
+                  "updated_at": "2023-01-01T12:00:00Z"
                 }
               ]
             },
@@ -202172,7 +203409,6 @@
             "attributes": {
               "enabled": true,
               "last_version": 1,
-              "name": "Updated Ruleset",
               "rules": [
                 {
                   "enabled": true,
@@ -202233,6 +203469,7 @@
                 }
               ]
             },
+            "id": "Updated Ruleset",
             "type": "update_ruleset"
           }
         },
@@ -213001,6 +214238,12 @@
                       "data": {
                         "attributes": {
                           "action": "ALLOW",
+                          "extra_tags": [
+                            {
+                              "key": "ai_guard.evaluate_id",
+                              "value": "a76a703c-324f-42ed-af33-9b17d65e28af"
+                            }
+                          ],
                           "global_prob": 0.005218505859375,
                           "is_blocking_enabled": false,
                           "reason": "No rule match.",
@@ -231818,14 +233061,14 @@
                             "account_id": "123456789123",
                             "bucket_name": "dd-cost-bucket",
                             "bucket_region": "us-east-1",
-                            "created_at": "2023-01-01T12:00:00.000000",
+                            "created_at": "2023-01-01T12:00:00Z",
                             "error_messages": [],
                             "months": 36,
                             "report_name": "dd-report-name",
                             "report_prefix": "dd-report-prefix",
                             "status": "active",
-                            "status_updated_at": "2023-01-01T12:00:00.000000",
-                            "updated_at": "2023-01-01T12:00:00.000000"
+                            "status_updated_at": "2023-01-01T12:00:00Z",
+                            "updated_at": "2023-01-01T12:00:00Z"
                           },
                           "id": "123",
                           "type": "aws_cur_config"
@@ -231936,14 +233179,14 @@
                           "account_id": "123456789123",
                           "bucket_name": "dd-cost-bucket",
                           "bucket_region": "us-east-1",
-                          "created_at": "2023-01-01T12:00:00.000000",
+                          "created_at": "2023-01-01T12:00:00Z",
                           "error_messages": [],
                           "months": 36,
                           "report_name": "dd-report-name",
                           "report_prefix": "dd-report-prefix",
                           "status": "active",
-                          "status_updated_at": "2023-01-01T12:00:00.000000",
-                          "updated_at": "2023-01-01T12:00:00.000000"
+                          "status_updated_at": "2023-01-01T12:00:00Z",
+                          "updated_at": "2023-01-01T12:00:00Z"
                         },
                         "id": "123456789123",
                         "type": "aws_cur_config"
@@ -232098,14 +233341,14 @@
                           "account_id": "123456789123",
                           "bucket_name": "dd-cost-bucket",
                           "bucket_region": "us-east-1",
-                          "created_at": "2023-01-01T12:00:00.000000",
+                          "created_at": "2023-01-01T12:00:00Z",
                           "error_messages": [],
                           "months": 36,
                           "report_name": "dd-report-name",
                           "report_prefix": "dd-report-prefix",
                           "status": "active",
-                          "status_updated_at": "2023-01-01T12:00:00.000000",
-                          "updated_at": "2023-01-01T12:00:00.000000"
+                          "status_updated_at": "2023-01-01T12:00:00Z",
+                          "updated_at": "2023-01-01T12:00:00Z"
                         },
                         "id": "123456789123",
                         "type": "aws_cur_config"
@@ -232194,14 +233437,14 @@
                             "account_id": "123456789123",
                             "bucket_name": "dd-cost-bucket",
                             "bucket_region": "us-east-1",
-                            "created_at": "2023-01-01T12:00:00.000000",
+                            "created_at": "2023-01-01T12:00:00Z",
                             "error_messages": [],
                             "months": 36,
                             "report_name": "dd-report-name",
                             "report_prefix": "dd-report-prefix",
                             "status": "active",
-                            "status_updated_at": "2023-01-01T12:00:00.000000",
-                            "updated_at": "2023-01-01T12:00:00.000000"
+                            "status_updated_at": "2023-01-01T12:00:00Z",
+                            "updated_at": "2023-01-01T12:00:00Z"
                           },
                           "id": "123",
                           "type": "aws_cur_config"
@@ -232282,7 +233525,7 @@
                               {
                                 "account_id": "1234abcd-1234-abcd-1234-1234abcd1234",
                                 "client_id": "1234abcd-1234-abcd-1234-1234abcd1234",
-                                "created_at": "2023-01-01T12:00:00.000000",
+                                "created_at": "2023-01-01T12:00:00Z",
                                 "dataset_type": "actual",
                                 "error_messages": [],
                                 "export_name": "dd-actual-export",
@@ -232291,10 +233534,10 @@
                                 "months": 36,
                                 "scope": "/subscriptions/1234abcd-1234-abcd-1234-1234abcd1234",
                                 "status": "active",
-                                "status_updated_at": "2023-01-01T12:00:00.000000",
+                                "status_updated_at": "2023-01-01T12:00:00Z",
                                 "storage_account": "dd-storage-account",
                                 "storage_container": "dd-storage-container",
-                                "updated_at": "2023-01-01T12:00:00.000000"
+                                "updated_at": "2023-01-01T12:00:00Z"
                               }
                             ]
                           },
@@ -232400,7 +233643,7 @@
                             {
                               "account_id": "1234abcd-1234-abcd-1234-1234abcd1234",
                               "client_id": "1234abcd-1234-abcd-1234-1234abcd1234",
-                              "created_at": "2023-01-01T12:00:00.000000",
+                              "created_at": "2023-01-01T12:00:00Z",
                               "dataset_type": "actual",
                               "error_messages": [],
                               "export_name": "dd-actual-export",
@@ -232409,10 +233652,10 @@
                               "months": 36,
                               "scope": "/subscriptions/1234abcd-1234-abcd-1234-1234abcd1234",
                               "status": "active",
-                              "status_updated_at": "2023-01-01T12:00:00.000000",
+                              "status_updated_at": "2023-01-01T12:00:00Z",
                               "storage_account": "dd-storage-account",
                               "storage_container": "dd-storage-container",
-                              "updated_at": "2023-01-01T12:00:00.000000"
+                              "updated_at": "2023-01-01T12:00:00Z"
                             }
                           ]
                         },
@@ -232563,7 +233806,7 @@
                             {
                               "account_id": "1234abcd-1234-abcd-1234-1234abcd1234",
                               "client_id": "1234abcd-1234-abcd-1234-1234abcd1234",
-                              "created_at": "2023-01-01T12:00:00.000000",
+                              "created_at": "2023-01-01T12:00:00Z",
                               "dataset_type": "actual",
                               "error_messages": [],
                               "export_name": "dd-actual-export",
@@ -232572,10 +233815,10 @@
                               "months": 36,
                               "scope": "/subscriptions/1234abcd-1234-abcd-1234-1234abcd1234",
                               "status": "active",
-                              "status_updated_at": "2023-01-01T12:00:00.000000",
+                              "status_updated_at": "2023-01-01T12:00:00Z",
                               "storage_account": "dd-storage-account",
                               "storage_container": "dd-storage-container",
-                              "updated_at": "2023-01-01T12:00:00.000000"
+                              "updated_at": "2023-01-01T12:00:00Z"
                             }
                           ]
                         },
@@ -232655,7 +233898,7 @@
                             {
                               "account_id": "1234abcd-1234-abcd-1234-1234abcd1234",
                               "client_id": "1234abcd-1234-abcd-1234-1234abcd1234",
-                              "created_at": "2023-01-01T12:00:00.000000",
+                              "created_at": "2023-01-01T12:00:00Z",
                               "dataset_type": "actual",
                               "error_messages": [],
                               "export_name": "dd-actual-export",
@@ -232664,10 +233907,10 @@
                               "months": 36,
                               "scope": "/subscriptions/1234abcd-1234-abcd-1234-1234abcd1234",
                               "status": "active",
-                              "status_updated_at": "2023-01-01T12:00:00.000000",
+                              "status_updated_at": "2023-01-01T12:00:00Z",
                               "storage_account": "dd-storage-account",
                               "storage_container": "dd-storage-container",
-                              "updated_at": "2023-01-01T12:00:00.000000"
+                              "updated_at": "2023-01-01T12:00:00Z"
                             }
                           ]
                         },
@@ -234924,7 +236167,7 @@
                           "attributes": {
                             "account_id": "123456_A123BC_12AB34",
                             "bucket_name": "dd-cost-bucket",
-                            "created_at": "2023-01-01T12:00:00.000000",
+                            "created_at": "2023-01-01T12:00:00Z",
                             "dataset": "billing",
                             "error_messages": [],
                             "export_prefix": "datadog_cloud_cost_usage_export",
@@ -234933,8 +236176,8 @@
                             "project_id": "my-project-123",
                             "service_account": "dd-ccm-gcp-integration@my-environment.iam.gserviceaccount.com",
                             "status": "active",
-                            "status_updated_at": "2023-01-01T12:00:00.000000",
-                            "updated_at": "2023-01-01T12:00:00.000000"
+                            "status_updated_at": "2023-01-01T12:00:00Z",
+                            "updated_at": "2023-01-01T12:00:00Z"
                           },
                           "id": "123456789123",
                           "type": "gcp_uc_config"
@@ -235027,7 +236270,7 @@
                         "attributes": {
                           "account_id": "123456_A123BC_12AB34",
                           "bucket_name": "dd-cost-bucket",
-                          "created_at": "2023-01-01T12:00:00.000000",
+                          "created_at": "2023-01-01T12:00:00Z",
                           "dataset": "billing",
                           "error_messages": [],
                           "export_prefix": "datadog_cloud_cost_usage_export",
@@ -235036,8 +236279,8 @@
                           "project_id": "my-project-123",
                           "service_account": "dd-ccm-gcp-integration@my-environment.iam.gserviceaccount.com",
                           "status": "active",
-                          "status_updated_at": "2023-01-01T12:00:00.000000",
-                          "updated_at": "2023-01-01T12:00:00.000000"
+                          "status_updated_at": "2023-01-01T12:00:00Z",
+                          "updated_at": "2023-01-01T12:00:00Z"
                         },
                         "id": "123456789123",
                         "type": "gcp_uc_config"
@@ -235184,7 +236427,7 @@
                         "attributes": {
                           "account_id": "123456_A123BC_12AB34",
                           "bucket_name": "dd-cost-bucket",
-                          "created_at": "2023-01-01T12:00:00.000000",
+                          "created_at": "2023-01-01T12:00:00Z",
                           "dataset": "billing",
                           "error_messages": [],
                           "export_prefix": "datadog_cloud_cost_usage_export",
@@ -235193,8 +236436,8 @@
                           "project_id": "my-project-123",
                           "service_account": "dd-ccm-gcp-integration@my-environment.iam.gserviceaccount.com",
                           "status": "active",
-                          "status_updated_at": "2023-01-01T12:00:00.000000",
-                          "updated_at": "2023-01-01T12:00:00.000000"
+                          "status_updated_at": "2023-01-01T12:00:00Z",
+                          "updated_at": "2023-01-01T12:00:00Z"
                         },
                         "id": "123456789123",
                         "type": "gcp_uc_config"
@@ -235270,7 +236513,7 @@
                         "attributes": {
                           "account_id": "123456_A123BC_12AB34",
                           "bucket_name": "dd-cost-bucket",
-                          "created_at": "2023-01-01T12:00:00.000000",
+                          "created_at": "2023-01-01T12:00:00Z",
                           "dataset": "billing",
                           "error_messages": [],
                           "export_prefix": "datadog_cloud_cost_usage_export",
@@ -235279,8 +236522,8 @@
                           "project_id": "my-project-123",
                           "service_account": "dd-ccm-gcp-integration@my-environment.iam.gserviceaccount.com",
                           "status": "active",
-                          "status_updated_at": "2023-01-01T12:00:00.000000",
-                          "updated_at": "2023-01-01T12:00:00.000000"
+                          "status_updated_at": "2023-01-01T12:00:00Z",
+                          "updated_at": "2023-01-01T12:00:00Z"
                         },
                         "id": "123456789123",
                         "type": "gcp_uc_config"
@@ -247601,7 +248844,7 @@
     },
     "/api/v2/error-tracking/issues/{issue_id}": {
       "get": {
-        "description": "Retrieve the full details for a specific error tracking issue, including attributes and relationships.",
+        "description": "Retrieve the full details for a specific error tracking issue, including attributes and relationships.\nReturns 403 if the caller lacks the `error_tracking_read` permission or does not have access to the issue's data.",
         "operationId": "GetIssue",
         "parameters": [
           {
@@ -247906,6 +249149,243 @@
         "tags": [
           "Error Tracking"
         ]
+      }
+    },
+    "/api/v2/eudm/devices": {
+      "get": {
+        "operationId": "GetEUDMDevices",
+        "parameters": [
+          {
+            "description": "Filter devices to those currently associated with any of the given BSSID values.\nEach value must be a MAC-48 address; repeat the parameter to pass several values.",
+            "explode": true,
+            "in": "query",
+            "name": "bssid",
+            "required": false,
+            "schema": {
+              "items": {
+                "example": "00:00:5e:00:53:01",
+                "pattern": "^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Maximum number of devices to return in one page. Must be a positive integer.\nIf not set, the response contains all matching devices.",
+            "in": "query",
+            "name": "page[limit]",
+            "required": false,
+            "schema": {
+              "example": 100,
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor that selects the next page. Use the `meta.page.after` value\nof the previous response. Devices are ordered by ID.",
+            "in": "query",
+            "name": "page[cursor]",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "cpu_usage": 12.4,
+                            "disk_usage": 38.2,
+                            "issues": [],
+                            "last_seen": "2026-05-20T10:15:30Z",
+                            "manufacturer": "Apple",
+                            "mem_usage": 47.1,
+                            "model_name": "MacBook Pro",
+                            "os": "macOS",
+                            "os_version": "macOS 15.6.1 arm64",
+                            "status": "healthy"
+                          },
+                          "id": "LAPTOP-DEMO-001",
+                          "type": "devices"
+                        }
+                      ],
+                      "links": {
+                        "next": "/api/v2/eudm/devices?page%5Bcursor%5D=TEFQVE9QLURFTU8tMDAx&page%5Blimit%5D=1",
+                        "self": "/api/v2/eudm/devices?page%5Blimit%5D=1"
+                      },
+                      "meta": {
+                        "page": {
+                          "after": "TEFQVE9QLURFTU8tMDAx"
+                        }
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceBaseArray"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          }
+        ],
+        "summary": "Get all devices",
+        "tags": [
+          "End User Device Monitoring"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "end_user_devices_read"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+      }
+    },
+    "/api/v2/eudm/devices/{device_id}": {
+      "get": {
+        "operationId": "GetEUDMDevice",
+        "parameters": [
+          {
+            "description": "Unique identifier of the device to fetch. Matches the Datadog host identifier.",
+            "in": "path",
+            "name": "device_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "battery_charge_pct": 82,
+                          "battery_charge_rate": 1200,
+                          "battery_cycle_count": 134,
+                          "battery_max_capacity_pct": 96,
+                          "cnm_enabled": true,
+                          "cpu_cores": 10,
+                          "cpu_logical_processors": 10,
+                          "cpu_model": "Apple M1 Pro",
+                          "cpu_usage": 12.4,
+                          "disk_usage": 38.2,
+                          "ip_address": "192.0.2.10",
+                          "issues": [],
+                          "kernel_name": "Darwin",
+                          "last_seen": "2026-05-20T10:15:30Z",
+                          "manufacturer": "Apple",
+                          "mem_usage": 47.1,
+                          "memory_total_kb": 16777216,
+                          "model_name": "MacBook Pro",
+                          "model_number": "MacBookPro18,3",
+                          "os": "macOS",
+                          "os_version": "macOS 15.6.1 arm64",
+                          "packet_sent": 98213,
+                          "retransmit": 112,
+                          "retransmit_pct": 0.11,
+                          "serial_number": "TESTDEVICE001",
+                          "status": "healthy",
+                          "tcp_canceled": 1,
+                          "tcp_established": 1482,
+                          "tcp_establishment_failure_pct": 0.6,
+                          "tcp_establishment_failures": 9,
+                          "tcp_host_unreachable": 1,
+                          "tcp_network_unreachable": 0,
+                          "tcp_refusals": 3,
+                          "tcp_timeouts": 4,
+                          "uptime": 432000,
+                          "wlan_bssid": "00:00:5e:00:53:01",
+                          "wlan_rssi": -55,
+                          "wlan_ssid": "corp-wifi"
+                        },
+                        "id": "LAPTOP-DEMO-001",
+                        "type": "devices"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceDetails"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          }
+        ],
+        "summary": "Get a device",
+        "tags": [
+          "End User Device Monitoring"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "end_user_devices_read"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
     "/api/v2/events": {
@@ -298056,11 +299536,12 @@
             }
           },
           {
-            "description": "Only return metrics whose name matches this value.\nA value without `*` matches metric names that contain it, ignoring case (for example, `http.request`\nmatches `app.HTTP.request.count`). A full metric name also matches longer names that contain it.\n`*` is a wildcard that can appear anywhere and more than once, and these patterns also ignore case:\n`*.request.count` matches names that end with `.request.count`, and `app.*.count` matches names that\nstart with `app.` and end with `.count`. The exception is a value whose only `*` is at the end (for\nexample, `http.request*`): it matches names that start with that text and is case-sensitive.\nSpaces are treated as `*`. Only one value is accepted; repeating the parameter returns\n`400 Bad Request`. Allowed characters are letters, digits, `_`, `.`, `*`, and spaces. An empty value\nis ignored.",
+            "description": "Only return metrics whose name matches this value.\nA value without `*` matches metric names that contain it, ignoring case (for example, `http.request`\nmatches `app.HTTP.request.count`). A full metric name also matches longer names that contain it.\n`*` is a wildcard that can appear anywhere and more than once, and these patterns also ignore case:\n`*.request.count` matches names that end with `.request.count`, and `app.*.count` matches names that\nstart with `app.` and end with `.count`. The exception is a value whose only `*` is at the end (for\nexample, `http.request*`): it matches names that start with that text and is case-sensitive.\nSpaces are treated as `*`. Only one value is accepted; repeating the parameter returns\n`400 Bad Request`. Allowed characters are letters, digits, `_`, `.`, `*`, and spaces. Surrounding spaces\nare ignored, and an empty or spaces-only value is ignored. The value can be at most 200 characters (the\nlongest metric name); a longer value returns `400 Bad Request`.",
             "in": "query",
             "name": "filter[metrics.id]",
             "required": false,
             "schema": {
+              "maxLength": 200,
               "pattern": "^[a-zA-Z0-9_.* ]*$",
               "type": "string"
             }
@@ -299240,7 +300721,7 @@
         }
       },
       "post": {
-        "description": "Create a tag indexing rule for the org. `rule_order` is assigned server-side as max+1\namong existing rules; use the reorder endpoint to change the evaluation order.\nRequires the `Manage Tags for Metrics` permission.",
+        "description": "Create a tag indexing rule for the org. `rule_order` is assigned server-side as max+1\namong existing rules; use the reorder endpoint to change the evaluation order.\nEvery rule that matches a metric applies, in `rule_order`; a rule with\n`override_previous_rules` set to `false` (merge) adds to the tags configured by earlier\nrules, and a rule with `override_previous_rules` set to `true` replaces them.\nRequires the `Manage Tags for Metrics` permission.\n\nLimits:\n- An org can have at most 1,000 active tag indexing rules. Creating a rule when the org\n  already has 1,000 active rules returns a 403 error with the title\n  `Tag indexing rule limit reached`.\n- Tag indexing rules are unavailable for orgs with more than 700,000 custom metrics;\n  requests from those orgs return a 403 error with the title `Tag indexing rules unavailable`.\n- `name` can be at most 200 characters, and `metric_name_matches` can contain at most\n  50 patterns of at most 200 characters each. Requests that exceed these limits return a\n  400 error.",
         "operationId": "CreateTagIndexingRule",
         "requestBody": {
           "content": {
@@ -299318,6 +300799,30 @@
           "403": {
             "content": {
               "application/json": {
+                "examples": {
+                  "rule_limit_reached": {
+                    "summary": "The org already has 1,000 active tag indexing rules.",
+                    "value": {
+                      "errors": [
+                        {
+                          "status": "403",
+                          "title": "Tag indexing rule limit reached"
+                        }
+                      ]
+                    }
+                  },
+                  "tag_indexing_rules_unavailable": {
+                    "summary": "The org has more than 700,000 custom metrics.",
+                    "value": {
+                      "errors": [
+                        {
+                          "status": "403",
+                          "title": "Tag indexing rules unavailable"
+                        }
+                      ]
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/JSONAPIErrorResponse"
                 }
@@ -299362,7 +300867,7 @@
     },
     "/api/v2/metrics/tag-indexing-rules/order": {
       "post": {
-        "description": "Atomically re-sequence the tag indexing rules for an org to match the supplied list of rule UUIDs.\nThe server assigns `rule_order` 1, 2, … matching each rule UUID by position in the list.\nThe UUIDs of all active rules must be provided; omitting any active rule UUID returns a 400 error.\nRequires the `Manage Tags for Metrics` permission.",
+        "description": "Atomically re-sequence the tag indexing rules for an org to match the supplied list of rule UUIDs.\nThe server assigns `rule_order` 1, 2, … matching each rule UUID by position in the list.\nThe UUIDs of all active rules (at most 1,000) must be provided; omitting any active rule UUID\nreturns a 400 error.\nRequires the `Manage Tags for Metrics` permission.",
         "operationId": "ReorderTagIndexingRules",
         "requestBody": {
           "content": {
@@ -299630,7 +301135,7 @@
         }
       },
       "put": {
-        "description": "Partially update a tag indexing rule. Fields omitted from the request body are left unchanged.\nSetting `rule_order` to a value already used by another rule returns 409; use the\nreorder endpoint for atomic re-sequencing. Requires the `Manage Tags for Metrics` permission.",
+        "description": "Partially update a tag indexing rule. Fields omitted from the request body are left unchanged.\nSetting `rule_order` to a value already used by another rule returns 409; use the\nreorder endpoint for atomic re-sequencing. `name` can be at most 200 characters, and\n`metric_name_matches` can contain at most 50 patterns of at most 200 characters each;\nrequests that exceed these limits return a 400 error.\nRequires the `Manage Tags for Metrics` permission.",
         "operationId": "UpdateTagIndexingRule",
         "parameters": [
           {
@@ -338868,8 +340373,7 @@
             "security_monitoring_findings_write",
             "appsec_vm_write"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/security/findings/automation/default_inbox_rules": {
@@ -343908,8 +345412,7 @@
             "appsec_vm_write",
             "data_scanner_write"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/security/ownership/{resource_id}": {
@@ -374482,7 +375985,7 @@
                   "value": {
                     "data": {
                       "attributes": {
-                        "Query": "example:query AND test:true"
+                        "query": "example:query AND test:true"
                       },
                       "type": "validate_query"
                     }
@@ -374685,7 +376188,6 @@
                       "attributes": {
                         "enabled": true,
                         "last_version": 1,
-                        "name": "Updated Ruleset",
                         "rules": [
                           {
                             "enabled": true,
@@ -374739,6 +376241,7 @@
                           }
                         ]
                       },
+                      "id": "Updated Ruleset",
                       "type": "update_ruleset"
                     }
                   }
@@ -380619,7 +382122,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Creates or updates one or more usage quotas by scope. If a quota already exists for a supplied scope, it is updated.\nOtherwise, a quota is created only when `usage_limit` and `enforced` are provided.\nFor the organization-wide quota, `pending_usage_limit` schedules a limit for the next usage period and can\naccompany an immediate limit or update an existing quota by itself.\nScheduled changes follow `include_descendants` like the other fields. Requires the `billing_edit` permission.\n\n### Quota namespaces and scope keys\n\nThe `quota_namespace` path parameter selects the product whose usage quotas are managed. Each namespace\nsupports its own scope keys, described below. Omit `scope` for the organization-wide quota.\n\n#### `ai_credits` scope keys\n\nEach item's `scope` contains exactly one of the following keys.\n\n**`user_handle`**\n\n- **Value:** The handle of a user, for example `jane@example.com`, or `\"*\"` for the default quota applied to\n  users without a specific quota. User handles are returned in the `data[].attributes.handle` field by the\n  [Users API](https://docs.datadoghq.com/api/latest/users/#list-all-users).\n- **Validation:** A specific handle must identify an existing user in the caller's organization when\n  `include_descendants` is false. When `include_descendants` is true, the handle must exist in the caller's\n  organization or in at least one targeted descendant organization. The quota is then applied only to the\n  organizations where the handle exists, and the item fails only if the handle exists in none of them.\n\n**`role_uuid`**\n\n- **Value:** The UUID of a role, for example `12345678-1234-1234-1234-123456789012`. `\"*\"` is not accepted\n  because there is no default role quota. Role UUIDs are returned in the `data[].id` field by the\n  [Roles API](https://docs.datadoghq.com/api/latest/roles/#list-roles).\n- **Validation:** The role must exist in the caller's organization. Role UUIDs are unique, so\n  `include_descendants` has no effect on a `role_uuid` scope: the role is validated against the caller's\n  organization only.",
+        "description": "Creates or updates one or more usage quotas by scope. If a quota already exists for a supplied scope, it is updated.\nOtherwise, a quota is created only when `usage_limit` and `enforced` are provided.\nSet `create_only=true` to atomically create exactly one quota in the caller's organization and reject an\nexisting quota with `409` instead of updating it. This mode does not support pending limits or descendant writes.\nRepeated create-only requests do not replay the original response. If a response is lost, a retry can return `409`\neven if the first request succeeded; reconcile the outcome before retrying or importing the quota.\nFor the organization-wide quota, `pending_usage_limit` schedules a limit for the next usage period and can\naccompany an immediate limit or update an existing quota by itself.\nScheduled changes follow `include_descendants` like the other fields. Requires the `billing_edit` permission.\n\n### Quota namespaces and scope keys\n\nThe `quota_namespace` path parameter selects the product whose usage quotas are managed. Each namespace\nsupports its own scope keys, described below. Omit `scope` for the organization-wide quota.\n\n#### `ai_credits` scope keys\n\nEach item's `scope` contains exactly one of the following keys.\n\n**`user_handle`**\n\n- **Value:** The handle of a user, for example `jane@example.com`, or `\"*\"` for the default quota applied to\n  users without a specific quota. User handles are returned in the `data[].attributes.handle` field by the\n  [Users API](https://docs.datadoghq.com/api/latest/users/#list-all-users).\n- **Validation:** A specific handle must identify an existing user in the caller's organization when\n  `include_descendants` is false. When `include_descendants` is true, the handle must exist in the caller's\n  organization or in at least one targeted descendant organization. The quota is then applied only to the\n  organizations where the handle exists, and the item fails only if the handle exists in none of them.\n\n**`role_uuid`**\n\n- **Value:** The UUID of a role, for example `12345678-1234-1234-1234-123456789012`. `\"*\"` is not accepted\n  because there is no default role quota. Role UUIDs are returned in the `data[].id` field by the\n  [Roles API](https://docs.datadoghq.com/api/latest/roles/#list-roles).\n- **Validation:** The role must exist in the caller's organization. Role UUIDs are unique, so\n  `include_descendants` has no effect on a `role_uuid` scope: the role is validated against the caller's\n  organization only.",
         "operationId": "CreateQuotas",
         "parameters": [
           {
@@ -380636,6 +382139,16 @@
             "description": "Whether to write every item in the request to the caller's organization and all of its descendant organizations, instead of only the caller's organization. Only descendants in the same data center are supported. For a user-handle scope, the quota is applied only to the caller's organization and to descendant organizations where that user handle exists; the item fails only if the handle exists in none of them.",
             "in": "query",
             "name": "include_descendants",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Create one quota without updating an existing quota. Requires exactly one item that specifies `usage_limit` and `enforced`, omits `pending_usage_limit`, and sets `include_descendants=false`. The quota belongs to the caller's organization. An existing quota returns `409` without being modified.",
+            "in": "query",
+            "name": "create_only",
             "required": false,
             "schema": {
               "default": false,
@@ -380744,7 +382257,7 @@
                 }
               }
             },
-            "description": "Bad Request. Returned if the request is malformed, including when an item sets `pending_usage_limit` on a scoped quota, provides `enforced` without `usage_limit`, or provides neither limit. A pending-only item for a quota that does not exist is reported in that item's `error`; when only the caller's organization is targeted, this failure returns `400`."
+            "description": "Bad Request. Returned when `create_only=true` is combined with multiple items, `pending_usage_limit`, or `include_descendants=true`, or when an item sets `pending_usage_limit` on a scoped quota, provides `enforced` without `usage_limit`, or provides neither limit. A pending-only item for a nonexistent quota reports an error in the item's `error` field. If only the caller's organization is targeted, this failure returns `400`."
           },
           "403": {
             "content": {
@@ -380755,6 +382268,33 @@
               }
             },
             "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "already_exists": {
+                    "value": {
+                      "errors": [
+                        {
+                          "detail": "A quota already exists for this namespace and scope. Import it before managing it with Terraform.",
+                          "meta": {
+                            "error_code": "already_exists",
+                            "quota_id": "MTIzNB9haV9jcmVkaXRzH3VzZXJfaGFuZGxlOmphbmVAZXhhbXBsZS5jb20"
+                          },
+                          "status": "409",
+                          "title": "Conflict"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict. With `create_only=true`, a quota already exists for this namespace and scope in the caller's organization. The existing quota is unchanged. The error's `meta` contains `error_code` set to `already_exists` and `quota_id` set to the existing quota's opaque ID. Import the existing quota before managing it with Terraform."
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequestsResponse"
@@ -388015,6 +389555,10 @@
         "url": "https://docs.datadoghq.com/integrations/elastic-cloud/"
       },
       "name": "Elastic Cloud Integration"
+    },
+    {
+      "description": "Inspect devices reported by the Datadog Agent on end-user laptops, desktops,\nand mobile devices, including their health, hardware, and connectivity attributes.",
+      "name": "End User Device Monitoring"
     },
     {
       "description": "Manage per-integration configurations for the Internal Developer Portal (IDP). These configurations control which external resources (for example, GitHub repositories, Jira projects, or PagerDuty services) are synced as entities into the Software Catalog.",
