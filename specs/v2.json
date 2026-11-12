@@ -3384,6 +3384,97 @@
           "type": "string"
         }
       },
+      "feature_flag_history_end_date": {
+        "description": "Only include changes made before this time, for example `2026-02-01T00:00:00Z`. The bound is exclusive, so a change made exactly at this time is not included. Omit for no upper bound. Must be after `start_date` when both are set.",
+        "in": "query",
+        "name": "end_date",
+        "required": false,
+        "schema": {
+          "example": "2026-02-01T00:00:00Z",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "feature_flag_history_environment_id": {
+        "description": "Only include changes to this environment. Changes to the flag itself, which have no environment, are always included.",
+        "in": "query",
+        "name": "environment_id",
+        "required": false,
+        "schema": {
+          "example": "550e8400-e29b-41d4-a716-446655440001",
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "feature_flag_history_feature_flag_id": {
+        "description": "Only include changes to this feature flag.",
+        "in": "query",
+        "name": "feature_flag_id",
+        "required": false,
+        "schema": {
+          "example": "550e8400-e29b-41d4-a716-446655440000",
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "feature_flag_history_include_suggestion_events": {
+        "description": "Also include review events for change requests that needed approval: rejected requests and requests still pending review. Applies only to organizations with flag approvals enabled.",
+        "in": "query",
+        "name": "include_suggestion_events",
+        "required": false,
+        "schema": {
+          "default": false,
+          "example": false,
+          "type": "boolean"
+        }
+      },
+      "feature_flag_history_start_date": {
+        "description": "Only include changes made after this time, for example `2026-01-01T00:00:00Z`. The bound is exclusive, so a change made exactly at this time is not included. Omit for no lower bound.",
+        "in": "query",
+        "name": "start_date",
+        "required": false,
+        "schema": {
+          "example": "2026-01-01T00:00:00Z",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "feature_flag_history_tags": {
+        "description": "Only include changes to flags that have all of these exact tags, as repeated parameters, such as `tags=env:prod&tags=tier:1`. Values of the form `team:<handle>` match any selected team and are combined with `teams`. Empty values are ignored.",
+        "example": [
+          "env:prod",
+          "tier:1"
+        ],
+        "explode": true,
+        "in": "query",
+        "name": "tags",
+        "required": false,
+        "schema": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "style": "form"
+      },
+      "feature_flag_history_teams": {
+        "description": "Only include changes to flags that belong to at least one of these teams. Use team handles without the `team:` prefix, as repeated parameters, such as `teams=checkout&teams=payments`. Handles from `teams` and `team:<handle>` values from `tags` are treated as one set. Handles that are empty, have surrounding white space, or include the `team:` prefix return a `400 Bad Request` error.",
+        "example": [
+          "checkout",
+          "payments"
+        ],
+        "explode": true,
+        "in": "query",
+        "name": "teams",
+        "required": false,
+        "schema": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "style": "form"
+      },
       "feature_flag_id": {
         "description": "The ID of the feature flag.",
         "in": "path",
@@ -68016,6 +68107,147 @@
           "EXPERIMENT_DIAGNOSTICS"
         ]
       },
+      "ExperimentsExperimentHoldoutV2DTOArray": {
+        "description": "Response containing the holdouts an experiment is attached to.",
+        "properties": {
+          "data": {
+            "description": "Holdouts the experiment is attached to, in evaluation order.",
+            "example": [],
+            "items": {
+              "$ref": "#/components/schemas/ExperimentsExperimentHoldoutV2DTOData"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "ExperimentsExperimentHoldoutV2DTOData": {
+        "description": "A holdout the experiment is attached to.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/ExperimentsExperimentHoldoutV2DTODataAttributes"
+          },
+          "id": {
+            "description": "Identifier of the holdout.",
+            "example": "e1e2e3e4-0000-0000-0000-000000000000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ExperimentsExperimentHoldoutV2DTODataType"
+          }
+        },
+        "required": [
+          "type",
+          "id"
+        ],
+        "type": "object"
+      },
+      "ExperimentsExperimentHoldoutV2DTODataAttributes": {
+        "description": "Attributes of a holdout that the experiment is attached to.",
+        "properties": {
+          "evaluation_order": {
+            "description": "Zero-based position of this MANAGED holdout in the experiment's evaluation order. The GLOBAL holdout is evaluated first. Null for EXTERNAL holdouts.",
+            "example": 0,
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "holdout_type": {
+            "$ref": "#/components/schemas/ExperimentsExperimentHoldoutV2DTODataAttributesHoldoutType"
+          },
+          "key": {
+            "description": "Key of the holdout.",
+            "example": "q3-global-holdout",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ExperimentsExperimentHoldoutV2DTODataAttributesKind"
+          },
+          "name": {
+            "description": "Display name of the holdout.",
+            "example": "Q3 global holdout",
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/ExperimentsExperimentHoldoutV2DTODataAttributesState"
+          },
+          "traffic_allocation": {
+            "description": "Share of subjects the holdout holds back, from 0 to 1.",
+            "example": 0.05,
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "ExperimentsExperimentHoldoutV2DTODataAttributesHoldoutType": {
+        "description": "How Datadog serves a MANAGED holdout. GLOBAL holdouts apply to every eligible experiment of a subject type. SELECTIVE holdouts apply only to the experiments attached to them. Null for EXTERNAL holdouts.",
+        "enum": [
+          "GLOBAL",
+          "SELECTIVE",
+          "UNKNOWN"
+        ],
+        "example": "GLOBAL",
+        "nullable": true,
+        "type": "string",
+        "x-enum-varnames": [
+          "GLOBAL",
+          "SELECTIVE",
+          "UNKNOWN"
+        ]
+      },
+      "ExperimentsExperimentHoldoutV2DTODataAttributesKind": {
+        "description": "Whether Datadog serves the holdout. Datadog serves MANAGED holdouts. EXTERNAL holdouts record what your own feature flagging system holds back, and Datadog does not serve them.",
+        "enum": [
+          "MANAGED",
+          "EXTERNAL",
+          "UNKNOWN"
+        ],
+        "example": "MANAGED",
+        "type": "string",
+        "x-enum-varnames": [
+          "MANAGED",
+          "EXTERNAL",
+          "UNKNOWN"
+        ]
+      },
+      "ExperimentsExperimentHoldoutV2DTODataAttributesState": {
+        "description": "Lifecycle phase of the holdout. PENDING holdouts have not started including experiments. INCLUDING holdouts are adding experiments. WAITING_FOR_ANALYSIS holdouts have stopped including experiments but have not started analysis. ANALYSING holdouts are in their analysis window. COMPLETE applies only to EXTERNAL holdouts that have ended their analysis window but are not archived.",
+        "enum": [
+          "PENDING",
+          "INCLUDING",
+          "WAITING_FOR_ANALYSIS",
+          "ANALYSING",
+          "COMPLETE",
+          "UNKNOWN"
+        ],
+        "example": "INCLUDING",
+        "type": "string",
+        "x-enum-varnames": [
+          "PENDING",
+          "INCLUDING",
+          "WAITING_FOR_ANALYSIS",
+          "ANALYSING",
+          "COMPLETE",
+          "UNKNOWN"
+        ]
+      },
+      "ExperimentsExperimentHoldoutV2DTODataType": {
+        "default": "experiment-holdouts",
+        "description": "Experiment holdout resource type.",
+        "enum": [
+          "experiment-holdouts"
+        ],
+        "example": "experiment-holdouts",
+        "type": "string",
+        "x-enum-varnames": [
+          "EXPERIMENT_HOLDOUTS"
+        ]
+      },
       "ExperimentsExperimentMetricGroupMutationV2": {
         "description": "Response containing the saved experiment metric group and result refresh information.",
         "properties": {
@@ -68182,6 +68414,9 @@
               "events_end_date": "2026-08-22T00:00:00Z",
               "events_start_date": "2026-08-01T00:00:00Z",
               "experiment_type": "STANDARD",
+              "holdout_ids": [
+                "a1a2a3a4-0000-0000-0000-000000000000"
+              ],
               "hypothesis": "A clearer checkout button increases purchase conversion",
               "name": "Checkout button test",
               "pipeline_table_suffix": "a1b2c3d4",
@@ -68285,6 +68520,9 @@
             "events_end_date": "2026-08-22T00:00:00Z",
             "events_start_date": "2026-08-01T00:00:00Z",
             "experiment_type": "STANDARD",
+            "holdout_ids": [
+              "a1a2a3a4-0000-0000-0000-000000000000"
+            ],
             "hypothesis": "A clearer checkout button increases purchase conversion",
             "name": "Checkout button test",
             "pipeline_table_suffix": "a1b2c3d4",
@@ -68516,6 +68754,9 @@
                 "events_end_date": "2026-08-22T00:00:00Z",
                 "events_start_date": "2026-08-01T00:00:00Z",
                 "experiment_type": "STANDARD",
+                "holdout_ids": [
+                  "a1a2a3a4-0000-0000-0000-000000000000"
+                ],
                 "hypothesis": "A clearer checkout button increases purchase conversion",
                 "name": "Checkout button test",
                 "pipeline_table_suffix": "a1b2c3d4",
@@ -68578,6 +68819,9 @@
                   "events_end_date": "2026-08-22T00:00:00Z",
                   "events_start_date": "2026-08-01T00:00:00Z",
                   "experiment_type": "STANDARD",
+                  "holdout_ids": [
+                    "a1a2a3a4-0000-0000-0000-000000000000"
+                  ],
                   "hypothesis": "A clearer checkout button increases purchase conversion",
                   "name": "Checkout button test",
                   "pipeline_table_suffix": "a1b2c3d4",
@@ -68654,6 +68898,9 @@
             "events_end_date": "2026-08-22T00:00:00Z",
             "events_start_date": "2026-08-01T00:00:00Z",
             "experiment_type": "STANDARD",
+            "holdout_ids": [
+              "a1a2a3a4-0000-0000-0000-000000000000"
+            ],
             "hypothesis": "A clearer checkout button increases purchase conversion",
             "name": "Checkout button test",
             "pipeline_table_suffix": "a1b2c3d4",
@@ -68731,6 +68978,9 @@
           "events_end_date": "2026-08-22T00:00:00Z",
           "events_start_date": "2026-08-01T00:00:00Z",
           "experiment_type": "STANDARD",
+          "holdout_ids": [
+            "a1a2a3a4-0000-0000-0000-000000000000"
+          ],
           "hypothesis": "A clearer checkout button increases purchase conversion",
           "name": "Checkout button test",
           "pipeline_table_suffix": "a1b2c3d4",
@@ -68819,6 +69069,18 @@
             "description": "Kind of experiment. STANDARD is an ordinary experiment. Other values, such as CANARY and HOLDOUT, identify experiments owned by another workflow. New kinds may be added; treat unknown values as non-standard.",
             "example": "STANDARD",
             "type": "string"
+          },
+          "holdout_ids": {
+            "description": "IDs of the holdouts the experiment is attached to, in evaluation order: MANAGED holdouts first, starting with the GLOBAL holdout, followed by EXTERNAL holdouts. For a draft experiment, the list includes the GLOBAL holdout that the experiment would join if it started. `GET /api/v2/experiments/{experiment_id}/holdouts` returns their details.",
+            "example": [
+              "a1a2a3a4-0000-0000-0000-000000000000"
+            ],
+            "items": {
+              "description": "Identifier of a holdout.",
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
           },
           "hypothesis": {
             "description": "Expected effect that the experiment is designed to test.",
@@ -71488,6 +71750,9 @@
               "events_end_date": "2026-08-22T00:00:00Z",
               "events_start_date": "2026-08-01T00:00:00Z",
               "experiment_type": "STANDARD",
+              "holdout_ids": [
+                "a1a2a3a4-0000-0000-0000-000000000000"
+              ],
               "hypothesis": "A clearer checkout button increases purchase conversion",
               "name": "Checkout button test",
               "pipeline_table_suffix": "a1b2c3d4",
@@ -71593,6 +71858,9 @@
           "events_end_date": "2026-08-22T00:00:00Z",
           "events_start_date": "2026-08-01T00:00:00Z",
           "experiment_type": "STANDARD",
+          "holdout_ids": [
+            "a1a2a3a4-0000-0000-0000-000000000000"
+          ],
           "hypothesis": "A clearer checkout button increases purchase conversion",
           "name": "Checkout button test",
           "pipeline_table_suffix": "a1b2c3d4",
@@ -71728,6 +71996,18 @@
             "description": "Kind of experiment. STANDARD is an ordinary experiment. Other values, such as CANARY and HOLDOUT, identify experiments owned by another workflow. New kinds may be added; treat unknown values as non-standard.",
             "example": "STANDARD",
             "type": "string"
+          },
+          "holdout_ids": {
+            "description": "IDs of the holdouts the experiment is attached to, in evaluation order: MANAGED holdouts first, starting with the GLOBAL holdout, followed by EXTERNAL holdouts. For a draft experiment, the list includes the GLOBAL holdout that the experiment would join if it started. `GET /api/v2/experiments/{experiment_id}/holdouts` returns their details.",
+            "example": [
+              "a1a2a3a4-0000-0000-0000-000000000000"
+            ],
+            "items": {
+              "description": "Identifier of a holdout.",
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
           },
           "hypothesis": {
             "description": "Expected effect that the experiment is intended to test.",
@@ -76189,6 +76469,316 @@
         ],
         "type": "object"
       },
+      "FeatureFlagChangeEvent": {
+        "description": "A change made to a feature flag.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/FeatureFlagChangeEventAttributes"
+          },
+          "id": {
+            "description": "The ID of the change event.",
+            "example": "550e8400-e29b-41d4-a716-446655440005",
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/FeatureFlagChangeEventType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "FeatureFlagChangeEventAction": {
+        "description": "The kind of change.",
+        "enum": [
+          "created",
+          "updated",
+          "deleted",
+          "archived",
+          "unarchived",
+          "scheduled",
+          "started",
+          "paused",
+          "unpaused",
+          "stopped"
+        ],
+        "example": "updated",
+        "type": "string",
+        "x-enum-varnames": [
+          "CREATED",
+          "UPDATED",
+          "DELETED",
+          "ARCHIVED",
+          "UNARCHIVED",
+          "SCHEDULED",
+          "STARTED",
+          "PAUSED",
+          "UNPAUSED",
+          "STOPPED"
+        ]
+      },
+      "FeatureFlagChangeEventAttributes": {
+        "description": "Attributes of a feature flag change event.",
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/FeatureFlagChangeEventAction"
+          },
+          "change_metadata": {
+            "description": "Additional details about the change, as a JSON-encoded string.",
+            "example": "{\"variant_key\": \"control\"}",
+            "nullable": true,
+            "type": "string"
+          },
+          "creation_source": {
+            "$ref": "#/components/schemas/FeatureFlagChangeEventCreationSource"
+          },
+          "description": {
+            "description": "A readable sentence describing the change, as shown on the flag history page and in the Action column of the CSV export.",
+            "example": "Changed flag name from \"Mobile Feature Rollout\" to \"Mobile Feature Toggle\".",
+            "type": "string"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/FeatureFlagChangeEventEnvironment"
+          },
+          "feature_flag": {
+            "$ref": "#/components/schemas/FeatureFlagChangeEventFlag"
+          },
+          "new_value": {
+            "description": "The value after the change, serialized as a string.",
+            "example": "Mobile Feature Toggle",
+            "nullable": true,
+            "type": "string"
+          },
+          "previous_value": {
+            "description": "The value before the change, serialized as a string.",
+            "example": "Mobile Feature Rollout",
+            "nullable": true,
+            "type": "string"
+          },
+          "property": {
+            "$ref": "#/components/schemas/FeatureFlagChangeEventProperty"
+          },
+          "suggestion_review": {
+            "$ref": "#/components/schemas/FeatureFlagChangeEventSuggestionReview"
+          },
+          "timestamp": {
+            "description": "When the change was made.",
+            "example": "2023-10-02T14:30:00Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "user_id": {
+            "description": "The ID of the user who made the change. Null when no user made the change.",
+            "example": "00000000-0000-0000-0000-000000000001",
+            "nullable": true,
+            "type": "string"
+          },
+          "version_number": {
+            "description": "The version of the feature flag the change produced.",
+            "example": 3,
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "action",
+          "property",
+          "timestamp",
+          "version_number",
+          "feature_flag"
+        ],
+        "type": "object"
+      },
+      "FeatureFlagChangeEventCreationSource": {
+        "description": "Where the change was made: `UI` for the Datadog app, or `MCP` for a Model Context Protocol (MCP) client.",
+        "enum": [
+          "UI",
+          "MCP"
+        ],
+        "example": "UI",
+        "nullable": true,
+        "type": "string",
+        "x-enum-varnames": [
+          "UI",
+          "MCP"
+        ]
+      },
+      "FeatureFlagChangeEventEnvironment": {
+        "description": "The environment the change applies to. Null for a change to the flag itself rather than to one environment.",
+        "nullable": true,
+        "properties": {
+          "id": {
+            "description": "The ID of the environment.",
+            "example": "550e8400-e29b-41d4-a716-446655440001",
+            "format": "uuid",
+            "type": "string"
+          },
+          "is_production": {
+            "description": "Whether the environment is a production environment.",
+            "example": true,
+            "type": "boolean"
+          },
+          "name": {
+            "description": "The name of the environment.",
+            "example": "Production",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "is_production"
+        ],
+        "type": "object"
+      },
+      "FeatureFlagChangeEventFlag": {
+        "description": "The feature flag the change applies to.",
+        "properties": {
+          "id": {
+            "description": "The ID of the feature flag.",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "format": "uuid",
+            "type": "string"
+          },
+          "key": {
+            "description": "The key of the feature flag.",
+            "example": "mobile-feature-toggle",
+            "type": "string"
+          },
+          "name": {
+            "description": "The name of the feature flag.",
+            "example": "Mobile Feature Toggle",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "key"
+        ],
+        "type": "object"
+      },
+      "FeatureFlagChangeEventProperty": {
+        "description": "The part of the feature flag the change applies to.",
+        "enum": [
+          "FLAG",
+          "FLAG_NAME",
+          "FLAG_DESCRIPTION",
+          "JSON_SCHEMA",
+          "DISTRIBUTION_CHANNEL",
+          "REQUIRE_APPROVAL",
+          "VARIANT",
+          "VARIANT_NAME",
+          "VARIANT_VALUE",
+          "ALLOCATIONS",
+          "ROLLOUT",
+          "ENVIRONMENT_STATUS",
+          "DEFAULT_VARIANT",
+          "OVERRIDE_VARIANT",
+          "STALENESS_STATUS",
+          "SAVED_FILTER"
+        ],
+        "example": "FLAG_NAME",
+        "type": "string",
+        "x-enum-varnames": [
+          "FLAG",
+          "FLAG_NAME",
+          "FLAG_DESCRIPTION",
+          "JSON_SCHEMA",
+          "DISTRIBUTION_CHANNEL",
+          "REQUIRE_APPROVAL",
+          "VARIANT",
+          "VARIANT_NAME",
+          "VARIANT_VALUE",
+          "ALLOCATIONS",
+          "ROLLOUT",
+          "ENVIRONMENT_STATUS",
+          "DEFAULT_VARIANT",
+          "OVERRIDE_VARIANT",
+          "STALENESS_STATUS",
+          "SAVED_FILTER"
+        ]
+      },
+      "FeatureFlagChangeEventSuggestionLifecycleStatus": {
+        "description": "Where the change request is in its lifecycle.",
+        "enum": [
+          "pending",
+          "approved",
+          "applied",
+          "rejected",
+          "discarded"
+        ],
+        "example": "rejected",
+        "type": "string",
+        "x-enum-varnames": [
+          "PENDING",
+          "APPROVED",
+          "APPLIED",
+          "REJECTED",
+          "DISCARDED"
+        ]
+      },
+      "FeatureFlagChangeEventSuggestionReview": {
+        "description": "Review details of a change request that needed approval.\nPresent on review events, which `include_suggestion_events` adds.\nAlso present on a change that an approved change request applied, even when `include_suggestion_events` is `false`.",
+        "properties": {
+          "lifecycle_status": {
+            "$ref": "#/components/schemas/FeatureFlagChangeEventSuggestionLifecycleStatus"
+          },
+          "requester_comment": {
+            "description": "The comment left by the person who requested the change.",
+            "example": "Ready for production.",
+            "type": "string"
+          },
+          "reviewer_comment": {
+            "description": "The comment left by the reviewer.",
+            "example": "Roll out to staging first.",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FeatureFlagChangeEventSuggestionStatus"
+          },
+          "suggestion_created_by": {
+            "description": "The ID of the user who requested the change.",
+            "example": "00000000-0000-0000-0000-000000000001",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "lifecycle_status"
+        ],
+        "type": "object"
+      },
+      "FeatureFlagChangeEventSuggestionStatus": {
+        "description": "The review status of the change request.",
+        "enum": [
+          "pending",
+          "approved",
+          "rejected"
+        ],
+        "example": "rejected",
+        "type": "string",
+        "x-enum-varnames": [
+          "PENDING",
+          "APPROVED",
+          "REJECTED"
+        ]
+      },
+      "FeatureFlagChangeEventType": {
+        "description": "The resource type.",
+        "enum": [
+          "change-events"
+        ],
+        "example": "change-events",
+        "type": "string",
+        "x-enum-varnames": [
+          "CHANGE_EVENTS"
+        ]
+      },
       "FeatureFlagDistributionChannel": {
         "description": "The distribution channel for the feature flag.",
         "enum": [
@@ -76366,6 +76956,71 @@
           "environment_id",
           "status"
         ],
+        "type": "object"
+      },
+      "FeatureFlagHistoryPaginationMeta": {
+        "description": "Pagination metadata for feature flag change history.",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/FeatureFlagHistoryPaginationMetaPage"
+          }
+        },
+        "type": "object"
+      },
+      "FeatureFlagHistoryPaginationMetaPage": {
+        "description": "Pagination metadata for feature flag change history responses.",
+        "properties": {
+          "first_offset": {
+            "description": "Offset of the first page.",
+            "example": 0,
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_offset": {
+            "description": "Offset of the last page.",
+            "example": 75,
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "limit": {
+            "description": "Maximum number of events returned on this page.",
+            "example": 25,
+            "format": "int64",
+            "type": "integer"
+          },
+          "next_offset": {
+            "description": "Offset of the next page, or null when there is no next page.",
+            "example": 25,
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "offset": {
+            "description": "Number of matching events skipped before this page.",
+            "example": 0,
+            "format": "int64",
+            "type": "integer"
+          },
+          "prev_offset": {
+            "description": "Offset of the previous page, or null when there is no previous page.",
+            "example": 0,
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "total": {
+            "description": "Total number of events matching the filters, independent of the page size.\nIt counts experiment proposals that you cannot read, which are left out of the pages, so a page can hold fewer events than `limit`.",
+            "example": 100,
+            "format": "int64",
+            "type": "integer"
+          },
+          "type": {
+            "description": "The pagination method. Always `offset_limit`.",
+            "example": "offset_limit",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "FeatureFlagListItem": {
@@ -113085,6 +113740,28 @@
           },
           "meta": {
             "$ref": "#/components/schemas/EnvironmentsPaginationMeta"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "ListFeatureFlagHistoryResponse": {
+        "description": "Response containing feature flag change events, newest first.",
+        "properties": {
+          "data": {
+            "description": "The change events.",
+            "items": {
+              "$ref": "#/components/schemas/FeatureFlagChangeEvent"
+            },
+            "type": "array"
+          },
+          "links": {
+            "$ref": "#/components/schemas/FeatureFlagsPaginationLinks"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/FeatureFlagHistoryPaginationMeta"
           }
         },
         "required": [
@@ -197594,6 +198271,14 @@
       "TenancyConfigDataAttributes": {
         "description": "Attributes of an OCI tenancy integration configuration, including authentication details, region settings, and collection options.",
         "properties": {
+          "account_tags": {
+            "description": "List of Datadog tags applied to data collected from the tenancy.",
+            "items": {
+              "description": "A Datadog tag in key:value format (for example, env:prod).",
+              "type": "string"
+            },
+            "type": "array"
+          },
           "billing_plan_id": {
             "description": "The identifier of the billing plan associated with the OCI tenancy.",
             "format": "int32",
@@ -197613,9 +198298,28 @@
             "description": "The OCID of the OCI compartment used by the Datadog integration stack.",
             "type": "string"
           },
+          "dd_iac_version": {
+            "description": "The version of the Datadog infrastructure-as-code stack applied to the tenancy (for example, 1.2.0).",
+            "type": "string"
+          },
           "dd_stack_id": {
             "description": "The OCID of the OCI Resource Manager stack used by the Datadog integration.",
             "type": "string"
+          },
+          "defined_tags": {
+            "description": "List of OCI defined tags applied to the Datadog-managed connector hubs.",
+            "items": {
+              "description": "An OCI defined tag in `Namespace.key:value` format (for example, `Operations.CostCenter:42`).",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "events_collection_enabled": {
+            "description": "Whether resource change events collection from OCI is enabled for the tenancy.",
+            "type": "boolean"
+          },
+          "grace_resource": {
+            "$ref": "#/components/schemas/TenancyConfigDataAttributesGraceResource"
           },
           "home_region": {
             "description": "The home region of the OCI tenancy (for example, us-ashburn-1).",
@@ -197638,6 +198342,10 @@
             "description": "Whether resource collection from OCI is enabled for the tenancy.",
             "type": "boolean"
           },
+          "service_quota_collection_enabled": {
+            "description": "Whether service quota collection from OCI is enabled for the tenancy.",
+            "type": "boolean"
+          },
           "tenancy_name": {
             "description": "The human-readable name of the OCI tenancy.",
             "type": "string"
@@ -197645,6 +198353,20 @@
           "user_ocid": {
             "description": "The OCID of the OCI user used by the Datadog integration for authentication.",
             "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "TenancyConfigDataAttributesGraceResource": {
+        "description": "Access control details for the tenancy configuration, used to determine whether the requesting user can edit it.",
+        "properties": {
+          "resource_id": {
+            "description": "The identifier of the access control resource for the tenancy configuration.",
+            "type": "string"
+          },
+          "user_can_edit": {
+            "description": "Whether the requesting user has permission to edit the tenancy configuration.",
+            "type": "boolean"
           }
         },
         "type": "object"
@@ -197671,6 +198393,18 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "resource_tag_filters": {
+            "additionalProperties": {
+              "description": "List of resource tag filters for the OCI service.",
+              "items": {
+                "description": "A resource tag filter in key:value format (for example, env:prod).",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "description": "Map of OCI service names to the resource tag filters that scope log collection for that service.",
+            "type": "object"
           }
         },
         "type": "object"
@@ -197697,6 +198431,18 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "resource_tag_filters": {
+            "additionalProperties": {
+              "description": "List of resource tag filters for the OCI service.",
+              "items": {
+                "description": "A resource tag filter in key:value format (for example, env:prod).",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "description": "Map of OCI service names to the resource tag filters that scope metrics collection for that service.",
+            "type": "object"
           }
         },
         "type": "object"
@@ -197705,27 +198451,30 @@
         "description": "Region configuration for an OCI tenancy, indicating which regions are available, enabled, or disabled for data collection.",
         "properties": {
           "available": {
-            "description": "List of OCI regions available for data collection in the tenancy.",
+            "description": "List of OCI regions available for data collection in the tenancy. Returns `null` when no regions are set.",
             "items": {
               "description": "An OCI region identifier (for example, us-ashburn-1).",
               "type": "string"
             },
+            "nullable": true,
             "type": "array"
           },
           "disabled": {
-            "description": "List of OCI regions explicitly disabled for data collection.",
+            "description": "List of OCI regions explicitly disabled for data collection. Returns `null` when no regions are set.",
             "items": {
               "description": "An OCI region identifier (for example, us-phoenix-1).",
               "type": "string"
             },
+            "nullable": true,
             "type": "array"
           },
           "enabled": {
-            "description": "List of OCI regions enabled for data collection.",
+            "description": "List of OCI regions enabled for data collection. Returns `null` when no regions are set.",
             "items": {
               "description": "An OCI region identifier (for example, us-ashburn-1).",
               "type": "string"
             },
+            "nullable": true,
             "type": "array"
           }
         },
@@ -197737,10 +198486,23 @@
           "data": [
             {
               "attributes": {
+                "account_tags": [
+                  "env:prod"
+                ],
+                "billing_plan_id": 2,
                 "config_version": 2,
                 "cost_collection_enabled": true,
                 "dd_compartment_id": "ocid.compartment.test",
+                "dd_iac_version": "1.2.0",
                 "dd_stack_id": "ocid.stack.test",
+                "defined_tags": [
+                  "Operations.CostCenter:42"
+                ],
+                "events_collection_enabled": false,
+                "grace_resource": {
+                  "resource_id": "oci-integration-configuration:ocid.tenancy.test",
+                  "user_can_edit": true
+                },
                 "home_region": "us-ashburn-1",
                 "logs_config": {
                   "compartment_tag_filters": [
@@ -197749,7 +198511,12 @@
                   "enabled": true,
                   "enabled_services": [
                     "compute"
-                  ]
+                  ],
+                  "resource_tag_filters": {
+                    "compute": [
+                      "env:prod"
+                    ]
+                  }
                 },
                 "metrics_config": {
                   "compartment_tag_filters": [
@@ -197758,8 +198525,14 @@
                   "enabled": true,
                   "excluded_services": [
                     "compute"
-                  ]
+                  ],
+                  "resource_tag_filters": {
+                    "compute": [
+                      "env:prod"
+                    ]
+                  }
                 },
+                "parent_tenancy_name": "parent-tenancy",
                 "regions_config": {
                   "available": [
                     "us-ashburn-1",
@@ -197773,6 +198546,8 @@
                   ]
                 },
                 "resource_collection_enabled": true,
+                "service_quota_collection_enabled": false,
+                "tenancy_name": "test-tenancy",
                 "user_ocid": "ocid.user.test"
               },
               "id": "ocid.tenancy.test",
@@ -250168,6 +250943,9 @@
                             "events_end_date": "2026-08-22T00:00:00Z",
                             "events_start_date": "2026-08-01T00:00:00Z",
                             "experiment_type": "STANDARD",
+                            "holdout_ids": [
+                              "a1a2a3a4-0000-0000-0000-000000000000"
+                            ],
                             "hypothesis": "A clearer checkout button increases purchase conversion",
                             "name": "Checkout button test",
                             "pipeline_table_suffix": "a1b2c3d4",
@@ -250455,6 +251233,7 @@
                           "events_end_date": "2026-08-22T00:00:00Z",
                           "events_start_date": "2026-08-01T00:00:00Z",
                           "experiment_type": "STANDARD",
+                          "holdout_ids": [],
                           "name": "Checkout button test",
                           "pipeline_table_suffix": "a1b2c3d4",
                           "related_links": [],
@@ -255676,6 +256455,9 @@
                           "events_end_date": "2026-08-22T00:00:00Z",
                           "events_start_date": "2026-08-01T00:00:00Z",
                           "experiment_type": "STANDARD",
+                          "holdout_ids": [
+                            "a1a2a3a4-0000-0000-0000-000000000000"
+                          ],
                           "hypothesis": "A clearer checkout button increases purchase conversion",
                           "name": "Checkout button test",
                           "pipeline_table_suffix": "a1b2c3d4",
@@ -255932,6 +256714,7 @@
                           "events_end_date": "2026-08-22T00:00:00Z",
                           "events_start_date": "2026-08-01T00:00:00Z",
                           "experiment_type": "STANDARD",
+                          "holdout_ids": [],
                           "name": "Checkout button test",
                           "pipeline_table_suffix": "a1b2c3d4",
                           "related_links": [],
@@ -256737,6 +257520,149 @@
           }
         ],
         "summary": "Get experiment diagnostics",
+        "tags": [
+          "Experiments"
+        ],
+        "x-permission": {
+          "operator": "AND",
+          "permissions": [
+            "product_analytics_experiments_read"
+          ]
+        }
+      }
+    },
+    "/api/v2/experiments/{experiment_id}/holdouts": {
+      "get": {
+        "description": "List the holdouts an experiment is attached to, in evaluation order: MANAGED holdouts first, starting with the GLOBAL holdout, followed by EXTERNAL holdouts. For a draft experiment, the response includes the GLOBAL holdout that the experiment would join if it started. The response excludes archived and deleted holdouts, and MANAGED holdouts past their analysis window. EXTERNAL holdouts are listed until they are archived. MANAGED holdouts are listed only for experiments that use a Datadog feature flag, because Datadog serves holdouts only through its flags. The order matches the experiment's `holdout_ids` attribute.",
+        "operationId": "ListExperimentHoldouts",
+        "parameters": [
+          {
+            "description": "The UUID of the experiment.",
+            "in": "path",
+            "name": "experiment_id",
+            "required": true,
+            "schema": {
+              "description": "The UUID of the experiment.",
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "evaluation_order": 0,
+                            "holdout_type": "GLOBAL",
+                            "key": "q3-global-holdout",
+                            "kind": "MANAGED",
+                            "name": "Q3 global holdout",
+                            "state": "INCLUDING",
+                            "traffic_allocation": 0.05
+                          },
+                          "id": "e1e2e3e4-0000-0000-0000-000000000000",
+                          "type": "experiment-holdouts"
+                        },
+                        {
+                          "attributes": {
+                            "evaluation_order": 1,
+                            "holdout_type": "SELECTIVE",
+                            "key": "checkout-holdout",
+                            "kind": "MANAGED",
+                            "name": "Checkout holdout",
+                            "state": "INCLUDING",
+                            "traffic_allocation": 0.1
+                          },
+                          "id": "f1f2f3f4-0000-0000-0000-000000000000",
+                          "type": "experiment-holdouts"
+                        },
+                        {
+                          "attributes": {
+                            "evaluation_order": null,
+                            "holdout_type": null,
+                            "key": "partner-holdout",
+                            "kind": "EXTERNAL",
+                            "name": "Partner holdout",
+                            "state": "INCLUDING",
+                            "traffic_allocation": 0.1
+                          },
+                          "id": "a1a2a3a4-0000-0000-0000-000000000000",
+                          "type": "experiment-holdouts"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentsExperimentHoldoutV2DTOArray"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed experiment ID (not a valid UUID)."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "The caller lacks the `product_analytics_experiments_read` permission or lacks permission to view this experiment."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "No experiment with this ID exists for the organization."
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "product_analytics_experiments_read"
+            ]
+          }
+        ],
+        "summary": "List experiment holdouts",
         "tags": [
           "Experiments"
         ],
@@ -259454,6 +260380,251 @@
           "operator": "AND",
           "permissions": [
             "feature_flag_config_write"
+          ]
+        }
+      }
+    },
+    "/api/v2/feature-flags/history": {
+      "get": {
+        "description": "Returns the organization's feature flag change events, newest first.\nEach event includes a readable description of the change.\nAll filters are optional, and events must match every filter you set. Without a date range, the whole history is listed.\nResults are paginated with `page[limit]` and `page[offset]`; follow `links.next` to read further back.",
+        "operationId": "ListFeatureFlagHistory",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/feature_flag_history_start_date"
+          },
+          {
+            "$ref": "#/components/parameters/feature_flag_history_end_date"
+          },
+          {
+            "$ref": "#/components/parameters/feature_flag_history_teams"
+          },
+          {
+            "$ref": "#/components/parameters/feature_flag_history_tags"
+          },
+          {
+            "$ref": "#/components/parameters/feature_flag_history_feature_flag_id"
+          },
+          {
+            "$ref": "#/components/parameters/feature_flag_history_environment_id"
+          },
+          {
+            "$ref": "#/components/parameters/feature_flag_history_include_suggestion_events"
+          },
+          {
+            "description": "Maximum number of events to return. Defaults to `25`. Values above `50` return `50` events. Non-positive or empty values use the default. A non-integer value returns a `400 Bad Request` error.",
+            "example": 25,
+            "in": "query",
+            "name": "page[limit]",
+            "schema": {
+              "default": 25,
+              "format": "int64",
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Number of matching events to skip before returning results. Defaults to `0`. Negative or empty values are set to `0`. A non-integer value returns a `400 Bad Request` error.",
+            "example": 0,
+            "in": "query",
+            "name": "page[offset]",
+            "schema": {
+              "default": 0,
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "action": "updated",
+                            "change_metadata": null,
+                            "creation_source": "UI",
+                            "description": "Changed flag name from \"Mobile Feature Rollout\" to \"Mobile Feature Toggle\".",
+                            "environment": null,
+                            "feature_flag": {
+                              "id": "550e8400-e29b-41d4-a716-446655440000",
+                              "key": "mobile-feature-toggle",
+                              "name": "Mobile Feature Toggle"
+                            },
+                            "new_value": "Mobile Feature Toggle",
+                            "previous_value": "Mobile Feature Rollout",
+                            "property": "FLAG_NAME",
+                            "timestamp": "2023-10-02T14:30:00Z",
+                            "user_id": "00000000-0000-0000-0000-000000000001",
+                            "version_number": 3
+                          },
+                          "id": "550e8400-e29b-41d4-a716-446655440005",
+                          "type": "change-events"
+                        }
+                      ],
+                      "links": {
+                        "first": "https://api.datadoghq.com/api/v2/feature-flags/history?page%5Blimit%5D=25&page%5Boffset%5D=0",
+                        "last": "https://api.datadoghq.com/api/v2/feature-flags/history?page%5Blimit%5D=25&page%5Boffset%5D=0",
+                        "self": "https://api.datadoghq.com/api/v2/feature-flags/history?page%5Blimit%5D=25&page%5Boffset%5D=0"
+                      },
+                      "meta": {
+                        "page": {
+                          "first_offset": 0,
+                          "last_offset": 0,
+                          "limit": 25,
+                          "offset": 0,
+                          "total": 1,
+                          "type": "offset_limit"
+                        }
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ListFeatureFlagHistoryResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "feature_flag_config_read"
+            ]
+          }
+        ],
+        "summary": "List feature flag change history",
+        "tags": [
+          "Feature Flags"
+        ],
+        "x-permission": {
+          "operator": "AND",
+          "permissions": [
+            "feature_flag_config_read"
+          ]
+        }
+      }
+    },
+    "/api/v2/feature-flags/history/export": {
+      "get": {
+        "description": "Exports the organization's feature flag change events as a CSV file, newest first, without pagination.\nIt accepts the same filters as the List feature flag change history endpoint, and its columns match the CSV export on the flag history page:\nFlag Version, Flag Name, Flag Key, Flag UUID, Action, User Name, User Email, User Type, Environment, and Timestamp.\n\nIf an export fails before the file starts, the response is a JSON:API error. Large exports stream as they are read.\nIf an export fails after streaming starts, the connection closes before the file ends, so the download fails instead of\nreturning a file with missing rows. An export must finish within the 60-second request timeout. If an export times out,\nnarrow the date range.",
+        "operationId": "ExportFeatureFlagHistory",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/feature_flag_history_start_date"
+          },
+          {
+            "$ref": "#/components/parameters/feature_flag_history_end_date"
+          },
+          {
+            "$ref": "#/components/parameters/feature_flag_history_teams"
+          },
+          {
+            "$ref": "#/components/parameters/feature_flag_history_tags"
+          },
+          {
+            "$ref": "#/components/parameters/feature_flag_history_feature_flag_id"
+          },
+          {
+            "$ref": "#/components/parameters/feature_flag_history_environment_id"
+          },
+          {
+            "$ref": "#/components/parameters/feature_flag_history_include_suggestion_events"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "examples": {
+                  "default": {
+                    "value": "Flag Version,Flag Name,Flag Key,Flag UUID,Action,User Name,User Email,User Type,Environment,Timestamp\n3,Mobile Feature Toggle,mobile-feature-toggle,550e8400-e29b-41d4-a716-446655440000,\"Changed flag name from \"\"Mobile Feature Rollout\"\" to \"\"Mobile Feature Toggle\"\".\",Jane Doe,jane.doe@example.com,User,All,\"Mon, Oct 2, 2023, 2:30:00 pm UTC\""
+                  }
+                },
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": [
+              "feature_flag_config_read"
+            ]
+          }
+        ],
+        "summary": "Export feature flag change history",
+        "tags": [
+          "Feature Flags"
+        ],
+        "x-permission": {
+          "operator": "AND",
+          "permissions": [
+            "feature_flag_config_read"
           ]
         }
       }
@@ -301675,7 +302846,7 @@
     },
     "/api/v2/metrics/{metric_name}/estimate": {
       "get": {
-        "description": "Returns the estimated cardinality for a metric with a given tag, percentile and number of aggregations\nconfiguration using Metrics without Limits&trade;.\n\nTo compare current volumes across many metrics, use `GET /api/v2/metrics` with `include=metric_volumes`\ninstead of calling this endpoint for each metric.",
+        "description": "Returns the estimated cardinality for a metric with a given tag, percentile and number of aggregations\nconfiguration using Metrics without Limits&trade;.\n\nTo compare current volumes across many metrics, use `GET /api/v2/metrics` with `include=metric_volumes`\ninstead of calling this endpoint for each metric.\n\nA `404 Not Found` response means that no metric with this name exists in your organization. A\n`400 Bad Request` response means that a query parameter is invalid, or that the metric has no data in the\nqueried window. For no data, the error message says so and names the window that was queried, which can\ndiffer from the requested one.",
         "operationId": "EstimateMetricsOutputSeries",
         "parameters": [
           {
@@ -301702,7 +302873,7 @@
             }
           },
           {
-            "description": "The number of hours of look back (from now) to estimate cardinality with.\nIf unspecified, it defaults to 0 hours (the most recent data).",
+            "description": "The number of hours of look back (from now) to estimate cardinality with.\nIf unspecified, it defaults to 0 hours (the most recent data). Values below 0 return `400 Bad Request`.",
             "example": 0,
             "in": "query",
             "name": "filter[hours_ago]",
@@ -301737,7 +302908,7 @@
             }
           },
           {
-            "description": "A window, in hours, from the look back to estimate cardinality with. The minimum and default is 1 hour.",
+            "description": "A window, in hours, from the look back to estimate cardinality with. The minimum and default is 1 hour.\nSmaller values return `400 Bad Request`.",
             "example": 6,
             "in": "query",
             "name": "filter[timespan_h]",
@@ -301745,6 +302916,7 @@
             "schema": {
               "format": "int32",
               "maximum": 2147483647,
+              "minimum": 1,
               "type": "integer"
             }
           }
@@ -302476,7 +303648,7 @@
         }
       },
       "get": {
-        "description": "Returns the tag configuration for the given metric name.\n\nA metric may exist and submit data without having a tag configuration. A `404 Not Found` response usually\nmeans that the metric has no tag configuration, but it is also returned when no metric with this name exists\nin your organization.\n\nTo list tag configurations for many metrics, use `GET /api/v2/metrics` with `filter[configured]=true`\ninstead of calling this endpoint for each metric.",
+        "description": "Returns the tag configuration for the given metric name.\n\nA metric may exist and submit data without having a tag configuration. Both cases return `404 Not Found`,\nwith different messages: `No tag configuration for <metric_name>` when the metric exists without a tag\nconfiguration, and `<metric_name> not found` when no metric with this name exists in your organization.\n\nTo list tag configurations for many metrics, use `GET /api/v2/metrics` with `filter[configured]=true`\ninstead of calling this endpoint for each metric.",
         "operationId": "ListTagConfigurationByName",
         "parameters": [
           {
@@ -320862,6 +322034,72 @@
           "Rum Audience Management"
         ],
         "x-unstable": "**Note**: This endpoint may be subject to changes."
+      }
+    },
+    "/api/v2/product-analytics/users/{user_id}": {
+      "delete": {
+        "description": "Delete a Product Analytics user profile.\nDeletion is asynchronous: the request is accepted and the profile is removed shortly after, usually within a few minutes.\nThis only deletes the user profile. To delete the RUM events of the user, use the RUM data deletion API.",
+        "operationId": "DeleteUserProfile",
+        "parameters": [
+          {
+            "description": "The ID of the user to delete, as sent in the `usr.id` attribute.",
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "example": "user-1234",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Deletion accepted; the profile will be removed asynchronously"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": [],
+            "appKeyAuth": []
+          },
+          {
+            "AuthZ": []
+          }
+        ],
+        "summary": "Delete a user profile",
+        "tags": [
+          "Rum Audience Management"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_write"
+          ]
+        },
+        "x-unstable": "**Note**: This endpoint is in preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       }
     },
     "/api/v2/product-analytics/{entity}/mapping": {
