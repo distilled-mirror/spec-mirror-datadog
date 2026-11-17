@@ -1952,6 +1952,13 @@
       "Dashboard": {
         "description": "A dashboard is Datadog’s tool for visually tracking, analyzing, and displaying\nkey performance metrics, which enable you to monitor the health of your infrastructure.",
         "properties": {
+          "archived_at": {
+            "description": "Archive date of the dashboard.",
+            "format": "date-time",
+            "nullable": true,
+            "readOnly": true,
+            "type": "string"
+          },
           "author_handle": {
             "description": "Identifier of the dashboard author.",
             "example": "test@datadoghq.com",
@@ -11954,35 +11961,45 @@
         "properties": {
           "description": {
             "description": "Metric description.",
+            "example": "Number of requests received.",
+            "nullable": true,
             "type": "string"
           },
           "integration": {
             "description": "Name of the integration that sent the metric if applicable.",
+            "nullable": true,
             "readOnly": true,
             "type": "string"
           },
           "per_unit": {
             "description": "Per unit of the metric such as `second` in `bytes per second`.",
             "example": "second",
+            "nullable": true,
             "type": "string"
           },
           "short_name": {
             "description": "A more human-readable and abbreviated version of the metric name.",
+            "example": "requests",
+            "nullable": true,
             "type": "string"
           },
           "statsd_interval": {
             "description": "StatsD flush interval of the metric in seconds if applicable.",
+            "example": 10,
             "format": "int64",
+            "nullable": true,
             "type": "integer"
           },
           "type": {
             "description": "Metric type such as `gauge` or `rate`.",
             "example": "count",
+            "nullable": true,
             "type": "string"
           },
           "unit": {
             "description": "Primary unit of the metric such as `byte` or `operation`.",
             "example": "byte",
+            "nullable": true,
             "type": "string"
           }
         },
@@ -39987,7 +40004,8 @@
     },
     "/api/v1/api_key": {
       "get": {
-        "description": "Get all API keys available for your account.\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
+        "deprecated": true,
+        "description": "This endpoint is deprecated. Use [Get all API keys](https://docs.datadoghq.com/api/latest/key-management/#get-all-api-keys) (`GET /api/v2/api_keys`) instead.\n\nGet all API keys available for your account.\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
         "operationId": "ListAPIKeys",
         "responses": {
           "200": {
@@ -40040,7 +40058,8 @@
         }
       },
       "post": {
-        "description": "Creates an API key with a given name.\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
+        "deprecated": true,
+        "description": "This endpoint is deprecated. Use [Create an API key](https://docs.datadoghq.com/api/latest/key-management/#create-an-api-key) (`POST /api/v2/api_keys`) instead.\n\nCreates an API key with a given name.\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
         "operationId": "CreateAPIKey",
         "requestBody": {
           "content": {
@@ -40121,7 +40140,8 @@
     },
     "/api/v1/api_key/{key}": {
       "delete": {
-        "description": "Delete a given API key.\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
+        "deprecated": true,
+        "description": "This endpoint is deprecated. Use [Delete an API key](https://docs.datadoghq.com/api/latest/key-management/#delete-an-api-key) (`DELETE /api/v2/api_keys/{api_key_id}`) instead.\n\nDelete a given API key.\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
         "operationId": "DeleteAPIKey",
         "parameters": [
           {
@@ -40203,7 +40223,8 @@
         }
       },
       "get": {
-        "description": "Get a given API key.\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
+        "deprecated": true,
+        "description": "This endpoint is deprecated. Use [Get API key](https://docs.datadoghq.com/api/latest/key-management/#get-api-key) (`GET /api/v2/api_keys/{api_key_id}`) instead.\n\nGet a given API key.\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
         "operationId": "GetAPIKey",
         "parameters": [
           {
@@ -40275,7 +40296,8 @@
         }
       },
       "put": {
-        "description": "Edit an API key name.\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
+        "deprecated": true,
+        "description": "This endpoint is deprecated. Use [Edit an API key](https://docs.datadoghq.com/api/latest/key-management/#edit-an-api-key) (`PATCH /api/v2/api_keys/{api_key_id}`) instead.\n\nEdit an API key name.\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
         "operationId": "UpdateAPIKey",
         "parameters": [
           {
@@ -40377,7 +40399,8 @@
     },
     "/api/v1/application_key": {
       "get": {
-        "description": "Get all application keys available for your Datadog account.\nThis endpoint is disabled for organizations in [One-Time Read mode](https://docs.datadoghq.com/account_management/api-app-keys/#one-time-read-mode).\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
+        "deprecated": true,
+        "description": "This endpoint is deprecated. To list your own application keys, use\n[Get all application keys owned by current user](https://docs.datadoghq.com/api/latest/key-management/#get-all-application-keys-owned-by-current-user)\n(`GET /api/v2/current_user/application_keys`), which requires the `user_app_keys` permission.\nTo list application keys across your organization, use\n[Get all application keys](https://docs.datadoghq.com/api/latest/key-management/#get-all-application-keys)\n(`GET /api/v2/application_keys`), which requires the `org_app_keys_read` permission.\n\nGet all application keys available for your Datadog account.\nThis endpoint is disabled for organizations in [One-Time Read mode](https://docs.datadoghq.com/account_management/api-app-keys/#one-time-read-mode).\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
         "operationId": "ListApplicationKeys",
         "responses": {
           "200": {
@@ -40430,7 +40453,8 @@
         }
       },
       "post": {
-        "description": "Create an application key with a given name.\nThis endpoint is disabled for organizations in [One-Time Read mode](https://docs.datadoghq.com/account_management/api-app-keys/#one-time-read-mode).\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
+        "deprecated": true,
+        "description": "This endpoint is deprecated. Use [Create an application key for current user](https://docs.datadoghq.com/api/latest/key-management/#create-an-application-key-for-current-user) (`POST /api/v2/current_user/application_keys`) instead.\n\nCreate an application key with a given name.\nThis endpoint is disabled for organizations in [One-Time Read mode](https://docs.datadoghq.com/account_management/api-app-keys/#one-time-read-mode).\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
         "operationId": "CreateApplicationKey",
         "requestBody": {
           "content": {
@@ -40520,7 +40544,8 @@
     },
     "/api/v1/application_key/{key}": {
       "delete": {
-        "description": "Delete a given application key.\nThis endpoint is disabled for organizations in [One-Time Read mode](https://docs.datadoghq.com/account_management/api-app-keys/#one-time-read-mode).\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
+        "deprecated": true,
+        "description": "This endpoint is deprecated. To delete your own application key, use\n[Delete an application key owned by current user](https://docs.datadoghq.com/api/latest/key-management/#delete-an-application-key-owned-by-current-user)\n(`DELETE /api/v2/current_user/application_keys/{app_key_id}`), which requires the `user_app_keys` permission.\nTo delete an application key for your organization, use\n[Delete an application key](https://docs.datadoghq.com/api/latest/key-management/#delete-an-application-key)\n(`DELETE /api/v2/application_keys/{app_key_id}`), which requires the `org_app_keys_write` permission.\n\nDelete a given application key.\nThis endpoint is disabled for organizations in [One-Time Read mode](https://docs.datadoghq.com/account_management/api-app-keys/#one-time-read-mode).\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
         "operationId": "DeleteApplicationKey",
         "parameters": [
           {
@@ -40592,7 +40617,8 @@
         }
       },
       "get": {
-        "description": "Get a given application key.\nThis endpoint is disabled for organizations in [One-Time Read mode](https://docs.datadoghq.com/account_management/api-app-keys/#one-time-read-mode).\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
+        "deprecated": true,
+        "description": "This endpoint is deprecated. To get your own application key, use\n[Get one application key owned by current user](https://docs.datadoghq.com/api/latest/key-management/#get-one-application-key-owned-by-current-user)\n(`GET /api/v2/current_user/application_keys/{app_key_id}`), which requires the `user_app_keys` permission.\nTo get an application key for your organization, use\n[Get an application key](https://docs.datadoghq.com/api/latest/key-management/#get-an-application-key)\n(`GET /api/v2/application_keys/{app_key_id}`), which requires the `org_app_keys_read` permission.\n\nGet a given application key.\nThis endpoint is disabled for organizations in [One-Time Read mode](https://docs.datadoghq.com/account_management/api-app-keys/#one-time-read-mode).\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
         "operationId": "GetApplicationKey",
         "parameters": [
           {
@@ -40664,7 +40690,8 @@
         }
       },
       "put": {
-        "description": "Edit an application key name.\nThis endpoint is disabled for organizations in [One-Time Read mode](https://docs.datadoghq.com/account_management/api-app-keys/#one-time-read-mode).\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
+        "deprecated": true,
+        "description": "This endpoint is deprecated. To edit your own application key, use\n[Edit an application key owned by current user](https://docs.datadoghq.com/api/latest/key-management/#edit-an-application-key-owned-by-current-user)\n(`PATCH /api/v2/current_user/application_keys/{app_key_id}`), which requires the `user_app_keys` permission.\nTo edit an application key for your organization, use\n[Edit an application key](https://docs.datadoghq.com/api/latest/key-management/#edit-an-application-key)\n(`PATCH /api/v2/application_keys/{app_key_id}`), which requires the `org_app_keys_write` permission.\n\nEdit an application key name.\nThis endpoint is disabled for organizations in [One-Time Read mode](https://docs.datadoghq.com/account_management/api-app-keys/#one-time-read-mode).\n\n**Note**: This endpoint is disabled for the Government sites (US1-FED and US2-FED). Use the [V2 Key Management](https://docs.datadoghq.com/api/latest/key-management/) endpoints instead.",
         "operationId": "UpdateApplicationKey",
         "parameters": [
           {
