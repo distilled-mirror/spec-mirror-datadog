@@ -26699,7 +26699,7 @@
         "type": "object"
       },
       "SyntheticsListTestsResponse": {
-        "description": "Object containing an array of Synthetic tests configuration.",
+        "description": "Synthetic test configurations.\nSearch responses also include `total` (matches before per-test access filtering) and `facets` (value counts).\n`total` can report 10,000 even when more tests match. Do not treat that value as an exact total.\nIn TypeScript, these are available as `response.additionalProperties?.total` and\n`response.additionalProperties?.facets`.",
         "properties": {
           "tests": {
             "description": "Array of Synthetic tests configuration.",
@@ -28144,7 +28144,7 @@
         ]
       },
       "SyntheticsTestDetailsWithoutSteps": {
-        "description": "Object containing details about your Synthetic test, without test steps.",
+        "description": "Synthetic test details, without steps.\nSearch results can also include `created_by`, `location_names`, `monitor_status`, `last_triggered_ts`,\n`triage_score`, and `test_criticality`. In TypeScript, these retain their snake_case names under\n`test.additionalProperties`.\n`monitor_status` describes monitor health, with known values `OK`, `Alert`, and `No Data`.\n`last_triggered_ts` is the monitor's last trigger time in Unix seconds.\n`triage_score` ranges from 0 to 1. Higher values mean higher priority.\n`test_criticality` groups scores into `low`, `medium`, `high`, or `very_high`.",
         "properties": {
           "config": {
             "$ref": "#/components/schemas/SyntheticsTestConfig"
@@ -55633,7 +55633,7 @@
     },
     "/api/v1/synthetics/tests": {
       "get": {
-        "description": "Get the list of all Synthetic tests.",
+        "description": "Get the list of all Synthetic tests. To use query filters or get monitor-health metadata, use\nthe Search Synthetic tests with filters endpoint.",
         "operationId": "ListTests",
         "parameters": [
           {
@@ -56059,7 +56059,7 @@
     },
     "/api/v1/synthetics/tests/api/{public_id}": {
       "get": {
-        "description": "Get the detailed configuration associated with\na Synthetic API test.",
+        "description": "Get the detailed configuration of one Synthetic API test.\nFor bulk configuration reads, prefer paginated `SearchTests` requests with `include_full_config=true`.",
         "operationId": "GetAPITest",
         "parameters": [
           {
@@ -56732,7 +56732,7 @@
     },
     "/api/v1/synthetics/tests/browser/{public_id}/results": {
       "get": {
-        "description": "Get the last 150 test results summaries for a given Synthetic browser test.",
+        "description": "Get the last 150 test results summaries for a given Synthetic browser test.\nTo filter tests across your organization by monitor status, state, or tags, use\nthe Search Synthetic tests with filters endpoint.",
         "operationId": "GetBrowserTestLatestResults",
         "parameters": [
           {
@@ -57438,11 +57438,12 @@
     },
     "/api/v1/synthetics/tests/search": {
       "get": {
-        "description": "Search for Synthetic tests.",
+        "description": "Search for Synthetic tests that match the `text` query. The response includes monitor health, facet counts,\nand pagination metadata. `total` can report 10,000 even when more tests match.\nDo not treat that value as an exact total. Access restrictions can return fewer tests than `count`, or none.\nIncrease `start` by `count` for each page.\nIn TypeScript, response-level `total` and `facets`, and test-level `monitor_status`\n(known values: `OK`, `Alert`, `No Data`), are available through `additionalProperties`.",
         "operationId": "SearchTests",
         "parameters": [
           {
-            "description": "The search query.",
+            "description": "Search query. Space-separated terms are combined with AND.\n- `status:Alert` or `status:OK`: monitor health.\n- `state:live` or `state:paused`: whether a test runs.\n- `type:api`, `type:browser`, or `type:mobile`: test type.\n- `team:<name>`, `<key>:<value>`, or `tag:<key>:<value>`: tags, for example `team:dashboards env:prod`.\n- `test_criticality:(high OR very_high)`: tests with high or very high criticality.\n- Free text, for example `checkout`: test names.\n\n`status:Alert state:live` matches running tests with alerting monitors. Paused tests can remain alerting.",
+            "example": "status:Alert state:live",
             "in": "query",
             "name": "text",
             "required": false,
@@ -57451,7 +57452,7 @@
             }
           },
           {
-            "description": "If true, include the full configuration for each test in the response.",
+            "description": "If true, include the full configuration, including assertions and multistep API steps.\nIf false or omitted, `config` contains only a reduced request summary.\nIn TypeScript, multistep steps are in `test.config?.additionalProperties?.steps`.",
             "in": "query",
             "name": "include_full_config",
             "required": false,
@@ -57460,7 +57461,7 @@
             }
           },
           {
-            "description": "If true, return only facets instead of full test details.",
+            "description": "If true, return facet counts with an empty `tests` array and `total` set to 0.",
             "in": "query",
             "name": "facets_only",
             "required": false,
@@ -57469,7 +57470,7 @@
             }
           },
           {
-            "description": "The offset from which to start returning results.",
+            "description": "Zero-based result offset. Increase by `count` for each page, even if fewer tests are returned.",
             "in": "query",
             "name": "start",
             "required": false,
@@ -57480,7 +57481,7 @@
             }
           },
           {
-            "description": "The maximum number of results to return.",
+            "description": "Maximum number of tests per page. Access restrictions can return fewer tests or none,\neven when more tests match.",
             "in": "query",
             "name": "count",
             "required": false,
@@ -57491,7 +57492,7 @@
             }
           },
           {
-            "description": "The sort order for the results (e.g., `name,asc` or `name,desc`).",
+            "description": "Sort by `<field>,<direction>`, where direction is `asc` or `desc` (for example, `name,asc`).\nSupported fields include `name`, `status`, `tags`, `triggered`, `created`, `modified`, `priority`,\n`muted_elapsed`, `muted_left`, `creator`, `type`, `domain`, and `triage_score`.\n`test_criticality` is an alias for `triage_score`.\n`triggered,desc` sorts by the most recent monitor trigger time (`last_triggered_ts`).",
             "in": "query",
             "name": "sort",
             "required": false,
@@ -57568,7 +57569,7 @@
             ]
           }
         ],
-        "summary": "Search Synthetic tests",
+        "summary": "Search Synthetic tests with filters",
         "tags": [
           "Synthetics"
         ],
@@ -58095,7 +58096,7 @@
     },
     "/api/v1/synthetics/tests/{public_id}/results": {
       "get": {
-        "description": "Get the last 150 test results summaries for a given Synthetic API test.",
+        "description": "Get the last 150 test results summaries for a given Synthetic API test.\nTo filter tests across your organization by monitor status, state, or tags, use\nthe Search Synthetic tests with filters endpoint.",
         "operationId": "GetAPITestLatestResults",
         "parameters": [
           {
