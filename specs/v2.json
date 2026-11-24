@@ -863,7 +863,7 @@
         }
       },
       "CommitmentsProvider": {
-        "description": "Cloud provider for commitment programs (aws or azure).",
+        "description": "Cloud provider for commitment programs (aws, azure, or gcp).",
         "example": "aws",
         "in": "query",
         "name": "provider",
@@ -13880,6 +13880,14 @@
             "$ref": "#/components/schemas/AiGatewayModelPricingSource",
             "description": "Source of the pricing data."
           },
+          "tiers": {
+            "description": "Custom prices that replace the base rates for the requests they select. Only valid for custom pricing.\nAt most 16 tiers, and no two may share the same `service_tier` and `context_min_tokens`.",
+            "items": {
+              "$ref": "#/components/schemas/AiGatewayModelPricingTier"
+            },
+            "maxItems": 16,
+            "type": "array"
+          },
           "version": {
             "$ref": "#/components/schemas/AiGatewayModelPricingVersion"
           }
@@ -13899,6 +13907,14 @@
           },
           "source": {
             "$ref": "#/components/schemas/AiGatewayModelPricingCustomRequestSource"
+          },
+          "tiers": {
+            "description": "Custom prices that replace the base rates for the requests they select. Only valid for custom pricing.\nAt most 16 tiers, and no two may share the same `service_tier` and `context_min_tokens`.",
+            "items": {
+              "$ref": "#/components/schemas/AiGatewayModelPricingTier"
+            },
+            "maxItems": 16,
+            "type": "array"
           },
           "version": {
             "$ref": "#/components/schemas/AiGatewayModelPricingVersion"
@@ -13961,24 +13977,28 @@
         "properties": {
           "cache_read_cost_per_mtok": {
             "description": "Cost per million tokens for cache reads.",
+            "example": 0.6,
             "format": "double",
             "minimum": 0,
             "type": "number"
           },
           "cache_write_cost_per_mtok": {
             "description": "Cost per million tokens for cache writes.",
+            "example": 7.5,
             "format": "double",
             "minimum": 0,
             "type": "number"
           },
           "non_cached_input_cost_per_mtok": {
             "description": "Cost per million tokens for non-cached input.",
+            "example": 6,
             "format": "double",
             "minimum": 0,
             "type": "number"
           },
           "output_cost_per_mtok": {
             "description": "Cost per million tokens for output.",
+            "example": 22.5,
             "format": "double",
             "minimum": 0,
             "type": "number"
@@ -14161,6 +14181,34 @@
           "PRICED",
           "UNPRICED"
         ]
+      },
+      "AiGatewayModelPricingTier": {
+        "additionalProperties": false,
+        "description": "Custom price for requests at or above `context_min_tokens` input tokens, in `service_tier` when it is set.\nEach tier needs a `service_tier`, a positive `context_min_tokens`, or both. Rates it omits keep the base custom rate.",
+        "properties": {
+          "context_min_tokens": {
+            "description": "Minimum input tokens for the price to apply.",
+            "example": 200000,
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "rates": {
+            "$ref": "#/components/schemas/AiGatewayModelPricingRates",
+            "description": "Rates that replace the base custom rates. At least one is required."
+          },
+          "service_tier": {
+            "description": "Provider service tier the price applies to. Lowercase letters, digits, `_` and `-`.",
+            "example": "priority",
+            "maxLength": 64,
+            "pattern": "^[a-z0-9_-]+$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rates"
+        ],
+        "type": "object"
       },
       "AiGatewayModelPricingType": {
         "description": "Model pricing resource type.",
@@ -14944,7 +14992,8 @@
         },
         "required": [
           "name",
-          "slug"
+          "slug",
+          "known_provider"
         ],
         "type": "object"
       },
@@ -16475,6 +16524,16 @@
             "format": "date-time",
             "type": "string"
           },
+          "description": {
+            "description": "Description of the routing rule. Absent when unset.",
+            "example": "Routes coding traffic to the fastest available model.",
+            "type": "string"
+          },
+          "display_name": {
+            "description": "Human-readable name of the routing rule. Absent when unset; show the slug instead.",
+            "example": "Coding fallback",
+            "type": "string"
+          },
           "route_id": {
             "description": "Stable numeric route identifier used by scoped policies and `ai-gateway-route` restriction policies.",
             "example": 123,
@@ -16507,6 +16566,18 @@
       "AiGatewayRoutingRuleCreateAttributes": {
         "description": "Attributes used to create an AI Gateway routing rule.",
         "properties": {
+          "description": {
+            "description": "Optional description of what the routing rule is for. Up to 500 characters. Line breaks are allowed.\nLeading and trailing spaces are trimmed, and a blank value is the same as none.",
+            "example": "Routes coding traffic to the fastest available model.",
+            "nullable": true,
+            "type": "string"
+          },
+          "display_name": {
+            "description": "Optional human-readable name shown in place of the slug. Up to 100 characters on one line. Need not be unique.\nLeading and trailing spaces are trimmed, and a blank value is the same as none.",
+            "example": "Coding fallback",
+            "nullable": true,
+            "type": "string"
+          },
           "initial_bindings": {
             "description": "Reserved for initial View and Edit permissions. Supplying this attribute returns HTTP 400 and doesn't\ncreate the route. Create the route, then set its permissions through the restriction policy API.",
             "items": {
@@ -16584,6 +16655,18 @@
       "AiGatewayRoutingRuleReplaceAttributes": {
         "description": "Partial route update. Omit tiers to preserve the entire graph, including hidden selections. Saved target IDs retain omitted settings. Replacing tiers must explicitly retain or remove every hidden occurrence.",
         "properties": {
+          "description": {
+            "description": "Optional description of what the routing rule is for. Up to 500 characters.\nOmit it or send null to keep the saved description. Send an empty string to clear it.",
+            "example": "Routes coding traffic to the fastest available model.",
+            "nullable": true,
+            "type": "string"
+          },
+          "display_name": {
+            "description": "Optional human-readable name shown in place of the slug. Up to 100 characters on one line.\nOmit it or send null to keep the saved display name. Send an empty string to clear it.",
+            "example": "Coding fallback",
+            "nullable": true,
+            "type": "string"
+          },
           "expected_updated_at": {
             "description": "Saved route revision. A mismatched value returns 409 without changes.",
             "example": "2026-08-24T12:00:00Z",
@@ -37313,7 +37396,7 @@
             "type": "boolean"
           },
           "expression": {
-            "description": "The SECL expression of the Agent rule.",
+            "description": "The SECL expression of the Agent rule. See [Agent expressions](https://docs.datadoghq.com/security/workload_protection/agent_expressions/).",
             "example": "exec.file.name == \"sh\"",
             "type": "string"
           },
@@ -38627,8 +38710,23 @@
       "CommitmentsCoverageScalarResponse": {
         "description": "Response containing scalar coverage metrics for cloud commitment programs.",
         "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CommitmentsCoverageScalarResponseData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "CommitmentsCoverageScalarResponseAttributes": {
+        "description": "Attributes of a scalar coverage response.",
+        "properties": {
           "columns": {
             "$ref": "#/components/schemas/CommitmentsScalarColumns"
+          },
+          "query_definition": {
+            "$ref": "#/components/schemas/CommitmentsQueryDefinition"
           }
         },
         "required": [
@@ -38636,14 +38734,74 @@
         ],
         "type": "object"
       },
+      "CommitmentsCoverageScalarResponseData": {
+        "description": "The scalar coverage resource.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/CommitmentsCoverageScalarResponseAttributes"
+          },
+          "id": {
+            "description": "The identifier of the scalar coverage response.",
+            "example": "scalar_response",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ScalarFormulaResponseType"
+          }
+        },
+        "required": [
+          "attributes",
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "CommitmentsCoverageTimeseriesMetric": {
+        "description": "A coverage timeseries metric. For AWS and Azure, `series` holds the `on_demand_only`, `spot_only`, `ri`,\nand `sp` buckets, plus `ppp` for Azure pre-purchase plans when enabled. For GCP, `series` holds the\n`on_demand_only` and `flex_cud` buckets.",
+        "properties": {
+          "provider": {
+            "$ref": "#/components/schemas/CommitmentsProvider"
+          },
+          "series": {
+            "$ref": "#/components/schemas/CommitmentsTimeseriesSeries"
+          },
+          "times": {
+            "$ref": "#/components/schemas/CommitmentsTimestamps"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/CommitmentsUnit"
+          }
+        },
+        "required": [
+          "provider",
+          "series",
+          "times"
+        ],
+        "type": "object"
+      },
       "CommitmentsCoverageTimeseriesResponse": {
         "description": "Response containing timeseries coverage metrics for cloud commitment programs.",
         "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CommitmentsCoverageTimeseriesResponseData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "CommitmentsCoverageTimeseriesResponseAttributes": {
+        "description": "Attributes of a timeseries coverage response.",
+        "properties": {
           "cost": {
-            "$ref": "#/components/schemas/CommitmentsTimeseriesMetric"
+            "$ref": "#/components/schemas/CommitmentsCoverageTimeseriesMetric"
           },
           "hours": {
-            "$ref": "#/components/schemas/CommitmentsTimeseriesMetric"
+            "$ref": "#/components/schemas/CommitmentsCoverageTimeseriesMetric"
+          },
+          "query_definition": {
+            "$ref": "#/components/schemas/CommitmentsQueryDefinition"
           }
         },
         "required": [
@@ -38651,6 +38809,40 @@
           "hours"
         ],
         "type": "object"
+      },
+      "CommitmentsCoverageTimeseriesResponseData": {
+        "description": "The timeseries coverage resource.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/CommitmentsCoverageTimeseriesResponseAttributes"
+          },
+          "id": {
+            "description": "The identifier of the timeseries coverage response.",
+            "example": "coverage_timeseries_response",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/CommitmentsCoverageTimeseriesResponseType"
+          }
+        },
+        "required": [
+          "attributes",
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "CommitmentsCoverageTimeseriesResponseType": {
+        "default": "coverage_timeseries_response",
+        "description": "Type of the timeseries coverage response resource.",
+        "enum": [
+          "coverage_timeseries_response"
+        ],
+        "example": "coverage_timeseries_response",
+        "type": "string",
+        "x-enum-varnames": [
+          "COVERAGE_TIMESERIES_RESPONSE"
+        ]
       },
       "CommitmentsListItem": {
         "description": "A commitment item, which varies based on the provider, product, and commitment type.",
@@ -38770,28 +38962,26 @@
           "COMMITMENTS_LIST_RESPONSE"
         ]
       },
-      "CommitmentsOnDemandHotspotsScalarMeta": {
-        "description": "Metadata for the on-demand hot-spots scalar response.",
+      "CommitmentsOnDemandHotspotsScalarResponse": {
+        "description": "Response containing scalar on-demand hot-spots data for cloud commitment programs.",
         "properties": {
-          "on_demand_filters": {
-            "description": "Active on-demand filters applied to the response.",
-            "example": "region:us-east-1",
-            "type": "string"
+          "data": {
+            "$ref": "#/components/schemas/CommitmentsOnDemandHotspotsScalarResponseData"
           }
         },
         "required": [
-          "on_demand_filters"
+          "data"
         ],
         "type": "object"
       },
-      "CommitmentsOnDemandHotspotsScalarResponse": {
-        "description": "Response containing scalar on-demand hot-spots data for cloud commitment programs.",
+      "CommitmentsOnDemandHotspotsScalarResponseAttributes": {
+        "description": "Attributes of a scalar on-demand hot-spots response.",
         "properties": {
           "columns": {
             "$ref": "#/components/schemas/CommitmentsScalarColumns"
           },
-          "meta": {
-            "$ref": "#/components/schemas/CommitmentsOnDemandHotspotsScalarMeta"
+          "query_definition": {
+            "$ref": "#/components/schemas/CommitmentsQueryDefinition"
           },
           "total": {
             "$ref": "#/components/schemas/CommitmentsScalarColumns"
@@ -38803,17 +38993,41 @@
         ],
         "type": "object"
       },
+      "CommitmentsOnDemandHotspotsScalarResponseData": {
+        "description": "The scalar on-demand hot-spots resource.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/CommitmentsOnDemandHotspotsScalarResponseAttributes"
+          },
+          "id": {
+            "description": "The identifier of the scalar on-demand hot-spots response.",
+            "example": "scalar_response",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ScalarFormulaResponseType"
+          }
+        },
+        "required": [
+          "attributes",
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
       "CommitmentsProvider": {
         "description": "Cloud provider for commitment programs.",
         "enum": [
           "aws",
-          "azure"
+          "azure",
+          "gcp"
         ],
         "example": "aws",
         "type": "string",
         "x-enum-varnames": [
           "AWS",
-          "AZURE"
+          "AZURE",
+          "GCP"
         ]
       },
       "CommitmentsQueryDefinition": {
@@ -38927,8 +39141,26 @@
       "CommitmentsSavingsScalarResponse": {
         "description": "Response containing scalar savings metrics for cloud commitment programs.",
         "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CommitmentsSavingsScalarResponseData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "CommitmentsSavingsScalarResponseAttributes": {
+        "description": "Attributes of a scalar savings response.",
+        "properties": {
           "columns": {
             "$ref": "#/components/schemas/CommitmentsScalarColumns"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/CommitmentsUnusedCostMeta"
+          },
+          "query_definition": {
+            "$ref": "#/components/schemas/CommitmentsQueryDefinition"
           }
         },
         "required": [
@@ -38936,8 +39168,42 @@
         ],
         "type": "object"
       },
+      "CommitmentsSavingsScalarResponseData": {
+        "description": "The scalar savings resource.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/CommitmentsSavingsScalarResponseAttributes"
+          },
+          "id": {
+            "description": "The identifier of the scalar savings response.",
+            "example": "scalar_response",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ScalarFormulaResponseType"
+          }
+        },
+        "required": [
+          "attributes",
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
       "CommitmentsSavingsTimeseriesResponse": {
         "description": "Response containing timeseries savings metrics for cloud commitment programs.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CommitmentsSavingsTimeseriesResponseData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "CommitmentsSavingsTimeseriesResponseAttributes": {
+        "description": "Attributes of a timeseries savings response.",
         "properties": {
           "actual_cost": {
             "$ref": "#/components/schemas/CommitmentsTimeseriesMetric"
@@ -38945,8 +39211,14 @@
           "effective_savings_rate": {
             "$ref": "#/components/schemas/CommitmentsTimeseriesMetric"
           },
+          "meta": {
+            "$ref": "#/components/schemas/CommitmentsUnusedCostMeta"
+          },
           "on_demand_equivalent_cost": {
             "$ref": "#/components/schemas/CommitmentsTimeseriesMetric"
+          },
+          "query_definition": {
+            "$ref": "#/components/schemas/CommitmentsQueryDefinition"
           },
           "realized_savings": {
             "$ref": "#/components/schemas/CommitmentsTimeseriesMetric"
@@ -38959,6 +39231,40 @@
           "realized_savings"
         ],
         "type": "object"
+      },
+      "CommitmentsSavingsTimeseriesResponseData": {
+        "description": "The timeseries savings resource.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/CommitmentsSavingsTimeseriesResponseAttributes"
+          },
+          "id": {
+            "description": "The identifier of the timeseries savings response.",
+            "example": "savings_timeseries_response",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/CommitmentsSavingsTimeseriesResponseType"
+          }
+        },
+        "required": [
+          "attributes",
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "CommitmentsSavingsTimeseriesResponseType": {
+        "default": "savings_timeseries_response",
+        "description": "Type of the timeseries savings response resource.",
+        "enum": [
+          "savings_timeseries_response"
+        ],
+        "example": "savings_timeseries_response",
+        "type": "string",
+        "x-enum-varnames": [
+          "SAVINGS_TIMESERIES_RESPONSE"
+        ]
       },
       "CommitmentsScalarColumn": {
         "description": "A column in a scalar response. When type is \"group\", values contains arrays of strings. When type is \"number\", values contains numeric values.",
@@ -39077,7 +39383,8 @@
         "type": "array"
       },
       "CommitmentsUnit": {
-        "description": "Unit metadata for a numeric metric.",
+        "description": "Unit metadata for a numeric metric. Unset fields are omitted, and the unit is `null` when it is unknown.",
+        "nullable": true,
         "properties": {
           "family": {
             "description": "The unit family (for example, percentage or money).",
@@ -39112,14 +39419,17 @@
             "type": "string"
           }
         },
-        "required": [
-          "family",
-          "id",
-          "name",
-          "plural",
-          "scale_factor",
-          "short_name"
-        ],
+        "type": "object"
+      },
+      "CommitmentsUnusedCostMeta": {
+        "description": "Metadata reporting that the cost data lacks the unused costs of some commitments, as with Azure exports\nscoped below the billing profile. Utilization is then overstated, and realized savings and effective\nsavings rate are upper bounds. Omitted when the unused costs are available.",
+        "properties": {
+          "unused_cost_unavailable": {
+            "description": "Whether the cost data lacks the unused costs of some commitments.",
+            "example": true,
+            "type": "boolean"
+          }
+        },
         "type": "object"
       },
       "CommitmentsUtilizationScalarProductBreakdown": {
@@ -39153,11 +39463,29 @@
       "CommitmentsUtilizationScalarResponse": {
         "description": "Response containing scalar utilization metrics for cloud commitment programs.",
         "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CommitmentsUtilizationScalarResponseData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "CommitmentsUtilizationScalarResponseAttributes": {
+        "description": "Attributes of a scalar utilization response.",
+        "properties": {
           "columns": {
             "$ref": "#/components/schemas/CommitmentsScalarColumns"
           },
+          "meta": {
+            "$ref": "#/components/schemas/CommitmentsUnusedCostMeta"
+          },
           "product_breakdown": {
             "$ref": "#/components/schemas/CommitmentsUtilizationScalarProductBreakdown"
+          },
+          "query_definition": {
+            "$ref": "#/components/schemas/CommitmentsQueryDefinition"
           }
         },
         "required": [
@@ -39165,9 +39493,49 @@
         ],
         "type": "object"
       },
+      "CommitmentsUtilizationScalarResponseData": {
+        "description": "The scalar utilization resource.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/CommitmentsUtilizationScalarResponseAttributes"
+          },
+          "id": {
+            "description": "The identifier of the scalar utilization response.",
+            "example": "scalar_response",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ScalarFormulaResponseType"
+          }
+        },
+        "required": [
+          "attributes",
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
       "CommitmentsUtilizationTimeseriesResponse": {
         "description": "Response containing timeseries utilization metrics for cloud commitment programs.",
         "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CommitmentsUtilizationTimeseriesResponseData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "CommitmentsUtilizationTimeseriesResponseAttributes": {
+        "description": "Attributes of a timeseries utilization response.",
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/CommitmentsUnusedCostMeta"
+          },
+          "query_definition": {
+            "$ref": "#/components/schemas/CommitmentsQueryDefinition"
+          },
           "series": {
             "$ref": "#/components/schemas/CommitmentsTimeseriesSeries"
           },
@@ -39183,6 +39551,40 @@
           "times"
         ],
         "type": "object"
+      },
+      "CommitmentsUtilizationTimeseriesResponseData": {
+        "description": "The timeseries utilization resource.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/CommitmentsUtilizationTimeseriesResponseAttributes"
+          },
+          "id": {
+            "description": "The identifier of the timeseries utilization response.",
+            "example": "utilization_timeseries_response",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/CommitmentsUtilizationTimeseriesResponseType"
+          }
+        },
+        "required": [
+          "attributes",
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "CommitmentsUtilizationTimeseriesResponseType": {
+        "default": "utilization_timeseries_response",
+        "description": "Type of the timeseries utilization response resource.",
+        "enum": [
+          "utilization_timeseries_response"
+        ],
+        "example": "utilization_timeseries_response",
+        "type": "string",
+        "x-enum-varnames": [
+          "UTILIZATION_TIMESERIES_RESPONSE"
+        ]
       },
       "CompletionCondition": {
         "additionalProperties": false,
@@ -42613,6 +43015,13 @@
             "description": "Datadog resource key identifying the recommended resource.",
             "type": "string"
           },
+          "extra_fields": {
+            "description": "Selected recommendation fields. Omitted when no requested fields match.",
+            "items": {
+              "$ref": "#/components/schemas/CostRecommendationExtraField"
+            },
+            "type": "array"
+          },
           "potential_daily_savings": {
             "$ref": "#/components/schemas/CostRecommendationDataAttributesPotentialDailySavings"
           },
@@ -42669,6 +43078,25 @@
         "x-enum-varnames": [
           "RECOMMENDATION"
         ]
+      },
+      "CostRecommendationExtraField": {
+        "description": "A recommendation field selected by the request's `extra_fields` patterns.",
+        "properties": {
+          "path": {
+            "description": "Dotted path of the matched field in the recommendation event's custom attributes.",
+            "example": "tags.env",
+            "type": "string"
+          },
+          "value": {
+            "description": "Matched JSON value. Paths through arrays return the matched values as an array.",
+            "example": "prod"
+          }
+        },
+        "required": [
+          "path",
+          "value"
+        ],
+        "type": "object"
       },
       "CostTag": {
         "description": "A Cloud Cost Management tag.",
@@ -45213,7 +45641,7 @@
         "type": "object"
       },
       "CreateDeploymentGateParamsDataAttributes": {
-        "description": "Parameters for creating a deployment gate.",
+        "description": "Parameters for creating a deployment gate. For the same organization, service, and identifier,\na gate for all environments cannot coexist with gates for specific environments.",
         "properties": {
           "dry_run": {
             "default": false,
@@ -45222,7 +45650,7 @@
             "type": "boolean"
           },
           "env": {
-            "description": "The environment of the deployment gate.",
+            "description": "Required environment of the deployment gate. Use `*` to apply the gate to all environments.",
             "example": "production",
             "type": "string"
           },
@@ -59941,7 +60369,7 @@
         "type": "object"
       },
       "DeploymentGateResponseDataAttributes": {
-        "description": "Basic information about a deployment gate.",
+        "description": "Basic information about a deployment gate. The environment is `*` for a gate that applies to all environments.",
         "properties": {
           "created_at": {
             "description": "The timestamp when the deployment gate was created.",
@@ -59958,7 +60386,7 @@
             "type": "boolean"
           },
           "env": {
-            "description": "The environment of the deployment gate.",
+            "description": "The environment of the deployment gate. `*` means all environments.",
             "example": "production",
             "type": "string"
           },
@@ -159596,6 +160024,9 @@
         "example": {
           "data": {
             "attributes": {
+              "extra_fields": [
+                "tags.env"
+              ],
               "scope": "ccm",
               "sort": [
                 {
@@ -159641,6 +160072,19 @@
       "RecommendationsFilterRequestDataAttributes": {
         "description": "Attributes used to filter and sort cost recommendations.",
         "properties": {
+          "extra_fields": {
+            "description": "Additional fields to return from the recommendation event's custom attributes, selected\nby dotted paths such as `tags.env` or wildcard patterns such as `*target*`.\nArrays are traversed without indexes. Matched objects and arrays are returned whole.\nA maximum of 256 selectors can be requested. Selectors that match nothing return no field.",
+            "example": [
+              "tags.env",
+              "*target*"
+            ],
+            "items": {
+              "description": "A dotted field path or wildcard pattern.",
+              "type": "string"
+            },
+            "maxItems": 256,
+            "type": "array"
+          },
           "filter": {
             "description": "Filter expression applied to the recommendations. When supplied, this attribute overrides\n`data.id`, including when empty. When omitted, `data.id` is used. If the resulting filter\nis empty, it defaults to `*`. Scope, view, and pagination still apply.",
             "example": "@resource_table:aws_ec2_instance",
@@ -181437,6 +181881,49 @@
         },
         "type": "object"
       },
+      "SecurityMonitoringSignalCase": {
+        "description": "A case linked to a security signal.",
+        "properties": {
+          "assigneeId": {
+            "description": "The UUID of the user assigned to the case.",
+            "example": "773b045d-ccf8-4808-bd3b-955ef6a8c940",
+            "type": "string"
+          },
+          "assigneeName": {
+            "description": "The name of the user assigned to the case.",
+            "example": "John Doe",
+            "type": "string"
+          },
+          "id": {
+            "description": "The unique ID of the case.",
+            "example": "3dbe4ef2-8d2d-4e3d-9e8e-4a5b6c7d8e9f",
+            "type": "string"
+          },
+          "key": {
+            "description": "The key of the case.",
+            "example": "SEC-1234",
+            "type": "string"
+          },
+          "status": {
+            "description": "The status of the case.",
+            "example": "OPEN",
+            "type": "string"
+          },
+          "title": {
+            "description": "The title of the case.",
+            "example": "Suspicious login activity",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SecurityMonitoringSignalCases": {
+        "description": "Cases linked to the security signal.",
+        "items": {
+          "$ref": "#/components/schemas/SecurityMonitoringSignalCase"
+        },
+        "type": "array"
+      },
       "SecurityMonitoringSignalIncidentIds": {
         "description": "Array of incidents that are associated with this signal.",
         "example": [
@@ -182156,6 +182643,13 @@
           },
           "assignee": {
             "$ref": "#/components/schemas/SecurityMonitoringTriageUser"
+          },
+          "cases": {
+            "$ref": "#/components/schemas/SecurityMonitoringSignalCases"
+          },
+          "hasCase": {
+            "description": "Whether the signal is linked to at least one case.",
+            "type": "boolean"
           },
           "incident_ids": {
             "$ref": "#/components/schemas/SecurityMonitoringSignalIncidentIds"
@@ -184146,6 +184640,89 @@
         },
         "type": "object"
       },
+      "SensitiveDataScannerCustomRegexRuleAttributes": {
+        "description": "Attributes of a custom rule, which matches the regular expression in `pattern`.",
+        "properties": {
+          "description": {
+            "description": "Description of the rule.",
+            "type": "string"
+          },
+          "excluded_namespaces": {
+            "description": "Attributes excluded from the scan. If namespaces is provided, it has to be a sub-path of the namespaces array.",
+            "example": [
+              "admin.name"
+            ],
+            "items": {
+              "description": "An attribute path to exclude from the scan.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "included_keyword_configuration": {
+            "$ref": "#/components/schemas/SensitiveDataScannerIncludedKeywordConfiguration"
+          },
+          "is_enabled": {
+            "description": "Whether or not the rule is enabled.",
+            "type": "boolean"
+          },
+          "name": {
+            "description": "Name of the rule.",
+            "type": "string"
+          },
+          "namespaces": {
+            "description": "Attributes included in the scan. If namespaces is empty or missing, all attributes except excluded_namespaces are scanned.\nIf both are missing the whole event is scanned.",
+            "example": [
+              "admin"
+            ],
+            "items": {
+              "description": "An attribute path to include in the scan.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "pattern": {
+            "description": "Regular expression of the rule.",
+            "example": "",
+            "type": "string"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/SensitiveDataScannerRulePriority"
+          },
+          "rule_type": {
+            "$ref": "#/components/schemas/SensitiveDataScannerCustomRegexRuleType"
+          },
+          "suppressions": {
+            "$ref": "#/components/schemas/SensitiveDataScannerSuppressions"
+          },
+          "tags": {
+            "description": "List of tags.",
+            "items": {
+              "description": "A tag associated with the rule.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "text_replacement": {
+            "$ref": "#/components/schemas/SensitiveDataScannerTextReplacement"
+          }
+        },
+        "required": [
+          "rule_type",
+          "pattern"
+        ],
+        "type": "object"
+      },
+      "SensitiveDataScannerCustomRegexRuleType": {
+        "description": "Type of a custom rule.",
+        "enum": [
+          "regex_custom_rule"
+        ],
+        "example": "regex_custom_rule",
+        "type": "string",
+        "x-enum-varnames": [
+          "REGEX_CUSTOM_RULE"
+        ]
+      },
       "SensitiveDataScannerFilter": {
         "description": "Filter for the Scanning Group.",
         "properties": {
@@ -184401,6 +184978,29 @@
         },
         "type": "object"
       },
+      "SensitiveDataScannerGroupTarget": {
+        "description": "A target the scanning group applies to.",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/SensitiveDataScannerGroupTargetType"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "SensitiveDataScannerGroupTargetType": {
+        "description": "Type of target whose scanning groups are served by the target-scoped group routes. `llm_observability` is Agent Observability.",
+        "enum": [
+          "llm_observability"
+        ],
+        "example": "llm_observability",
+        "type": "string",
+        "x-enum-varnames": [
+          "LLM_OBSERVABILITY"
+        ]
+      },
       "SensitiveDataScannerGroupType": {
         "default": "sensitive_data_scanner_group",
         "description": "Sensitive Data Scanner group type.",
@@ -184497,6 +185097,80 @@
           "character_count"
         ],
         "type": "object"
+      },
+      "SensitiveDataScannerMachineLearningRuleAttributes": {
+        "description": "Attributes of a rule based on a standard machine learning rule. It has no pattern or keywords.",
+        "properties": {
+          "description": {
+            "description": "Description of the rule.",
+            "type": "string"
+          },
+          "excluded_namespaces": {
+            "description": "Attributes excluded from the scan. If namespaces is provided, it has to be a sub-path of the namespaces array.",
+            "example": [
+              "admin.name"
+            ],
+            "items": {
+              "description": "An attribute path to exclude from the scan.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "is_enabled": {
+            "description": "Whether or not the rule is enabled.",
+            "type": "boolean"
+          },
+          "name": {
+            "description": "Name of the rule.",
+            "type": "string"
+          },
+          "namespaces": {
+            "description": "Attributes included in the scan. If namespaces is empty or missing, all attributes except excluded_namespaces are scanned.\nIf both are missing the whole event is scanned.",
+            "example": [
+              "admin"
+            ],
+            "items": {
+              "description": "An attribute path to include in the scan.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/SensitiveDataScannerRulePriority"
+          },
+          "rule_type": {
+            "$ref": "#/components/schemas/SensitiveDataScannerMachineLearningRuleType"
+          },
+          "suppressions": {
+            "$ref": "#/components/schemas/SensitiveDataScannerSuppressions"
+          },
+          "tags": {
+            "description": "List of tags.",
+            "items": {
+              "description": "A tag associated with the rule.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "text_replacement": {
+            "$ref": "#/components/schemas/SensitiveDataScannerTextReplacement"
+          }
+        },
+        "required": [
+          "rule_type"
+        ],
+        "type": "object"
+      },
+      "SensitiveDataScannerMachineLearningRuleType": {
+        "description": "Type of a rule based on a standard machine learning rule.",
+        "enum": [
+          "machine_learning_standard_rule"
+        ],
+        "example": "machine_learning_standard_rule",
+        "type": "string",
+        "x-enum-varnames": [
+          "MACHINE_LEARNING_STANDARD_RULE"
+        ]
       },
       "SensitiveDataScannerMeta": {
         "additionalProperties": {},
@@ -184734,6 +185408,25 @@
         },
         "type": "object"
       },
+      "SensitiveDataScannerRulePriority": {
+        "description": "Severity of the issues found by the rule.",
+        "enum": [
+          "critical",
+          "high",
+          "medium",
+          "low",
+          "info"
+        ],
+        "example": "high",
+        "type": "string",
+        "x-enum-varnames": [
+          "CRITICAL",
+          "HIGH",
+          "MEDIUM",
+          "LOW",
+          "INFO"
+        ]
+      },
       "SensitiveDataScannerRuleRelationships": {
         "description": "Relationships of a scanning rule.",
         "properties": {
@@ -184955,6 +185648,123 @@
         },
         "type": "object"
       },
+      "SensitiveDataScannerStandardRegexRuleAttributes": {
+        "description": "Attributes of a rule based on a standard regex rule, whose pattern is maintained by Datadog.",
+        "properties": {
+          "description": {
+            "description": "Description of the rule.",
+            "type": "string"
+          },
+          "excluded_namespaces": {
+            "description": "Attributes excluded from the scan. If namespaces is provided, it has to be a sub-path of the namespaces array.",
+            "example": [
+              "admin.name"
+            ],
+            "items": {
+              "description": "An attribute path to exclude from the scan.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "included_keyword_configuration": {
+            "$ref": "#/components/schemas/SensitiveDataScannerIncludedKeywordConfiguration"
+          },
+          "is_enabled": {
+            "description": "Whether or not the rule is enabled.",
+            "type": "boolean"
+          },
+          "name": {
+            "description": "Name of the rule.",
+            "type": "string"
+          },
+          "namespaces": {
+            "description": "Attributes included in the scan. If namespaces is empty or missing, all attributes except excluded_namespaces are scanned.\nIf both are missing the whole event is scanned.",
+            "example": [
+              "admin"
+            ],
+            "items": {
+              "description": "An attribute path to include in the scan.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/SensitiveDataScannerRulePriority"
+          },
+          "rule_type": {
+            "$ref": "#/components/schemas/SensitiveDataScannerStandardRegexRuleType"
+          },
+          "suppressions": {
+            "$ref": "#/components/schemas/SensitiveDataScannerSuppressions"
+          },
+          "tags": {
+            "description": "List of tags.",
+            "items": {
+              "description": "A tag associated with the rule.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "text_replacement": {
+            "$ref": "#/components/schemas/SensitiveDataScannerTextReplacement"
+          }
+        },
+        "required": [
+          "rule_type"
+        ],
+        "type": "object"
+      },
+      "SensitiveDataScannerStandardRegexRuleType": {
+        "description": "Type of a rule based on a standard regex rule.",
+        "enum": [
+          "regex_standard_rule"
+        ],
+        "example": "regex_standard_rule",
+        "type": "string",
+        "x-enum-varnames": [
+          "REGEX_STANDARD_RULE"
+        ]
+      },
+      "SensitiveDataScannerStandardRule": {
+        "description": "The standard rule a rule is based on. Not included for custom rules.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SensitiveDataScannerStandardRuleData"
+          }
+        },
+        "type": "object"
+      },
+      "SensitiveDataScannerStandardRuleData": {
+        "description": "A standard rule.",
+        "properties": {
+          "id": {
+            "description": "ID of the standard rule.",
+            "example": "ruleIdBank-123456789",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SensitiveDataScannerStandardRuleType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "SensitiveDataScannerStandardRuleType": {
+        "description": "Type of standard rule, based on how it detects sensitive data.",
+        "enum": [
+          "regex_standard_rule",
+          "machine_learning_standard_rule"
+        ],
+        "example": "regex_standard_rule",
+        "type": "string",
+        "x-enum-varnames": [
+          "REGEX_STANDARD_RULE",
+          "MACHINE_LEARNING_STANDARD_RULE"
+        ]
+      },
       "SensitiveDataScannerSuppressions": {
         "description": "Object describing suppressions for a rule, or the recommended suppression lists published by a standard pattern.\nThere are three types of suppressions, `starts_with`, `ends_with`, and `exact_match`.\nRules based on the Datadog library can use recommended or custom suppressions. Custom rules can only use custom suppressions.\nSuppressed matches are not obfuscated, counted in metrics, or displayed in the Findings page.",
         "properties": {
@@ -184997,6 +185807,172 @@
           "use_recommended_suppressions": {
             "description": "Should the rule use the underlying standard pattern suppression configuration. If set to `true`, the rule must be tied\nto a standard pattern. If set to `false`, the specified suppressions are applied.",
             "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "SensitiveDataScannerTargetGroupAttributes": {
+        "description": "Attributes of a scanning group of a target.",
+        "properties": {
+          "description": {
+            "description": "Description of the group.",
+            "example": "",
+            "type": "string"
+          },
+          "is_enabled": {
+            "description": "Whether or not the group is enabled.",
+            "example": true,
+            "type": "boolean"
+          },
+          "name": {
+            "description": "Name of the group.",
+            "example": "Agent Observability Span Scanning",
+            "type": "string"
+          },
+          "targets": {
+            "description": "Targets the scanning group applies to. A scanning group has a single target for now.",
+            "items": {
+              "$ref": "#/components/schemas/SensitiveDataScannerGroupTarget"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "is_enabled",
+          "targets"
+        ],
+        "type": "object"
+      },
+      "SensitiveDataScannerTargetGroupData": {
+        "description": "A scanning group of a target.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/SensitiveDataScannerTargetGroupAttributes"
+          },
+          "id": {
+            "description": "ID of the group.",
+            "example": "6f1c2a4e-3b5d-4e8f-9a7b-1c2d3e4f5a6b",
+            "type": "string"
+          },
+          "relationships": {
+            "$ref": "#/components/schemas/SensitiveDataScannerTargetGroupRelationships"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SensitiveDataScannerGroupType"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes",
+          "relationships"
+        ],
+        "type": "object"
+      },
+      "SensitiveDataScannerTargetGroupIncludedArray": {
+        "description": "Rules of the returned groups.",
+        "items": {
+          "$ref": "#/components/schemas/SensitiveDataScannerTargetRuleIncludedItem"
+        },
+        "type": "array"
+      },
+      "SensitiveDataScannerTargetGroupListResponse": {
+        "description": "Scanning groups of a target, with their rules included.",
+        "properties": {
+          "data": {
+            "description": "Scanning groups of the target, in order.",
+            "items": {
+              "$ref": "#/components/schemas/SensitiveDataScannerTargetGroupData"
+            },
+            "type": "array"
+          },
+          "included": {
+            "$ref": "#/components/schemas/SensitiveDataScannerTargetGroupIncludedArray"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/SensitiveDataScannerMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "type": "object"
+      },
+      "SensitiveDataScannerTargetGroupRelationships": {
+        "description": "Relationships of a scanning group of a target.",
+        "properties": {
+          "rules": {
+            "$ref": "#/components/schemas/SensitiveDataScannerRuleData"
+          }
+        },
+        "required": [
+          "rules"
+        ],
+        "type": "object"
+      },
+      "SensitiveDataScannerTargetGroupResponse": {
+        "description": "A scanning group of a target, with its rules included.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SensitiveDataScannerTargetGroupData"
+          },
+          "included": {
+            "$ref": "#/components/schemas/SensitiveDataScannerTargetGroupIncludedArray"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/SensitiveDataScannerMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "type": "object"
+      },
+      "SensitiveDataScannerTargetRuleAttributes": {
+        "description": "Attributes of a rule of a scanning group of a target. They depend on the type of rule.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SensitiveDataScannerCustomRegexRuleAttributes"
+          },
+          {
+            "$ref": "#/components/schemas/SensitiveDataScannerStandardRegexRuleAttributes"
+          },
+          {
+            "$ref": "#/components/schemas/SensitiveDataScannerMachineLearningRuleAttributes"
+          }
+        ]
+      },
+      "SensitiveDataScannerTargetRuleIncludedItem": {
+        "description": "A rule of a scanning group of a target.",
+        "properties": {
+          "attributes": {
+            "$ref": "#/components/schemas/SensitiveDataScannerTargetRuleAttributes"
+          },
+          "id": {
+            "description": "ID of the rule.",
+            "type": "string"
+          },
+          "relationships": {
+            "$ref": "#/components/schemas/SensitiveDataScannerTargetRuleRelationships"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SensitiveDataScannerRuleType"
+          }
+        },
+        "type": "object"
+      },
+      "SensitiveDataScannerTargetRuleRelationships": {
+        "description": "Relationships of a rule of a scanning group of a target.",
+        "properties": {
+          "group": {
+            "$ref": "#/components/schemas/SensitiveDataScannerGroupData"
+          },
+          "standard_rule": {
+            "$ref": "#/components/schemas/SensitiveDataScannerStandardRule"
           }
         },
         "type": "object"
@@ -244301,34 +245277,40 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "columns": [
-                        {
-                          "name": "service",
-                          "type": "group",
-                          "values": [
-                            [
-                              "ec2"
-                            ]
+                      "data": {
+                        "attributes": {
+                          "columns": [
+                            {
+                              "name": "service",
+                              "type": "group",
+                              "values": [
+                                [
+                                  "ec2"
+                                ]
+                              ]
+                            },
+                            {
+                              "meta": {
+                                "unit": {
+                                  "family": "percentage",
+                                  "id": 17,
+                                  "name": "percent",
+                                  "plural": "percent",
+                                  "scale_factor": 1,
+                                  "short_name": "%"
+                                }
+                              },
+                              "name": "hours_coverage",
+                              "type": "number",
+                              "values": [
+                                0.78
+                              ]
+                            }
                           ]
                         },
-                        {
-                          "meta": {
-                            "unit": {
-                              "family": "percentage",
-                              "id": 17,
-                              "name": "percent",
-                              "plural": "percent",
-                              "scale_factor": 1,
-                              "short_name": "%"
-                            }
-                          },
-                          "name": "hours_coverage",
-                          "type": "number",
-                          "values": [
-                            0.78
-                          ]
-                        }
-                      ]
+                        "id": "scalar_response",
+                        "type": "scalar_response"
+                      }
                     }
                   }
                 },
@@ -244379,7 +245361,7 @@
     },
     "/api/v2/cost/commitments/coverage/timeseries": {
       "get": {
-        "description": "Get timeseries coverage metrics for cloud commitment programs, broken down by coverage type (Reserved Instances, Savings Plans, On-Demand, and Spot) for both hours and cost.",
+        "description": "Get timeseries coverage metrics for cloud commitment programs, broken down by coverage type for both hours and cost. AWS and Azure report Reserved Instances, Savings Plans, On-Demand, and Spot. GCP reports Flex Committed Use Discounts and On-Demand.",
         "operationId": "GetCommitmentsCoverageTimeseries",
         "parameters": [
           {
@@ -244405,53 +245387,61 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "cost": {
-                        "series": {
-                          "on_demand_only": [
-                            1000,
-                            900
-                          ],
-                          "ri": [
-                            3600,
-                            3700
-                          ],
-                          "sp": [
-                            400,
-                            400
-                          ],
-                          "spot_only": [
-                            50,
-                            50
-                          ]
+                      "data": {
+                        "attributes": {
+                          "cost": {
+                            "provider": "aws",
+                            "series": {
+                              "on_demand_only": [
+                                1000,
+                                900
+                              ],
+                              "ri": [
+                                3600,
+                                3700
+                              ],
+                              "sp": [
+                                400,
+                                400
+                              ],
+                              "spot_only": [
+                                50,
+                                50
+                              ]
+                            },
+                            "times": [
+                              1693526400,
+                              1693612800
+                            ]
+                          },
+                          "hours": {
+                            "provider": "aws",
+                            "series": {
+                              "on_demand_only": [
+                                500,
+                                450
+                              ],
+                              "ri": [
+                                1800,
+                                1850
+                              ],
+                              "sp": [
+                                200,
+                                200
+                              ],
+                              "spot_only": [
+                                100,
+                                100
+                              ]
+                            },
+                            "times": [
+                              1693526400,
+                              1693612800
+                            ]
+                          }
                         },
-                        "times": [
-                          1693526400,
-                          1693612800
-                        ]
-                      },
-                      "hours": {
-                        "series": {
-                          "on_demand_only": [
-                            500,
-                            450
-                          ],
-                          "ri": [
-                            1800,
-                            1850
-                          ],
-                          "sp": [
-                            200,
-                            200
-                          ],
-                          "spot_only": [
-                            100,
-                            100
-                          ]
-                        },
-                        "times": [
-                          1693526400,
-                          1693612800
-                        ]
+                        "id": "coverage_timeseries_response",
+                        "type": "coverage_timeseries_response"
                       }
                     }
                   }
@@ -244529,53 +245519,59 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "columns": [
-                        {
-                          "name": "service",
-                          "type": "group",
-                          "values": [
-                            [
-                              "ec2"
-                            ]
+                      "data": {
+                        "attributes": {
+                          "columns": [
+                            {
+                              "name": "service",
+                              "type": "group",
+                              "values": [
+                                [
+                                  "ec2"
+                                ]
+                              ]
+                            },
+                            {
+                              "meta": {
+                                "unit": {
+                                  "family": "money",
+                                  "id": 1,
+                                  "name": "dollar",
+                                  "plural": "dollars",
+                                  "scale_factor": 1,
+                                  "short_name": "$"
+                                }
+                              },
+                              "name": "on_demand_cost",
+                              "type": "number",
+                              "values": [
+                                1500
+                              ]
+                            }
+                          ],
+                          "total": [
+                            {
+                              "meta": {
+                                "unit": {
+                                  "family": "money",
+                                  "id": 1,
+                                  "name": "dollar",
+                                  "plural": "dollars",
+                                  "scale_factor": 1,
+                                  "short_name": "$"
+                                }
+                              },
+                              "name": "on_demand_cost",
+                              "type": "number",
+                              "values": [
+                                1500
+                              ]
+                            }
                           ]
                         },
-                        {
-                          "meta": {
-                            "unit": {
-                              "family": "money",
-                              "id": 1,
-                              "name": "dollar",
-                              "plural": "dollars",
-                              "scale_factor": 1,
-                              "short_name": "$"
-                            }
-                          },
-                          "name": "on_demand_cost",
-                          "type": "number",
-                          "values": [
-                            1500
-                          ]
-                        }
-                      ],
-                      "total": [
-                        {
-                          "meta": {
-                            "unit": {
-                              "family": "money",
-                              "id": 1,
-                              "name": "dollar",
-                              "plural": "dollars",
-                              "scale_factor": 1,
-                              "short_name": "$"
-                            }
-                          },
-                          "name": "on_demand_cost",
-                          "type": "number",
-                          "values": [
-                            1500
-                          ]
-                        }
-                      ]
+                        "id": "scalar_response",
+                        "type": "scalar_response"
+                      }
                     }
                   }
                 },
@@ -244652,42 +245648,48 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "columns": [
-                        {
-                          "meta": {
-                            "unit": {
-                              "family": "money",
-                              "id": 1,
-                              "name": "dollar",
-                              "plural": "dollars",
-                              "scale_factor": 1,
-                              "short_name": "$"
+                      "data": {
+                        "attributes": {
+                          "columns": [
+                            {
+                              "meta": {
+                                "unit": {
+                                  "family": "money",
+                                  "id": 1,
+                                  "name": "dollar",
+                                  "plural": "dollars",
+                                  "scale_factor": 1,
+                                  "short_name": "$"
+                                }
+                              },
+                              "name": "realized_savings",
+                              "type": "number",
+                              "values": [
+                                2500
+                              ]
+                            },
+                            {
+                              "meta": {
+                                "unit": {
+                                  "family": "percentage",
+                                  "id": 17,
+                                  "name": "percent",
+                                  "plural": "percent",
+                                  "scale_factor": 1,
+                                  "short_name": "%"
+                                }
+                              },
+                              "name": "effective_savings_rate",
+                              "type": "number",
+                              "values": [
+                                0.33
+                              ]
                             }
-                          },
-                          "name": "realized_savings",
-                          "type": "number",
-                          "values": [
-                            2500
                           ]
                         },
-                        {
-                          "meta": {
-                            "unit": {
-                              "family": "percentage",
-                              "id": 17,
-                              "name": "percent",
-                              "plural": "percent",
-                              "scale_factor": 1,
-                              "short_name": "%"
-                            }
-                          },
-                          "name": "effective_savings_rate",
-                          "type": "number",
-                          "values": [
-                            0.33
-                          ]
-                        }
-                      ]
+                        "id": "scalar_response",
+                        "type": "scalar_response"
+                      }
                     }
                   }
                 },
@@ -244764,61 +245766,67 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "actual_cost": {
-                        "series": {
-                          "total": [
-                            5000,
-                            5200
-                          ]
+                      "data": {
+                        "attributes": {
+                          "actual_cost": {
+                            "series": {
+                              "total": [
+                                5000,
+                                5200
+                              ]
+                            },
+                            "times": [
+                              1693526400,
+                              1693612800
+                            ],
+                            "unit": {
+                              "family": "money",
+                              "id": 1,
+                              "name": "dollar",
+                              "plural": "dollars",
+                              "scale_factor": 1,
+                              "short_name": "$"
+                            }
+                          },
+                          "effective_savings_rate": {
+                            "series": {
+                              "total": [
+                                0.33,
+                                0.33
+                              ]
+                            },
+                            "times": [
+                              1693526400,
+                              1693612800
+                            ]
+                          },
+                          "on_demand_equivalent_cost": {
+                            "series": {
+                              "total": [
+                                7500,
+                                7800
+                              ]
+                            },
+                            "times": [
+                              1693526400,
+                              1693612800
+                            ]
+                          },
+                          "realized_savings": {
+                            "series": {
+                              "total": [
+                                2500,
+                                2600
+                              ]
+                            },
+                            "times": [
+                              1693526400,
+                              1693612800
+                            ]
+                          }
                         },
-                        "times": [
-                          1693526400,
-                          1693612800
-                        ],
-                        "unit": {
-                          "family": "money",
-                          "id": 1,
-                          "name": "dollar",
-                          "plural": "dollars",
-                          "scale_factor": 1,
-                          "short_name": "$"
-                        }
-                      },
-                      "effective_savings_rate": {
-                        "series": {
-                          "total": [
-                            0.33,
-                            0.33
-                          ]
-                        },
-                        "times": [
-                          1693526400,
-                          1693612800
-                        ]
-                      },
-                      "on_demand_equivalent_cost": {
-                        "series": {
-                          "total": [
-                            7500,
-                            7800
-                          ]
-                        },
-                        "times": [
-                          1693526400,
-                          1693612800
-                        ]
-                      },
-                      "realized_savings": {
-                        "series": {
-                          "total": [
-                            2500,
-                            2600
-                          ]
-                        },
-                        "times": [
-                          1693526400,
-                          1693612800
-                        ]
+                        "id": "savings_timeseries_response",
+                        "type": "savings_timeseries_response"
                       }
                     }
                   }
@@ -244899,38 +245907,44 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "columns": [
-                        {
-                          "name": "service",
-                          "type": "group",
-                          "values": [
-                            [
-                              "ec2"
-                            ],
-                            [
-                              "rds"
-                            ]
+                      "data": {
+                        "attributes": {
+                          "columns": [
+                            {
+                              "name": "service",
+                              "type": "group",
+                              "values": [
+                                [
+                                  "ec2"
+                                ],
+                                [
+                                  "rds"
+                                ]
+                              ]
+                            },
+                            {
+                              "meta": {
+                                "unit": {
+                                  "family": "percentage",
+                                  "id": 17,
+                                  "name": "percent",
+                                  "plural": "percent",
+                                  "scale_factor": 1,
+                                  "short_name": "%"
+                                }
+                              },
+                              "name": "utilization",
+                              "type": "number",
+                              "values": [
+                                0.85,
+                                0.72
+                              ]
+                            }
                           ]
                         },
-                        {
-                          "meta": {
-                            "unit": {
-                              "family": "percentage",
-                              "id": 17,
-                              "name": "percent",
-                              "plural": "percent",
-                              "scale_factor": 1,
-                              "short_name": "%"
-                            }
-                          },
-                          "name": "utilization",
-                          "type": "number",
-                          "values": [
-                            0.85,
-                            0.72
-                          ]
-                        }
-                      ]
+                        "id": "scalar_response",
+                        "type": "scalar_response"
+                      }
                     }
                   }
                 },
@@ -245010,27 +246024,33 @@
                 "examples": {
                   "default": {
                     "value": {
-                      "series": {
-                        "unused": [
-                          750,
-                          600
-                        ],
-                        "used": [
-                          4250,
-                          4400
-                        ]
-                      },
-                      "times": [
-                        1693526400,
-                        1693612800
-                      ],
-                      "unit": {
-                        "family": "money",
-                        "id": 1,
-                        "name": "dollar",
-                        "plural": "dollars",
-                        "scale_factor": 1,
-                        "short_name": "$"
+                      "data": {
+                        "attributes": {
+                          "series": {
+                            "unused": [
+                              750,
+                              600
+                            ],
+                            "used": [
+                              4250,
+                              4400
+                            ]
+                          },
+                          "times": [
+                            1693526400,
+                            1693612800
+                          ],
+                          "unit": {
+                            "family": "money",
+                            "id": 1,
+                            "name": "dollar",
+                            "plural": "dollars",
+                            "scale_factor": 1,
+                            "short_name": "$"
+                          }
+                        },
+                        "id": "utilization_timeseries_response",
+                        "type": "utilization_timeseries_response"
                       }
                     }
                   }
@@ -246159,6 +247179,9 @@
                   "value": {
                     "data": {
                       "attributes": {
+                        "extra_fields": [
+                          "tags.env"
+                        ],
                         "scope": "ccm",
                         "sort": [
                           {
@@ -246191,6 +247214,12 @@
                         {
                           "attributes": {
                             "dd_resource_key": "arn:aws:ec2:us-east-1:123456789012:instance/i-1234567890abcdef0",
+                            "extra_fields": [
+                              {
+                                "path": "tags.env",
+                                "value": "prod"
+                              }
+                            ],
                             "potential_daily_savings": {
                               "amount": 1.23,
                               "currency": "USD"
@@ -254795,12 +255824,26 @@
         "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Endpoint to create a deployment gate.",
+        "description": "Create a deployment gate for a specific environment or for all environments using `*`.\nA gate for all environments and a gate for a specific environment cannot coexist for the\nsame organization, service, and identifier. A conflicting creation returns 400 Bad Request.",
         "operationId": "CreateDeploymentGate",
         "requestBody": {
           "content": {
             "application/json": {
               "examples": {
+                "all-environments": {
+                  "summary": "Create a gate for all environments",
+                  "value": {
+                    "data": {
+                      "attributes": {
+                        "dry_run": false,
+                        "env": "*",
+                        "identifier": "pre",
+                        "service": "my-service"
+                      },
+                      "type": "deployment_gate"
+                    }
+                  }
+                },
                 "default": {
                   "value": {
                     "data": {
@@ -334286,6 +335329,12 @@
         "tags": [
           "Rum Audience Management"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint may be subject to changes."
       }
     },
@@ -334381,6 +335430,12 @@
         "tags": [
           "Rum Audience Management"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint may be subject to changes."
       }
     },
@@ -335696,6 +336751,12 @@
         "tags": [
           "Rum Audience Management"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint may be subject to changes."
       }
     },
@@ -335781,6 +336842,12 @@
         "tags": [
           "Rum Audience Management"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint may be subject to changes."
       }
     },
@@ -335874,6 +336941,12 @@
         "tags": [
           "Rum Audience Management"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint may be subject to changes."
       }
     },
@@ -336000,6 +337073,12 @@
         "tags": [
           "Rum Audience Management"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint may be subject to changes."
       }
     },
@@ -336081,6 +337160,12 @@
         "tags": [
           "Rum Audience Management"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_write"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint may be subject to changes."
       },
       "put": {
@@ -336167,6 +337252,12 @@
         "tags": [
           "Rum Audience Management"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_write"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint may be subject to changes."
       }
     },
@@ -336217,6 +337308,12 @@
         "tags": [
           "Rum Audience Management"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_write"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint may be subject to changes."
       }
     },
@@ -336277,6 +337374,12 @@
         "tags": [
           "Rum Audience Management"
         ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "rum_apps_read"
+          ]
+        },
         "x-unstable": "**Note**: This endpoint may be subject to changes."
       }
     },
@@ -341133,7 +342236,7 @@
     },
     "/api/v2/remote_config/products/cws/agent_rules": {
       "get": {
-        "description": "Get the list of Workload Protection agent rules.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
+        "description": "Get the list of Workload Protection agent rules.\n\nSet `policy_id` to only return the rules of one policy. Without it, the rules of all policies are returned.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
         "operationId": "ListCSMThreatsAgentRules",
         "parameters": [
           {
@@ -341186,10 +342289,16 @@
         "summary": "Get all Workload Protection agent rules",
         "tags": [
           "CSM Threats"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_cws_agent_rules_read"
+          ]
+        }
       },
       "post": {
-        "description": "Create a new Workload Protection agent rule with the given parameters.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
+        "description": "Create a new Workload Protection agent rule with the given parameters.\n\nThe `expression` attribute is written in the Security Agent Expression Language (SECL),\nfor example `exec.file.name == \"sh\"`. See [Agent expressions](https://docs.datadoghq.com/security/workload_protection/agent_expressions/)\nfor the syntax and the list of available event types and fields.\n\nIf `policy_id` is not set, the rule is added to the `CWS_CUSTOM-canary` policy. This policy is created if it does not exist yet.\nTo add the rule to another policy, set `policy_id` to the ID of that policy, as returned by `ListCSMThreatsAgentPolicies`.\n\nThis endpoint does not accept `kill` or `network_filter` actions, or `blocking` policies. A request that contains them returns a `400` error.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
         "operationId": "CreateCSMThreatsAgentRule",
         "requestBody": {
           "content": {
@@ -341284,12 +342393,18 @@
         "tags": [
           "CSM Threats"
         ],
-        "x-codegen-request-body-name": "body"
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_cws_agent_rules_write"
+          ]
+        }
       }
     },
     "/api/v2/remote_config/products/cws/agent_rules/{agent_rule_id}": {
       "delete": {
-        "description": "Delete a specific Workload Protection agent rule.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
+        "description": "Delete a specific Workload Protection agent rule.\n\nThe rule is removed from every policy that contains it. Datadog-managed rules cannot be deleted.\nThis action cannot be undone.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
         "operationId": "DeleteCSMThreatsAgentRule",
         "parameters": [
           {
@@ -341330,7 +342445,13 @@
         "summary": "Delete a Workload Protection agent rule",
         "tags": [
           "CSM Threats"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_cws_agent_rules_write"
+          ]
+        }
       },
       "get": {
         "description": "Get the details of a specific Workload Protection agent rule.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
@@ -341397,10 +342518,16 @@
         "summary": "Get a Workload Protection agent rule",
         "tags": [
           "CSM Threats"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_cws_agent_rules_read"
+          ]
+        }
       },
       "patch": {
-        "description": "Update a specific Workload Protection Agent rule.\nReturns the agent rule object when the request is successful.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
+        "description": "Update a specific Workload Protection Agent rule.\nReturns the agent rule object when the request is successful.\n\nThe `expression` attribute is written in the Security Agent Expression Language (SECL).\nSee [Agent expressions](https://docs.datadoghq.com/security/workload_protection/agent_expressions/) for the syntax.\n\nThis endpoint does not accept `kill` or `network_filter` actions, or `blocking` policies. A request that contains them returns a `400` error.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
         "operationId": "UpdateCSMThreatsAgentRule",
         "parameters": [
           {
@@ -341513,7 +342640,13 @@
         "tags": [
           "CSM Threats"
         ],
-        "x-codegen-request-body-name": "body"
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_cws_agent_rules_write"
+          ]
+        }
       }
     },
     "/api/v2/remote_config/products/cws/policy": {
@@ -341558,7 +342691,13 @@
         "summary": "Get all Workload Protection policies",
         "tags": [
           "CSM Threats"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_cws_agent_rules_read"
+          ]
+        }
       },
       "post": {
         "description": "Create a new Workload Protection policy with the given parameters.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
@@ -341636,7 +342775,13 @@
         "tags": [
           "CSM Threats"
         ],
-        "x-codegen-request-body-name": "body"
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_cws_agent_rules_write"
+          ]
+        }
       }
     },
     "/api/v2/remote_config/products/cws/policy/download": {
@@ -341670,12 +342815,18 @@
         "summary": "Download the Workload Protection policy",
         "tags": [
           "CSM Threats"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_cws_agent_rules_read"
+          ]
+        }
       }
     },
     "/api/v2/remote_config/products/cws/policy/{policy_id}": {
       "delete": {
-        "description": "Delete a specific Workload Protection policy.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
+        "description": "Delete a specific Workload Protection policy.\n\nDatadog-managed policies cannot be deleted. This action cannot be undone.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
         "operationId": "DeleteCSMThreatsAgentPolicy",
         "parameters": [
           {
@@ -341702,7 +342853,13 @@
         "summary": "Delete a Workload Protection policy",
         "tags": [
           "CSM Threats"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_cws_agent_rules_write"
+          ]
+        }
       },
       "get": {
         "description": "Get the details of a specific Workload Protection policy.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
@@ -341751,7 +342908,13 @@
         "summary": "Get a Workload Protection policy",
         "tags": [
           "CSM Threats"
-        ]
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_cws_agent_rules_read"
+          ]
+        }
       },
       "patch": {
         "description": "Update a specific Workload Protection policy.\nReturns the policy object when the request is successful.\n\n**Note**: This endpoint is not available for the Government (US1-FED) site. Please reference the (US1-FED) specific resource below.",
@@ -341833,7 +342996,13 @@
         "tags": [
           "CSM Threats"
         ],
-        "x-codegen-request-body-name": "body"
+        "x-codegen-request-body-name": "body",
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "security_monitoring_cws_agent_rules_write"
+          ]
+        }
       }
     },
     "/api/v2/remote_config/products/rum/configs/{config_id}": {
@@ -373753,6 +374922,8 @@
                           "assignee": {
                             "uuid": "00000000-0000-0000-0000-000000000001"
                           },
+                          "cases": [],
+                          "hasCase": false,
                           "incident_ids": [],
                           "state": "archived"
                         },
@@ -374114,6 +375285,8 @@
                           "assignee": {
                             "uuid": "00000000-0000-0000-0000-000000000001"
                           },
+                          "cases": [],
+                          "hasCase": false,
                           "incident_ids": [],
                           "state": "archived"
                         },
@@ -375679,6 +376852,292 @@
           }
         },
         "summary": "List standard patterns",
+        "tags": [
+          "Sensitive Data Scanner"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "data_scanner_read"
+          ]
+        }
+      }
+    },
+    "/api/v2/sensitive-data-scanner/groups": {
+      "get": {
+        "description": "List the Agent Observability scanning groups, with their rules included.\nThe list always includes the default Agent Observability scanning group.\nScanning groups of logs, RUM, events, and APM are listed by the List Scanning Groups endpoint.",
+        "operationId": "ListTargetScanningGroups",
+        "parameters": [
+          {
+            "description": "Target whose scanning groups are listed.",
+            "in": "query",
+            "name": "filter[target]",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SensitiveDataScannerGroupTargetType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": [
+                        {
+                          "attributes": {
+                            "description": "",
+                            "is_enabled": true,
+                            "name": "Agent Observability Span Scanning",
+                            "targets": [
+                              {
+                                "type": "llm_observability"
+                              }
+                            ]
+                          },
+                          "id": "6f1c2a4e-3b5d-4e8f-9a7b-1c2d3e4f5a6b",
+                          "relationships": {
+                            "rules": {
+                              "data": [
+                                {
+                                  "id": "0e9d8c7b-6a5f-4e3d-8c1b-0a9f8e7d6c5b",
+                                  "type": "sensitive_data_scanner_rule"
+                                }
+                              ]
+                            }
+                          },
+                          "type": "sensitive_data_scanner_group"
+                        }
+                      ],
+                      "included": [
+                        {
+                          "attributes": {
+                            "description": "Detects credit card numbers.",
+                            "excluded_namespaces": [],
+                            "included_keyword_configuration": {
+                              "character_count": 30,
+                              "keywords": [
+                                "credit card"
+                              ],
+                              "use_recommended_keywords": true
+                            },
+                            "is_enabled": true,
+                            "name": "Credit card scanner",
+                            "namespaces": [],
+                            "priority": "high",
+                            "rule_type": "regex_standard_rule",
+                            "suppressions": {
+                              "use_recommended_suppressions": true
+                            },
+                            "tags": [
+                              "sensitive_data:credit_card",
+                              "sensitive_data_category:financial"
+                            ],
+                            "text_replacement": {
+                              "replacement_string": "[Credit card scanner]",
+                              "type": "replacement_string"
+                            }
+                          },
+                          "id": "0e9d8c7b-6a5f-4e3d-8c1b-0a9f8e7d6c5b",
+                          "relationships": {
+                            "group": {
+                              "data": {
+                                "id": "6f1c2a4e-3b5d-4e8f-9a7b-1c2d3e4f5a6b",
+                                "type": "sensitive_data_scanner_group"
+                              }
+                            },
+                            "standard_rule": {
+                              "data": {
+                                "id": "ruleIdBank-123456789",
+                                "type": "regex_standard_rule"
+                              }
+                            }
+                          },
+                          "type": "sensitive_data_scanner_rule"
+                        }
+                      ],
+                      "meta": {}
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SensitiveDataScannerTargetGroupListResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "List Agent Observability Scanning Groups",
+        "tags": [
+          "Sensitive Data Scanner"
+        ],
+        "x-permission": {
+          "operator": "OR",
+          "permissions": [
+            "data_scanner_read"
+          ]
+        }
+      }
+    },
+    "/api/v2/sensitive-data-scanner/groups/{group_id}": {
+      "get": {
+        "description": "Get an Agent Observability scanning group, with its rules included.\nScanning groups of logs, RUM, events, and APM are reported as not found.",
+        "operationId": "GetScanningGroup",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SensitiveDataScannerGroupID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "data": {
+                        "attributes": {
+                          "description": "",
+                          "is_enabled": true,
+                          "name": "Agent Observability Span Scanning",
+                          "targets": [
+                            {
+                              "type": "llm_observability"
+                            }
+                          ]
+                        },
+                        "id": "6f1c2a4e-3b5d-4e8f-9a7b-1c2d3e4f5a6b",
+                        "relationships": {
+                          "rules": {
+                            "data": [
+                              {
+                                "id": "0e9d8c7b-6a5f-4e3d-8c1b-0a9f8e7d6c5b",
+                                "type": "sensitive_data_scanner_rule"
+                              }
+                            ]
+                          }
+                        },
+                        "type": "sensitive_data_scanner_group"
+                      },
+                      "included": [
+                        {
+                          "attributes": {
+                            "description": "Detects credit card numbers.",
+                            "excluded_namespaces": [],
+                            "included_keyword_configuration": {
+                              "character_count": 30,
+                              "keywords": [
+                                "credit card"
+                              ],
+                              "use_recommended_keywords": true
+                            },
+                            "is_enabled": true,
+                            "name": "Credit card scanner",
+                            "namespaces": [],
+                            "priority": "high",
+                            "rule_type": "regex_standard_rule",
+                            "suppressions": {
+                              "use_recommended_suppressions": true
+                            },
+                            "tags": [
+                              "sensitive_data:credit_card",
+                              "sensitive_data_category:financial"
+                            ],
+                            "text_replacement": {
+                              "replacement_string": "[Credit card scanner]",
+                              "type": "replacement_string"
+                            }
+                          },
+                          "id": "0e9d8c7b-6a5f-4e3d-8c1b-0a9f8e7d6c5b",
+                          "relationships": {
+                            "group": {
+                              "data": {
+                                "id": "6f1c2a4e-3b5d-4e8f-9a7b-1c2d3e4f5a6b",
+                                "type": "sensitive_data_scanner_group"
+                              }
+                            },
+                            "standard_rule": {
+                              "data": {
+                                "id": "ruleIdBank-123456789",
+                                "type": "regex_standard_rule"
+                              }
+                            }
+                          },
+                          "type": "sensitive_data_scanner_rule"
+                        }
+                      ],
+                      "meta": {}
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SensitiveDataScannerTargetGroupResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONAPIErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsResponse"
+          }
+        },
+        "summary": "Get Agent Observability Scanning Group",
         "tags": [
           "Sensitive Data Scanner"
         ],
