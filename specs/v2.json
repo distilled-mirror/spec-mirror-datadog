@@ -24964,7 +24964,7 @@
         "description": "Data of the case to attach security findings to.",
         "properties": {
           "id": {
-            "description": "Unique identifier of the case.",
+            "description": "Unique identifier of the case. This field is required but not used: the API attaches security findings to the case in the `case_id` path parameter.",
             "example": "c1234567-89ab-cdef-0123-456789abcdef",
             "type": "string"
           },
@@ -61929,7 +61929,7 @@
         "description": "Data for detaching security findings from their case.",
         "properties": {
           "id": {
-            "description": "Unique identifier of the detachment request.",
+            "description": "Optional identifier of the detachment request. The API doesn't use it to select a case: it detaches each security finding in `relationships.findings` from the case it's attached to.",
             "example": "c1234567-89ab-cdef-0123-456789abcdef",
             "type": "string"
           },
@@ -63724,7 +63724,7 @@
         "type": "object"
       },
       "DueDatePerSeverityList": {
-        "description": "A list of severity-to-due-date mappings. Each severity may appear at most once.",
+        "description": "A list of severity-to-due-date mappings. Each severity may appear at most once. The rule only matches findings whose severity is listed here.",
         "items": {
           "$ref": "#/components/schemas/DueDatePerSeverityItem"
         },
@@ -63759,7 +63759,7 @@
             "$ref": "#/components/schemas/DueDateRuleAction"
           },
           "enabled": {
-            "description": "Whether the due date rule is enabled.",
+            "description": "Whether the due date rule is enabled. If it is omitted, the API saves it as `false` and the rule doesn't apply.",
             "example": true,
             "type": "boolean"
           },
@@ -86051,7 +86051,7 @@
             "$ref": "#/components/schemas/FleetDeploymentFileOp"
           },
           "file_path": {
-            "description": "Absolute path to the target configuration file on the host.",
+            "description": "Path to the target configuration file, relative to the Agent's configuration directory.\nFor example, `/datadog.yaml` or `/conf.d/postgres.d/conf.yaml`. Absolute host paths,\nsuch as `/etc/datadog-agent/datadog.yaml`, are rejected.",
             "example": "/datadog.yaml",
             "type": "string"
           },
@@ -96667,7 +96667,7 @@
             "$ref": "#/components/schemas/InboxRuleAction"
           },
           "enabled": {
-            "description": "Whether the inbox rule is enabled.",
+            "description": "Whether the inbox rule is enabled. If it is omitted, the API saves it as `false` and the rule doesn't apply.",
             "example": true,
             "type": "boolean"
           },
@@ -129811,7 +129811,7 @@
         "description": "The action to take when the mute rule matches a finding.",
         "properties": {
           "expire_at": {
-            "description": "The Unix timestamp in milliseconds at which the mute expires. If omitted, the mute does not expire.",
+            "description": "The Unix timestamp in milliseconds at which the mute expires. It must be in the future. If the timestamp is omitted, the mute does not expire.",
             "example": 4070908800000,
             "format": "int64",
             "type": "integer"
@@ -129838,7 +129838,7 @@
             "$ref": "#/components/schemas/MuteRuleAction"
           },
           "enabled": {
-            "description": "Whether the mute rule is enabled.",
+            "description": "Whether the mute rule is enabled. If it is omitted, the API saves it as `false` and the rule doesn't apply.",
             "example": true,
             "type": "boolean"
           },
@@ -131265,7 +131265,7 @@
         "type": "object"
       },
       "NotificationRulePreviewNotificationStatus": {
-        "description": "The notification status for the given rule type. `SUCCESS` means a matching event was found and the notification was sent successfully. `DEFAULT` means no matching event was found and a default placeholder notification was sent instead. `ERROR` means an error occurred while sending the notification.",
+        "description": "The notification status for the given rule type. `SUCCESS` means a matching event was found and the test notification was queued. `DEFAULT` means no matching event was found and a placeholder test notification was queued instead. `ERROR` means the test notification couldn't be built or queued. A queued notification can still fail to reach its target later, and this status doesn't report it.",
         "enum": [
           "SUCCESS",
           "DEFAULT",
@@ -131365,7 +131365,7 @@
         "type": "array"
       },
       "NotificationRuleQuery": {
-        "description": "The query is composed of one or several key:value pairs, which can be used to filter security issues on tags and attributes.",
+        "description": "The query is composed of one or several key:value pairs, which can be used to filter security issues on tags and attributes.\nIt is at most 6,000 characters. Finding-based rules can't filter on attributes in the `@workflow` or `@_dd`\nnamespaces, on `@status`, or on `@compliance.evaluation`.",
         "example": "(source:production_service OR env:prod)",
         "type": "string"
       },
@@ -133816,6 +133816,20 @@
           "AMAZON_SECURITY_LAKE"
         ]
       },
+      "ObservabilityPipelineAnomalyDetection": {
+        "description": "Anomaly detection settings for the pipeline.\nOnly applies to `logs` pipelines. Requires Observability Pipelines Worker 2.25 or later.",
+        "properties": {
+          "enabled": {
+            "description": "Whether anomaly detection is enabled for the pipeline.",
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "type": "object"
+      },
       "ObservabilityPipelineAwsAuth": {
         "description": "AWS authentication credentials used for accessing AWS services such as S3.\nIf omitted, the system’s default credentials are used (for example, the IAM role and environment variables).",
         "properties": {
@@ -134694,6 +134708,9 @@
       "ObservabilityPipelineConfig": {
         "description": "Specifies the pipeline's configuration, including its sources, processors, and destinations.",
         "properties": {
+          "anomaly_detection": {
+            "$ref": "#/components/schemas/ObservabilityPipelineAnomalyDetection"
+          },
           "destinations": {
             "description": "A list of destination components where processed logs are sent.",
             "example": [
@@ -134709,6 +134726,11 @@
               "$ref": "#/components/schemas/ObservabilityPipelineConfigDestinationItem"
             },
             "type": "array"
+          },
+          "end_to_end_acknowledgements": {
+            "description": "Set to `true` to enable end-to-end acknowledgments for the pipeline.\nRequires Observability Pipelines Worker 2.14 or later.",
+            "example": false,
+            "type": "boolean"
           },
           "pipeline_type": {
             "$ref": "#/components/schemas/ObservabilityPipelineConfigPipelineType"
@@ -165630,7 +165652,7 @@
         "type": "integer"
       },
       "RuleName": {
-        "description": "Name of the notification rule.",
+        "description": "Name of the notification rule. At most 500 characters, and unique in the organization (case-insensitive).",
         "example": "Rule 1",
         "type": "string"
       },
@@ -165677,7 +165699,7 @@
         ]
       },
       "RuleTypes": {
-        "description": "Security rule types used as filters in security rules.",
+        "description": "Security rule types used as filters in security rules.\nSignal-based notification rules accept `application_security`, `log_detection`, `workload_security`, and\n`signal_correlation`.\nFinding-based notification rules accept `application_code_vulnerability`,\n`application_library_vulnerability`, `attack_path`, `container_image_vulnerability`, `identity_risk`,\n`misconfiguration`, `api_security`, `host_vulnerability`, `iac_misconfiguration`, `sast_vulnerability`,\n`secret_vulnerability`, `workload_activity`, `sensitive_data`, and `serverless_function_code_vulnerability`.\nRule types that don't match the rule's `trigger_source` are rejected.",
         "example": [
           "misconfiguration",
           "attack_path"
@@ -165688,7 +165710,7 @@
         "type": "array"
       },
       "RuleTypesItems": {
-        "description": "Security rule type which can be used in security rules.\nSignal-based notification rules can filter signals based on rule types application_security, log_detection,\nworkload_security, signal_correlation, cloud_configuration and infrastructure_configuration.\nVulnerability-based notification rules can filter vulnerabilities based on rule types application_code_vulnerability,\napplication_library_vulnerability, attack_path, container_image_vulnerability, identity_risk, misconfiguration,\napi_security, host_vulnerability, iac_misconfiguration, sast_vulnerability, secret_vulnerability, workload_activity,\nsensitive_data and serverless_function_code_vulnerability.",
+        "description": "Security rule type which can be used in security rules.\nSignal-based notification rules can filter signals based on rule types application_security, log_detection,\nworkload_security and signal_correlation.\nFinding-based notification rules can filter findings based on rule types application_code_vulnerability,\napplication_library_vulnerability, attack_path, container_image_vulnerability, identity_risk, misconfiguration,\napi_security, host_vulnerability, iac_misconfiguration, sast_vulnerability, secret_vulnerability, workload_activity,\nsensitive_data and serverless_function_code_vulnerability.",
         "enum": [
           "application_security",
           "log_detection",
@@ -177395,7 +177417,7 @@
         ]
       },
       "SecurityFindingTypes": {
-        "description": "The list of security finding types that the automation rule applies to.",
+        "description": "The security finding types that the automation rule applies to. At least one is required, and\neach type may appear only once. Allowed values: `api_security`, `attack_path`,\n`host_and_container_vulnerability`, `iac_misconfiguration`, `identity_risk`,\n`library_vulnerability`, `misconfiguration`, `runtime_code_vulnerability`, `secret`,\n`static_code_vulnerability`, and `workload_activity`.",
         "example": [
           "misconfiguration"
         ],
@@ -185517,7 +185539,7 @@
             "$ref": "#/components/schemas/RuleTypes"
           },
           "severities": {
-            "description": "The security rules severities to consider.",
+            "description": "The security rules severities to consider.\nAllowed values are `critical`, `high`, `medium`, `low`, and `info`; `unknown` is rejected.",
             "items": {
               "$ref": "#/components/schemas/RuleSeverity"
             },
@@ -189885,7 +189907,7 @@
         "type": "object"
       },
       "SeverityModifierRuleAction": {
-        "description": "The action to take when a severity modifier rule matches a finding. This is a discriminated union on `type`: `set` assigns a fixed severity, while `shift` moves the severity up or down by one rank.\n\nA severity modifier rule's `rule.query` must not filter on `@severity` or on the `@severity_details.user_adjusted.*` namespace.\n\nUse `@severity_details.adjusted.value` instead, which reflects the severity before user-defined adjustments.",
+        "description": "The action to take when a severity modifier rule matches a finding. This is a discriminated union on `type`: `set` assigns a fixed severity, while `shift` moves the severity up or down by one rank.\n\nWith `type: set`, send `severity` (`info_none`, `low`, `medium`, `high`, or `critical`) and no `severity_delta`. With `type: shift`, send `severity_delta` (`up_one` or `down_one`) and no `severity`. Both accept an optional `description`. A `shift` rule doesn't match findings with an unknown severity.\n\nA severity modifier rule's `rule.query` must not filter on `@severity` or on the `@severity_details.user_adjusted.*` namespace.\n\nUse `@severity_details.adjusted.value` instead, which reflects the severity before user-defined adjustments.",
         "oneOf": [
           {
             "$ref": "#/components/schemas/SeverityModifierRuleSetAction"
@@ -189902,7 +189924,7 @@
             "$ref": "#/components/schemas/SeverityModifierRuleAction"
           },
           "enabled": {
-            "description": "Whether the severity modifier rule is enabled.",
+            "description": "Whether the severity modifier rule is enabled. If it is omitted, the API saves it as `false` and the rule doesn't apply.",
             "example": true,
             "type": "boolean"
           },
@@ -190146,7 +190168,7 @@
         ]
       },
       "SeverityModifierRuleShiftAction": {
-        "description": "Shifts matched findings up or down by one severity rank.",
+        "description": "Shifts matched findings up or down by one severity rank. Shifting down stops at the lowest severity available for the finding type, for example `low` for `iac_misconfiguration`, `runtime_code_vulnerability`, `secret`, and `static_code_vulnerability` findings. A rule that wouldn't change a finding's severity doesn't match it, so Datadog checks the next rule.",
         "properties": {
           "description": {
             "description": "An optional free-form explanation for the severity change.",
@@ -190248,7 +190270,7 @@
         ]
       },
       "SeverityModifierSeverityDelta": {
-        "description": "The direction in which to shift the severity of matched findings by one rank.",
+        "description": "The direction in which to shift the severity of matched findings by one rank. Shifting down stops at the lowest severity available for the finding type.",
         "enum": [
           "up_one",
           "down_one"
@@ -204190,7 +204212,7 @@
         "type": "object"
       },
       "Targets": {
-        "description": "List of recipients to notify when a notification rule is triggered. Many different target types are supported,\nsuch as email addresses, Slack channels, and PagerDuty services.\nThe appropriate integrations need to be properly configured to send notifications to the specified targets.",
+        "description": "List of recipients to notify when a notification rule is triggered. Many different target types are supported,\nsuch as email addresses, Slack channels, and PagerDuty services.\nThe appropriate integrations need to be properly configured to send notifications to the specified targets.\nEach target is a handle that starts with `@`. Use `@<EMAIL>` for an email address\n(for example, `@john.doe@email.com`), and `@<INTEGRATION_NAME>-<VALUES>` for an integration, such as\n`@slack-<VALUES>`, `@pagerduty-<VALUES>`, `@jira-<VALUES>`, `@teams-<VALUES>`, `@servicenow-<VALUES>`,\nor `@webhook-<WEBHOOK_NAME>`.\nHandles that include parentheses are not supported.\nA rule can have at most 20 targets, each at most 500 characters long. Finding-based rules don't accept\n`case`, `incident`, `jira`, or `linear` targets; use an automatic ticket creation rule for cases,\nJira, and Linear.",
         "example": [
           "@john.doe@email.com"
         ],
@@ -209721,7 +209743,7 @@
             "type": "integer"
           },
           "project_id": {
-            "description": "The UUID of the case management project.",
+            "description": "The UUID of the Datadog Work Management (formerly Case Management) project.",
             "example": "11111111-1111-1111-1111-111111111111",
             "format": "uuid",
             "type": "string"
@@ -209769,7 +209791,7 @@
             "type": "integer"
           },
           "project_id": {
-            "description": "The UUID of the case management project.",
+            "description": "The UUID of the Datadog Work Management (formerly Case Management) project.",
             "example": "11111111-1111-1111-1111-111111111111",
             "format": "uuid",
             "type": "string"
@@ -209792,7 +209814,7 @@
             "$ref": "#/components/schemas/TicketCreationRuleAction"
           },
           "enabled": {
-            "description": "Whether the ticket creation rule is enabled.",
+            "description": "Whether the ticket creation rule is enabled. If it is omitted, the API saves it as `false` and the rule doesn't apply.",
             "example": true,
             "type": "boolean"
           },
@@ -210053,7 +210075,7 @@
         "type": "object"
       },
       "TicketCreationTarget": {
-        "description": "The ticketing system to create tickets in.",
+        "description": "The ticketing system to create tickets in. `case_management` is Datadog Work Management, formerly called Case Management.",
         "enum": [
           "jira",
           "case_management",
@@ -210068,7 +210090,7 @@
         ]
       },
       "TimeAggregation": {
-        "description": "Time aggregation period (in seconds) is used to aggregate the results of the notification rule evaluation.\nResults are aggregated over a selected time frame using a rolling window, which updates with each new evaluation.\nNotifications are only sent for new issues discovered during the window.\nTime aggregation is only available for vulnerability-based notification rules. When omitted or set to 0, no aggregation\nis done.",
+        "description": "Time aggregation period (in seconds) is used to aggregate the results of the notification rule evaluation.\nResults are aggregated over a selected time frame using a rolling window, which updates with each new evaluation.\nNotifications are only sent for new issues discovered during the window.\nTime aggregation is only available for finding-based notification rules. When omitted or set to 0, no aggregation\nis done. Otherwise, it must be between 1800 (30 minutes) and 2592000 (30 days).",
         "example": 86400,
         "format": "int64",
         "type": "integer"
@@ -211744,7 +211766,7 @@
         "type": "object"
       },
       "TriggerSource": {
-        "description": "The type of security issues on which the rule applies. Notification rules based on security signals need to use the trigger source \"security_signals\",\nwhile notification rules based on security vulnerabilities need to use the trigger source \"security_findings\".",
+        "description": "The type of security issues on which the rule applies. Notification rules based on security signals need to use the trigger source \"security_signals\",\nwhile notification rules based on security findings need to use the trigger source \"security_findings\".",
         "enum": [
           "security_findings",
           "security_signals"
@@ -217916,7 +217938,7 @@
         "type": "object"
       },
       "Version": {
-        "description": "Version of the notification rule. It is updated when the rule is modified.",
+        "description": "Version of the notification rule. It is updated when the rule is modified.\nWhen patching a rule, send the current `version` returned by the get or list operation; an older\n`version` returns 409.",
         "example": 1,
         "format": "int64",
         "type": "integer"
@@ -257015,8 +257037,7 @@
           "permissions": [
             "deployment_gates_read"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       },
       "post": {
         "description": "Create a deployment gate for a specific environment or for all environments using `*`.\nA gate for all environments and a gate for a specific environment cannot coexist for the\nsame organization, service, and identifier. A conflicting creation returns 400 Bad Request.",
@@ -257134,8 +257155,7 @@
           "permissions": [
             "deployment_gates_write"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/deployment_gates/evaluations": {
@@ -257363,8 +257383,7 @@
           "permissions": [
             "deployment_gates_read"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/deployment_gates/evaluations/rules": {
@@ -257660,8 +257679,7 @@
           "permissions": [
             "deployment_gates_read"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/deployment_gates/{gate_id}/rules": {
@@ -257756,8 +257774,7 @@
           "permissions": [
             "deployment_gates_read"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       },
       "post": {
         "description": "Endpoint to create a deployment rule. A gate for the rule must already exist.",
@@ -257876,8 +257893,7 @@
           "permissions": [
             "deployment_gates_write"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/deployment_gates/{gate_id}/rules/{id}": {
@@ -257952,8 +257968,7 @@
           "permissions": [
             "deployment_gates_write"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       },
       "get": {
         "description": "Endpoint to get a deployment rule.",
@@ -258054,8 +258069,7 @@
           "permissions": [
             "deployment_gates_read"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       },
       "put": {
         "description": "Endpoint to update a deployment rule.",
@@ -258185,8 +258199,7 @@
           "permissions": [
             "deployment_gates_write"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/deployment_gates/{id}": {
@@ -258252,8 +258265,7 @@
           "permissions": [
             "deployment_gates_write"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       },
       "get": {
         "description": "Endpoint to get a deployment gate.",
@@ -258344,8 +258356,7 @@
           "permissions": [
             "deployment_gates_read"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       },
       "put": {
         "description": "Endpoint to update a deployment gate.",
@@ -258459,8 +258470,7 @@
           "permissions": [
             "deployment_gates_write"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/deployments/gates/evaluation": {
@@ -258600,8 +258610,7 @@
           "permissions": [
             "deployment_gates_evaluate"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/deployments/gates/evaluation/{id}": {
@@ -258693,8 +258702,7 @@
           "permissions": [
             "deployment_gates_evaluate"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in preview and may be subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/domain_allowlist": {
@@ -359128,7 +359136,7 @@
     },
     "/api/v2/security/findings": {
       "get": {
-        "description": "Get a list of security findings that match a search query. [See the schema for security findings](https://docs.datadoghq.com/security/guide/findings-schema/).\n\n### Query Syntax\n\nThis endpoint uses the logs query syntax. Findings attributes (living in the attributes.attributes. namespace) are prefixed by @ when queried. Tags are queried without a prefix.\n\nExample: `@severity:(critical OR high) @status:open team:platform`",
+        "description": "Get a list of security findings that match a search query. [See the schema for security findings](https://docs.datadoghq.com/security/guide/findings-schema/).\n\nThis endpoint takes the query, sort, and pagination as URL query parameters. `SearchSecurityFindings` (`POST /api/v2/security/findings/search`) accepts the same parameters in a JSON request body and returns the same results, so pick by how you want to send them. Use this endpoint when the query fits easily in a URL. To send the query in a JSON body without URL encoding, use `SearchSecurityFindings` instead. A `meta.page.after` cursor from either endpoint works on the other.\n\nUse this endpoint rather than `ListFindings` (`GET /api/v2/posture_management/findings`), which uses the legacy security findings data model and is planned for deprecation.\n\n### Query Syntax\n\nThis endpoint uses the logs query syntax. Findings attributes (living in the attributes.attributes. namespace) are prefixed by @ when queried. Tags are queried without a prefix.\n\nExample: `@severity:(critical OR high) @status:open team:platform`",
         "operationId": "ListSecurityFindings",
         "parameters": [
           {
@@ -359552,7 +359560,7 @@
     },
     "/api/v2/security/findings/automation/default_inbox_rules/{rule_id}/disable": {
       "post": {
-        "description": "Disable a default inbox rule for the current organization.",
+        "description": "Disable a default inbox rule for the current organization.\nA disabled default rule stops adding the findings that match its `rule` to the Security\nInbox, and Datadog removes findings it added from the inbox unless another inbox rule matches them.\nDisable a default rule when it doesn't fit how your organization reviews findings. To add your own\nrules, use `CreateSecurityFindingsAutomationInboxRule`. Only `enabled`\nchanges. Existing findings can take up to two hours to update. To turn it back on, use `EnableSecurityFindingsAutomationDefaultInboxRule`.",
         "operationId": "DisableSecurityFindingsAutomationDefaultInboxRule",
         "parameters": [
           {
@@ -359646,7 +359654,7 @@
     },
     "/api/v2/security/findings/automation/default_inbox_rules/{rule_id}/enable": {
       "post": {
-        "description": "Enable a default inbox rule for the current organization.",
+        "description": "Enable a default inbox rule for the current organization.\nAn enabled default rule adds the findings that match its `rule` to the Security Inbox.\nDefault rules are enabled unless the organization disabled them. Only `enabled` changes;\nthe rule's `name`, `rule`, and `action` stay managed by Datadog. Existing findings can take up to two hours to update.\nTo turn it off again, use\n`DisableSecurityFindingsAutomationDefaultInboxRule`.",
         "operationId": "EnableSecurityFindingsAutomationDefaultInboxRule",
         "parameters": [
           {
@@ -359740,11 +359748,11 @@
     },
     "/api/v2/security/findings/automation/due_date_rules": {
       "get": {
-        "description": "Get all due date rules for the current organization.",
+        "description": "Get all due date rules for the current organization.\nA due date rule sets a remediation due date on the findings that match its `rule`: a number of\ndays per severity, counted from `action.due_from` (when the finding was first seen, or when a\nfix became available).\nThe response lists rules in evaluation order: Datadog checks each finding against the due date\nrules in this order and applies the first one that matches. A rule only matches findings whose\nseverity is listed in its `action.due_days_per_severity`. To change the order, use\n`ReorderSecurityFindingsAutomationDueDateRules`.",
         "operationId": "ListSecurityFindingsAutomationDueDateRules",
         "parameters": [
           {
-            "description": "The number of rules per page. Maximum is 1000.",
+            "description": "The number of rules per page. Maximum is 1,000.",
             "in": "query",
             "name": "page[size]",
             "required": false,
@@ -359758,7 +359766,7 @@
             }
           },
           {
-            "description": "The page number to return.",
+            "description": "The page number to return, starting at 0.",
             "in": "query",
             "name": "page[number]",
             "required": false,
@@ -359867,7 +359875,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Create a due date rule for the current organization.",
+        "description": "Create a due date rule for the current organization.\nThe rule sets a due date on every finding that matches `rule.finding_types`, `rule.query`, and\na severity listed in `action.due_days_per_severity`. It applies immediately to new findings;\nExisting findings can take up to two hours to update.\nDatadog adds the new rule to the end of the evaluation order. To move it, use\n`ReorderSecurityFindingsAutomationDueDateRules`. An organization can have at most 1,000 due date rules;\ncreating more fails with a `422` error.",
         "operationId": "CreateSecurityFindingsAutomationDueDateRule",
         "requestBody": {
           "content": {
@@ -360019,7 +360027,7 @@
     },
     "/api/v2/security/findings/automation/due_date_rules/reorder": {
       "post": {
-        "description": "Reorder the list of due date rules for the current organization.",
+        "description": "Set the order in which due date rules are evaluated for the current organization.\nDatadog checks each finding against the due date rules in this order and applies only the first rule that matches.\nA rule only matches findings whose severity is listed in its `action.due_days_per_severity`.\nThe first item in `data` is evaluated first.\n`data` must list every due date rule exactly once, using the IDs that\n`ListSecurityFindingsAutomationDueDateRules` returns. If a rule is missing, unknown, or listed twice, the\nrequest fails with a `422` error and the order doesn't change. Datadog adds rules created later\nto the end of the evaluation order.",
         "operationId": "ReorderSecurityFindingsAutomationDueDateRules",
         "requestBody": {
           "content": {
@@ -360126,11 +360134,11 @@
     },
     "/api/v2/security/findings/automation/due_date_rules/{rule_id}": {
       "delete": {
-        "description": "Delete a due date rule by ID.",
+        "description": "Delete a due date rule by ID.\nDeleting the rule removes the due dates it set on findings, unless another due date rule\nmatches them. Existing findings can take up to two hours to update. You can't restore a deleted rule. To stop a rule temporarily,\nupdate it with `enabled: false` instead.",
         "operationId": "DeleteSecurityFindingsAutomationDueDateRule",
         "parameters": [
           {
-            "description": "The ID of the due date rule.",
+            "description": "The ID of the due date rule, as returned by `ListSecurityFindingsAutomationDueDateRules` or `CreateSecurityFindingsAutomationDueDateRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -360181,7 +360189,7 @@
         "operationId": "GetSecurityFindingsAutomationDueDateRule",
         "parameters": [
           {
-            "description": "The ID of the due date rule.",
+            "description": "The ID of the due date rule, as returned by `ListSecurityFindingsAutomationDueDateRules` or `CreateSecurityFindingsAutomationDueDateRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -360280,11 +360288,11 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "put": {
-        "description": "Update a due date rule by ID.",
+        "description": "Update a due date rule by ID.\nThis request replaces the whole rule. Send every attribute you want to keep, because the API clears\noptional fields you omit and saves an omitted `enabled` as `false`. The rule keeps its ID and\nits position in the evaluation order.",
         "operationId": "UpdateSecurityFindingsAutomationDueDateRule",
         "parameters": [
           {
-            "description": "The ID of the due date rule.",
+            "description": "The ID of the due date rule, as returned by `ListSecurityFindingsAutomationDueDateRules` or `CreateSecurityFindingsAutomationDueDateRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -360457,11 +360465,11 @@
     },
     "/api/v2/security/findings/automation/inbox_rules": {
       "get": {
-        "description": "Get all inbox rules for the current organization.",
+        "description": "Get all inbox rules for the current organization.\nAn inbox rule adds the findings that match its `rule` to the Security Inbox. This list\ndoesn't include the default inbox rules that Datadog manages. To get those, use\n`ListSecurityFindingsAutomationDefaultInboxRules`.\nThe response lists rules in evaluation order: Datadog checks each finding against the inbox\nrules in this order and applies the first one that matches. Datadog checks the default inbox rules\nbefore these rules. To change the order, use `ReorderSecurityFindingsAutomationInboxRules`.",
         "operationId": "ListSecurityFindingsAutomationInboxRules",
         "parameters": [
           {
-            "description": "The number of rules per page. Maximum is 1000.",
+            "description": "The number of rules per page. Maximum is 1,000.",
             "in": "query",
             "name": "page[size]",
             "required": false,
@@ -360475,7 +360483,7 @@
             }
           },
           {
-            "description": "The page number to return.",
+            "description": "The page number to return, starting at 0.",
             "in": "query",
             "name": "page[number]",
             "required": false,
@@ -360574,7 +360582,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Create an inbox rule for the current organization.",
+        "description": "Create an inbox rule for the current organization.\nThe rule adds every finding that matches `rule.finding_types` and `rule.query` to the\nSecurity Inbox. It applies immediately to new findings; existing findings can\ntake up to two hours to update. Use inbox rules to surface findings that the Datadog default inbox rules\n(`ListSecurityFindingsAutomationDefaultInboxRules`) don't cover.\nDatadog adds the new rule to the end of the evaluation order. To move it, use\n`ReorderSecurityFindingsAutomationInboxRules`. An organization can have at most 1,000 inbox rules;\ncreating more fails with a `422` error.",
         "operationId": "CreateSecurityFindingsAutomationInboxRule",
         "requestBody": {
           "content": {
@@ -360706,7 +360714,7 @@
     },
     "/api/v2/security/findings/automation/inbox_rules/reorder": {
       "post": {
-        "description": "Reorder the list of inbox rules for the current organization.",
+        "description": "Set the order in which inbox rules are evaluated for the current organization.\nDatadog checks each finding against the inbox rules in this order and applies only the first rule that matches.\nDatadog checks the default inbox rules (`ListSecurityFindingsAutomationDefaultInboxRules`) before these rules.\nThe first item in `data` is evaluated first.\n`data` must list every inbox rule exactly once, using the IDs that\n`ListSecurityFindingsAutomationInboxRules` returns. If a rule is missing, unknown, or listed twice, the\nrequest fails with a `422` error and the order doesn't change. Datadog adds rules created later\nto the end of the evaluation order.",
         "operationId": "ReorderSecurityFindingsAutomationInboxRules",
         "requestBody": {
           "content": {
@@ -360813,11 +360821,11 @@
     },
     "/api/v2/security/findings/automation/inbox_rules/{rule_id}": {
       "delete": {
-        "description": "Delete an inbox rule by ID.",
+        "description": "Delete an inbox rule by ID.\nDatadog removes findings that the rule added from the Security Inbox, unless another inbox rule\nmatches them. Existing findings can take up to two hours to update.\nYou can't restore a deleted rule. To stop a rule temporarily, update it with `enabled: false`\ninstead.",
         "operationId": "DeleteSecurityFindingsAutomationInboxRule",
         "parameters": [
           {
-            "description": "The ID of the inbox rule.",
+            "description": "The ID of the inbox rule, as returned by `ListSecurityFindingsAutomationInboxRules` or `CreateSecurityFindingsAutomationInboxRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -360868,7 +360876,7 @@
         "operationId": "GetSecurityFindingsAutomationInboxRule",
         "parameters": [
           {
-            "description": "The ID of the inbox rule.",
+            "description": "The ID of the inbox rule, as returned by `ListSecurityFindingsAutomationInboxRules` or `CreateSecurityFindingsAutomationInboxRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -360957,11 +360965,11 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "put": {
-        "description": "Update an inbox rule by ID.",
+        "description": "Update an inbox rule by ID.\nThis request replaces the whole rule. Send every attribute you want to keep, because the API clears\noptional fields you omit and saves an omitted `enabled` as `false`. The rule keeps its ID and\nits position in the evaluation order.",
         "operationId": "UpdateSecurityFindingsAutomationInboxRule",
         "parameters": [
           {
-            "description": "The ID of the inbox rule.",
+            "description": "The ID of the inbox rule, as returned by `ListSecurityFindingsAutomationInboxRules` or `CreateSecurityFindingsAutomationInboxRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -361106,11 +361114,11 @@
     },
     "/api/v2/security/findings/automation/mute_rules": {
       "get": {
-        "description": "Get all mute rules for the current organization.",
+        "description": "Get all mute rules for the current organization.\nA mute rule automatically mutes new and existing findings that match its `rule` (finding types and query),\nusing the reason in its `action`. To mute or unmute specific findings by ID as a one-time action,\nuse `MuteSecurityFindings` instead.\nThe response lists rules in evaluation order: Datadog checks each finding against the mute\nrules in this order and applies the first one that matches. To change the order, use\n`ReorderSecurityFindingsAutomationMuteRules`.",
         "operationId": "ListSecurityFindingsAutomationMuteRules",
         "parameters": [
           {
-            "description": "The number of rules per page. Maximum is 1000.",
+            "description": "The number of rules per page. Maximum is 1,000.",
             "in": "query",
             "name": "page[size]",
             "required": false,
@@ -361124,7 +361132,7 @@
             }
           },
           {
-            "description": "The page number to return.",
+            "description": "The page number to return, starting at 0.",
             "in": "query",
             "name": "page[number]",
             "required": false,
@@ -361225,7 +361233,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Create a mute rule for the current organization.",
+        "description": "Create a mute rule for the current organization.\nThe rule mutes every finding that matches `rule.finding_types` and `rule.query`, with the\nreason in `action.reason`, until `action.expire_at` if set. It applies immediately to\nnew findings; existing findings can take up to two hours to update. Use a rule to keep\nmuting a class of findings, including ones detected later. To mute or unmute specific\nfindings by ID as a one-time action, use `MuteSecurityFindings` instead. Mute rules don't change\nmanually muted findings.\nDatadog adds the new rule to the end of the evaluation order. To move it, use\n`ReorderSecurityFindingsAutomationMuteRules`. An organization can have at most 1,000 mute rules;\ncreating more fails with a `422` error.",
         "operationId": "CreateSecurityFindingsAutomationMuteRule",
         "requestBody": {
           "content": {
@@ -361361,7 +361369,7 @@
     },
     "/api/v2/security/findings/automation/mute_rules/reorder": {
       "post": {
-        "description": "Reorder the list of mute rules for the current organization.",
+        "description": "Set the order in which mute rules are evaluated for the current organization.\nDatadog checks each finding against the mute rules in this order and applies only the first rule that matches.\nThe first item in `data` is evaluated first.\n`data` must list every mute rule exactly once, using the IDs that\n`ListSecurityFindingsAutomationMuteRules` returns. If a rule is missing, unknown, or listed twice, the\nrequest fails with a `422` error and the order doesn't change. Datadog adds rules created later\nto the end of the order.",
         "operationId": "ReorderSecurityFindingsAutomationMuteRules",
         "requestBody": {
           "content": {
@@ -361468,11 +361476,11 @@
     },
     "/api/v2/security/findings/automation/mute_rules/{rule_id}": {
       "delete": {
-        "description": "Delete a mute rule by ID.",
+        "description": "Delete a mute rule by ID.\nDatadog unmutes findings that the rule muted, unless another mute rule matches them. Manually\nmuted findings stay muted. Existing findings can take up to two hours to update.\nYou can't restore a deleted rule. To stop a rule temporarily, update it with `enabled: false`\ninstead. Disabling a rule has the same effect on findings as deleting it.",
         "operationId": "DeleteSecurityFindingsAutomationMuteRule",
         "parameters": [
           {
-            "description": "The ID of the mute rule.",
+            "description": "The ID of the mute rule, as returned by `ListSecurityFindingsAutomationMuteRules` or `CreateSecurityFindingsAutomationMuteRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -361523,7 +361531,7 @@
         "operationId": "GetSecurityFindingsAutomationMuteRule",
         "parameters": [
           {
-            "description": "The ID of the mute rule.",
+            "description": "The ID of the mute rule, as returned by `ListSecurityFindingsAutomationMuteRules` or `CreateSecurityFindingsAutomationMuteRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -361614,11 +361622,11 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "put": {
-        "description": "Update a mute rule by ID.",
+        "description": "Update a mute rule by ID.\nThis request replaces the whole rule. Send every attribute you want to keep, because the API clears\noptional fields you omit and saves an omitted `enabled` as `false`. The rule keeps its ID and\nits position in the evaluation order.",
         "operationId": "UpdateSecurityFindingsAutomationMuteRule",
         "parameters": [
           {
-            "description": "The ID of the mute rule.",
+            "description": "The ID of the mute rule, as returned by `ListSecurityFindingsAutomationMuteRules` or `CreateSecurityFindingsAutomationMuteRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -361763,11 +361771,11 @@
     },
     "/api/v2/security/findings/automation/severity_modifier_rules": {
       "get": {
-        "description": "Get all severity modifier rules for the current organization.",
+        "description": "Get all severity modifier rules for the current organization.\nA severity modifier rule changes the severity of the findings that match its `rule`: it either\nsets a fixed severity or shifts it up or down by one rank. Severity modifier rules run before\nmute, due date, inbox, and ticket creation rules, so those rules see the modified severity.\nTo override the severity of specific findings by ID, use `UpdateFindingsSeverity` instead.\nThe response lists rules in evaluation order: Datadog checks each finding against the severity modifier\nrules in this order and applies the first one that would change the finding's severity. To change the order, use\n`ReorderSecurityFindingsAutomationSeverityModifierRules`.",
         "operationId": "ListSecurityFindingsAutomationSeverityModifierRules",
         "parameters": [
           {
-            "description": "The number of rules per page. Maximum is 1000.",
+            "description": "The number of rules per page. Maximum is 1,000.",
             "in": "query",
             "name": "page[size]",
             "required": false,
@@ -361781,7 +361789,7 @@
             }
           },
           {
-            "description": "The page number to return.",
+            "description": "The page number to return, starting at 0.",
             "in": "query",
             "name": "page[number]",
             "required": false,
@@ -361885,7 +361893,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Create a severity modifier rule for the current organization.",
+        "description": "Create a severity modifier rule for the current organization.\nThe rule changes the severity of every finding that matches `rule.finding_types` and\n`rule.query`. It applies immediately to new findings; existing findings can\ntake up to two hours to update. Use a rule to continuously adjust the severity of a class of findings,\nsuch as all findings in a development environment. To override the severity of specific\nfindings by ID as a one-time action, use `UpdateFindingsSeverity` instead. `UpdateFindingsSeverity` can't\noverride or clear a severity set by a rule.\nDatadog adds the new rule to the end of the evaluation order. To move it, use\n`ReorderSecurityFindingsAutomationSeverityModifierRules`. An organization can have at most 1,000 severity modifier rules;\ncreating more fails with a `422` error.",
         "operationId": "CreateSecurityFindingsAutomationSeverityModifierRule",
         "requestBody": {
           "content": {
@@ -362021,7 +362029,7 @@
     },
     "/api/v2/security/findings/automation/severity_modifier_rules/reorder": {
       "post": {
-        "description": "Reorder the list of severity modifier rules for the current organization.",
+        "description": "Set the order in which severity modifier rules are evaluated for the current organization.\nDatadog checks each finding against the severity modifier rules in this order and applies only the first rule that would change the finding's severity.\nThe first item in `data` is evaluated first.\n`data` must list every severity modifier rule exactly once, using the IDs that\n`ListSecurityFindingsAutomationSeverityModifierRules` returns. If a rule is missing, unknown, or listed twice, the\nrequest fails with a `422` error and the order doesn't change. Datadog adds rules created later\nto the end of the order.",
         "operationId": "ReorderSecurityFindingsAutomationSeverityModifierRules",
         "requestBody": {
           "content": {
@@ -362128,11 +362136,11 @@
     },
     "/api/v2/security/findings/automation/severity_modifier_rules/{rule_id}": {
       "delete": {
-        "description": "Delete a severity modifier rule by ID.",
+        "description": "Delete a severity modifier rule by ID.\nUnresolved findings whose severity the rule changed go back to their Datadog severity, unless\nanother severity modifier rule matches them. Resolved findings keep the severity they had.\nExisting findings can take up to two hours to update.\nYou can't restore a deleted rule. To stop a rule temporarily, update it with `enabled: false`\ninstead.",
         "operationId": "DeleteSecurityFindingsAutomationSeverityModifierRule",
         "parameters": [
           {
-            "description": "The ID of the severity modifier rule.",
+            "description": "The ID of the severity modifier rule, as returned by `ListSecurityFindingsAutomationSeverityModifierRules` or `CreateSecurityFindingsAutomationSeverityModifierRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -362193,7 +362201,7 @@
         "operationId": "GetSecurityFindingsAutomationSeverityModifierRule",
         "parameters": [
           {
-            "description": "The ID of the severity modifier rule.",
+            "description": "The ID of the severity modifier rule, as returned by `ListSecurityFindingsAutomationSeverityModifierRules` or `CreateSecurityFindingsAutomationSeverityModifierRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -362294,11 +362302,11 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "put": {
-        "description": "Update a severity modifier rule by ID.",
+        "description": "Update a severity modifier rule by ID.\nThis request replaces the whole rule. Send every attribute you want to keep, because the API clears\noptional fields you omit and saves an omitted `enabled` as `false`. The rule keeps its ID and\nits position in the evaluation order.",
         "operationId": "UpdateSecurityFindingsAutomationSeverityModifierRule",
         "parameters": [
           {
-            "description": "The ID of the severity modifier rule.",
+            "description": "The ID of the severity modifier rule, as returned by `ListSecurityFindingsAutomationSeverityModifierRules` or `CreateSecurityFindingsAutomationSeverityModifierRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -362445,11 +362453,11 @@
     },
     "/api/v2/security/findings/automation/ticket_creation_rules": {
       "get": {
-        "description": "Get all ticket creation rules for the current organization.",
+        "description": "Get all ticket creation rules for the current organization.\nA ticket creation rule automatically creates tickets for new findings that match its `rule`,\nin Jira, Linear, or Datadog Work Management (`action.target`; formerly Case Management), up to\n`action.max_tickets_per_day`.\nEach returned rule includes its scope (`rule`), its target project, assignee, and ticket\nfields (`action`), and `action.auto_disabled_reason` when Datadog disabled the rule after a\nticketing integration error.\nThe response lists rules in evaluation order: Datadog checks each finding against the ticket creation\nrules in this order and applies the first one that matches. To change the order, use\n`ReorderSecurityFindingsAutomationTicketCreationRules`.",
         "operationId": "ListSecurityFindingsAutomationTicketCreationRules",
         "parameters": [
           {
-            "description": "The number of rules per page. Maximum is 1000.",
+            "description": "The number of rules per page. Maximum is 1,000.",
             "in": "query",
             "name": "page[size]",
             "required": false,
@@ -362463,7 +362471,7 @@
             }
           },
           {
-            "description": "The page number to return.",
+            "description": "The page number to return, starting at 0.",
             "in": "query",
             "name": "page[number]",
             "required": false,
@@ -362564,7 +362572,7 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "post": {
-        "description": "Create a ticket creation rule for the current organization.",
+        "description": "Create a ticket creation rule for the current organization.\nThe rule automatically creates tickets for new findings that match `rule.finding_types` and\n`rule.query`, in the project set by `action.target` and `action.project_id`. It doesn't\ncreate tickets for findings that existed before the rule. Use a rule to create tickets for findings\ncontinuously as Datadog detects them. To create tickets for specific existing findings, use\n`CreateJiraIssues` or `CreateCases` instead.\nDatadog adds the new rule to the end of the evaluation order. To move it, use\n`ReorderSecurityFindingsAutomationTicketCreationRules`. An organization can have at most 1,000 ticket creation rules;\ncreating more fails with a `422` error.",
         "operationId": "CreateSecurityFindingsAutomationTicketCreationRule",
         "requestBody": {
           "content": {
@@ -362700,7 +362708,7 @@
     },
     "/api/v2/security/findings/automation/ticket_creation_rules/reorder": {
       "post": {
-        "description": "Reorder the list of ticket creation rules for the current organization.",
+        "description": "Set the order in which ticket creation rules are evaluated for the current organization.\nDatadog checks each finding against the ticket creation rules in this order and applies only the first rule that matches.\nThe first item in `data` is evaluated first.\n`data` must list every ticket creation rule exactly once, using the IDs that\n`ListSecurityFindingsAutomationTicketCreationRules` returns. If a rule is missing, unknown, or listed twice, the\nrequest fails with a `422` error and the order doesn't change. Datadog adds rules created later\nto the end of the order.",
         "operationId": "ReorderSecurityFindingsAutomationTicketCreationRules",
         "requestBody": {
           "content": {
@@ -362807,11 +362815,11 @@
     },
     "/api/v2/security/findings/automation/ticket_creation_rules/{rule_id}": {
       "delete": {
-        "description": "Delete a ticket creation rule by ID.",
+        "description": "Delete a ticket creation rule by ID.\nTickets that the rule already created stay attached to their findings and aren't deleted.\nYou can't restore a deleted rule. To stop a rule temporarily, update it with\n`enabled: false` instead.",
         "operationId": "DeleteSecurityFindingsAutomationTicketCreationRule",
         "parameters": [
           {
-            "description": "The ID of the ticket creation rule.",
+            "description": "The ID of the ticket creation rule, as returned by `ListSecurityFindingsAutomationTicketCreationRules` or `CreateSecurityFindingsAutomationTicketCreationRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -362862,7 +362870,7 @@
         "operationId": "GetSecurityFindingsAutomationTicketCreationRule",
         "parameters": [
           {
-            "description": "The ID of the ticket creation rule.",
+            "description": "The ID of the ticket creation rule, as returned by `ListSecurityFindingsAutomationTicketCreationRules` or `CreateSecurityFindingsAutomationTicketCreationRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -362953,11 +362961,11 @@
         "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
       },
       "put": {
-        "description": "Update a ticket creation rule by ID.",
+        "description": "Update a ticket creation rule by ID.\nThis request replaces the whole rule. Send every attribute you want to keep, because the API clears\noptional fields you omit and saves an omitted `enabled` as `false`. The rule keeps its ID and\nits position in the evaluation order.\nTo re-enable a rule that Datadog disabled after a ticketing integration error, update it.\nUpdating a rule clears `action.auto_disabled_reason`.",
         "operationId": "UpdateSecurityFindingsAutomationTicketCreationRule",
         "parameters": [
           {
-            "description": "The ID of the ticket creation rule.",
+            "description": "The ID of the ticket creation rule, as returned by `ListSecurityFindingsAutomationTicketCreationRules` or `CreateSecurityFindingsAutomationTicketCreationRule`.",
             "in": "path",
             "name": "rule_id",
             "required": true,
@@ -363106,7 +363114,7 @@
     },
     "/api/v2/security/findings/cases": {
       "delete": {
-        "description": "Detach security findings from their case.\nThis operation dissociates security findings from their associated cases without deleting the cases themselves. You can detach security findings from multiple different cases in a single request, with a limit of 50 security findings per request. Security findings that are not currently attached to any case will be ignored.",
+        "description": "Detach security findings from their case.\nThis operation dissociates security findings from their associated cases without deleting the cases themselves. List the security findings to detach in `data.relationships.findings`. The API detaches each one from its current case, so you don't need to pass a case ID. You can detach security findings from multiple different cases in a single request, with a limit of 50 security findings per request. Security findings that are not currently attached to any case will be ignored.",
         "operationId": "DetachCase",
         "requestBody": {
           "content": {
@@ -363175,7 +363183,7 @@
         }
       },
       "post": {
-        "description": "Create cases for security findings.\nYou can create up to 50 cases per request and associate up to 50 security findings per case. Security findings that are already attached to another case will be detached from their previous case and attached to the newly created case.",
+        "description": "Create cases for security findings.\nTo add security findings to a case that already exists, use `AttachCase` instead.\nYou can create up to 50 cases per request and associate up to 50 security findings per case. Security findings that are already attached to another case will be detached from their previous case and attached to the newly created case.",
         "operationId": "CreateCases",
         "requestBody": {
           "content": {
@@ -363285,11 +363293,11 @@
     },
     "/api/v2/security/findings/cases/{case_id}": {
       "patch": {
-        "description": "Attach security findings to a case.\nYou can attach up to 50 security findings per case. Security findings that are already attached to another case will be detached from their previous case and attached to the specified case.",
+        "description": "Attach security findings to a case.\nIdentify the existing Case Management case with the `case_id` path parameter, using the case `id` or `key` that `SearchCases` or `CreateCases` returns. To open a new case for security findings, use `CreateCases` instead.\nYou can attach up to 50 security findings per case. Security findings that are already attached to another case will be detached from their previous case and attached to the specified case.",
         "operationId": "AttachCase",
         "parameters": [
           {
-            "description": "Unique identifier of the case to attach security findings to",
+            "description": "Unique identifier (UUID) or key (for example, `PROJ-123`) of the case to attach security findings to.",
             "in": "path",
             "name": "case_id",
             "required": true,
@@ -363820,7 +363828,7 @@
     },
     "/api/v2/security/findings/mute": {
       "patch": {
-        "description": "Mute or unmute security findings.\nYou can mute or unmute up to 100 security findings per request. The request body must include `is_muted` and `reason` attributes. The allowed reasons depend on whether the finding is being muted or unmuted:\n  - To mute a finding: `PENDING_FIX`, `FALSE_POSITIVE`, `OTHER`, `NO_FIX`, `DUPLICATE`, `RISK_ACCEPTED`.\n  - To unmute a finding: `NO_PENDING_FIX`, `HUMAN_ERROR`, `NO_LONGER_ACCEPTED_RISK`, `OTHER`.",
+        "description": "Mute or unmute security findings.\nMute security findings that you want to ignore, such as false positives, accepted risks, or findings with a pending fix. Datadog issue explorers hide muted findings by default, and muted misconfigurations no longer count toward the posture score. Datadog automatically unmutes findings when their `expire_at` date passes. To unmute them earlier, set `is_muted` to `false`.\nYou can mute or unmute up to 100 security findings per request. The request body must include `is_muted` and `reason` attributes. The allowed reasons depend on whether the finding is being muted or unmuted:\n  - To mute a finding: `PENDING_FIX`, `FALSE_POSITIVE`, `OTHER`, `NO_FIX`, `DUPLICATE`, `RISK_ACCEPTED`.\n  - To unmute a finding: `NO_PENDING_FIX`, `HUMAN_ERROR`, `NO_LONGER_ACCEPTED_RISK`, `OTHER`.",
         "operationId": "MuteSecurityFindings",
         "requestBody": {
           "content": {
@@ -363928,7 +363936,7 @@
     },
     "/api/v2/security/findings/search": {
       "post": {
-        "description": "Get a list of security findings that match a search query. [See the schema for security findings](https://docs.datadoghq.com/security/guide/findings-schema/).\n\n### Query Syntax\n\nThe API uses the logs query syntax. Findings attributes (living in the attributes.attributes. namespace) are prefixed by @ when queried. Tags are queried without a prefix.\n\nExample: `@severity:(critical OR high) @status:open team:platform`",
+        "description": "Get a list of security findings that match a search query. [See the schema for security findings](https://docs.datadoghq.com/security/guide/findings-schema/).\n\nThis endpoint takes the query, sort, and pagination in a JSON request body. `ListSecurityFindings` (`GET /api/v2/security/findings`) accepts the same parameters as URL query parameters and returns the same results, so pick by how you want to send them. Use this endpoint to send the query without URL encoding, for example when it has many quotes, parentheses, or spaces. To get the next page, send `meta.page.after` as `data.attributes.page.cursor` in the request body. The `links.next` URL always points to `ListSecurityFindings`, with the query in the URL.\n\nUse this endpoint rather than `ListFindings` (`GET /api/v2/posture_management/findings`), which uses the legacy security findings data model and is planned for deprecation.\n\n### Query Syntax\n\nThe API uses the logs query syntax. Findings attributes (living in the attributes.attributes. namespace) are prefixed by @ when queried. Tags are queried without a prefix.\n\nExample: `@severity:(critical OR high) @status:open team:platform`",
         "operationId": "SearchSecurityFindings",
         "requestBody": {
           "content": {
@@ -364249,7 +364257,7 @@
     },
     "/api/v2/security/findings/severity": {
       "patch": {
-        "description": "Set or clear the manual severity override of security findings.\n\nYou can update up to 100 security findings per request.\nUse the `set` action with a `value` to apply a manual severity override.\n`value` is required for `set` and must be omitted for `clear`.\nThe `info` value sets the lowest severity the finding type allows.\nUse the `clear` action to remove a manual severity override.\n`clear` does not remove a severity set by an automation rule.\nThe optional `description` is accepted with both actions and has a limit of 280 characters.\n\nAuto-closed findings are excluded.\nFindings whose severity was set by an automation rule are skipped and listed in the response `meta.warnings`.\nIf every finding is skipped this way, the request fails with a `400` error.\nFindings that cannot be found are skipped without a warning.\nThe request fails with a `404` error only if none of the findings can be found.",
+        "description": "Set or clear the manual severity override of security findings.\n\nYou can update up to 100 security findings per request.\nUse the `set` action with a `value` to apply a manual severity override.\nThe allowed values are `critical`, `high`, `medium`, `low`, and `info`.\n`value` is required for `set` and must be omitted for `clear`.\nThe `info` value sets the lowest severity the finding type allows.\nUse the `clear` action to remove a manual severity override.\n`clear` does not remove a severity set by an automation rule.\nThe optional `description` is accepted with both actions and has a limit of 280 characters.\n\nAuto-closed findings are excluded.\nFindings whose severity was set by an automation rule are skipped and listed in the response `meta.warnings`.\nIf every finding is skipped this way, the request fails with a `400` error.\nFindings that cannot be found are skipped without a warning.\nThe request fails with a `404` error only if none of the findings can be found.",
         "operationId": "UpdateFindingsSeverity",
         "requestBody": {
           "content": {
@@ -366164,7 +366172,7 @@
     },
     "/api/v2/security/signals/notification_rules": {
       "get": {
-        "description": "Returns the list of notification rules for security signals.",
+        "description": "Returns the list of notification rules for security signals.\nA signal-based notification rule sends a notification to its `targets` when a security signal matches its\nselectors (rule types, severities, and query), so you don't have to set up notifications on each detection rule.\nUse the signal routes for rules whose `trigger_source` is `security_signals`. For rules on security findings,\nsuch as vulnerabilities and misconfigurations (`trigger_source` `security_findings`), use\n`GetVulnerabilityNotificationRules`.\nThis route only returns rules whose `trigger_source` is `security_signals`. The response isn't paginated: it\ncontains every such rule in the organization, and the route takes no paging parameters.",
         "operationId": "GetSignalNotificationRules",
         "responses": {
           "200": {
@@ -366198,7 +366206,7 @@
         }
       },
       "post": {
-        "description": "Create a new notification rule for security signals and return the created rule.",
+        "description": "Create a new notification rule for security signals and return the created rule.\nSet `selectors.trigger_source` to `security_signals`. The signal routes only return rules with that trigger\nsource, so a rule with `security_findings` is read through `GetVulnerabilityNotificationRules` instead.\nTo notify on security findings, use `CreateVulnerabilityNotificationRule`.\n`selectors.rule_types` accepts the signal rule types `application_security`, `log_detection`,\n`workload_security`, and `signal_correlation`.\nGive at least one; finding rule types are rejected.\n`selectors.severities` accepts `critical`, `high`, `medium`, `low`, and `info`; `unknown` is rejected.\n`selectors.query` is at most 6,000 characters.\nEach entry in `targets` is a handle that starts with `@`, such as an email address\n(`@john.doe@email.com`) or an integration handle (`@slack-<VALUES>`); see `targets`.\n`time_aggregation` is only available for finding-based rules: omit it or set it to `0`.\nTrial organizations can't use email address targets: the request returns 400.\nRule names must be unique in the organization (case-insensitive); a duplicate name returns 409.\nAn organization can have at most 1,000 signal-based rules; past that, the request returns 429.",
         "operationId": "CreateSignalNotificationRule",
         "requestBody": {
           "content": {
@@ -366322,11 +366330,11 @@
     },
     "/api/v2/security/signals/notification_rules/{id}": {
       "delete": {
-        "description": "Delete a notification rule for security signals.",
+        "description": "Delete a notification rule for security signals.\nGet the rule `id` from `GetSignalNotificationRules`.\nThis route doesn't check the rule's `trigger_source`, so make sure the `id` belongs to a signal rule.\nTo stop notifications without deleting the rule, set `enabled` to `false` with\n`PatchSignalNotificationRule` instead.",
         "operationId": "DeleteSignalNotificationRule",
         "parameters": [
           {
-            "description": "ID of the notification rule.",
+            "description": "ID of the notification rule, as returned in `data[].id` by `GetSignalNotificationRules`.",
             "in": "path",
             "name": "id",
             "required": true,
@@ -366370,11 +366378,11 @@
         }
       },
       "get": {
-        "description": "Get the details of a notification rule for security signals.",
+        "description": "Get the details of a notification rule for security signals.\nGet the rule `id` from `GetSignalNotificationRules`.\nReturns 404 when the rule's `trigger_source` is `security_findings`; read that rule with\n`GetVulnerabilityNotificationRule` instead.",
         "operationId": "GetSignalNotificationRule",
         "parameters": [
           {
-            "description": "ID of the notification rule.",
+            "description": "ID of the notification rule, as returned in `data[].id` by `GetSignalNotificationRules`.",
             "in": "path",
             "name": "id",
             "required": true,
@@ -366466,11 +366474,11 @@
         }
       },
       "patch": {
-        "description": "Partially update the notification rule. All fields are optional; if a field is not provided, it is not updated.",
+        "description": "Partially update the notification rule. All fields except `version` are optional; if a field is not provided,\nit is not updated. Give at least one field to change.\nGet the rule `id` from `GetSignalNotificationRules`, then read the rule with `GetSignalNotificationRule`\nand send its current `version`. The `version` is incremented each time the rule is modified.\nA `version` that isn't the current one returns 409: fetch the rule again and retry.\nA missing or `0` `version` is rejected.\nIf you send `selectors`, it must include `trigger_source`, and every entry in `selectors.rule_types` must\nmatch that trigger source (give at least one). For `security_findings`, the rule types are\n`application_code_vulnerability`, `application_library_vulnerability`, `attack_path`,\n`container_image_vulnerability`, `identity_risk`, `misconfiguration`, `api_security`, `host_vulnerability`,\n`iac_misconfiguration`, `sast_vulnerability`, `secret_vulnerability`, `workload_activity`, `sensitive_data`,\nand `serverless_function_code_vulnerability`.\nFor `security_signals`, they are `application_security`, `log_detection`, `workload_security`, and\n`signal_correlation`.\nChanging `trigger_source` moves the rule to the other family's routes, and the change counts toward that\nfamily's limit of 1,000 rules.\n`selectors.severities` accepts `critical`, `high`, `medium`, `low`, and `info`; `unknown` is rejected.\n`selectors.query` is at most 6,000 characters. Finding-based rules can't filter on attributes in the\n`@workflow` or `@_dd` namespaces, on `@status`, or on `@compliance.evaluation`.\nEach entry in `targets` is a handle that starts with `@`, such as an email address\n(`@john.doe@email.com`) or an integration handle (`@slack-<VALUES>`); see `targets`.\nTrial organizations can't use email address targets: the request returns 400.",
         "operationId": "PatchSignalNotificationRule",
         "parameters": [
           {
-            "description": "ID of the notification rule.",
+            "description": "ID of the notification rule, as returned in `data[].id` by `GetSignalNotificationRules`.",
             "in": "path",
             "name": "id",
             "required": true,
@@ -367407,7 +367415,7 @@
     },
     "/api/v2/security/vulnerabilities/notification_rules": {
       "get": {
-        "description": "Returns the list of notification rules for security vulnerabilities.",
+        "description": "Returns the list of notification rules for security findings.\nA finding-based notification rule sends a notification to its `targets` when a security finding, such as a\nvulnerability or a misconfiguration, matches its selectors (rule types, severities, and query). It can group\nnotifications over a `time_aggregation` window.\nUse the finding routes (under `/api/v2/security/vulnerabilities/`) for rules whose `trigger_source` is\n`security_findings`. For rules on security\nsignals (`trigger_source` `security_signals`), use `GetSignalNotificationRules`.\nThis route only returns rules whose `trigger_source` is `security_findings`. The response isn't paginated: it\ncontains every such rule in the organization, and the route takes no paging parameters.",
         "operationId": "GetVulnerabilityNotificationRules",
         "responses": {
           "200": {
@@ -367441,7 +367449,7 @@
         }
       },
       "post": {
-        "description": "Create a new notification rule for security vulnerabilities and return the created rule.",
+        "description": "Create a new notification rule for security findings and return the created rule.\nSet `selectors.trigger_source` to `security_findings`. The finding routes only return rules with that\ntrigger source, so a rule with `security_signals` is read through `GetSignalNotificationRules` instead.\nTo notify on security signals, use `CreateSignalNotificationRule`.\n`selectors.rule_types` accepts the finding rule types `application_code_vulnerability`,\n`application_library_vulnerability`, `attack_path`, `container_image_vulnerability`, `identity_risk`,\n`misconfiguration`, `api_security`, `host_vulnerability`, `iac_misconfiguration`, `sast_vulnerability`,\n`secret_vulnerability`, `workload_activity`, `sensitive_data`, and `serverless_function_code_vulnerability`.\nGive at least one; signal rule types are rejected.\n`selectors.severities` accepts `critical`, `high`, `medium`, `low`, and `info`; `unknown` is rejected.\n`selectors.query` is at most 6,000 characters, and can't filter on attributes in the `@workflow` or `@_dd`\nnamespaces, on `@status`, or on `@compliance.evaluation`.\nEach entry in `targets` is a handle that starts with `@`, such as an email address\n(`@john.doe@email.com`) or an integration handle (`@slack-<VALUES>`); see `targets`.\n`time_aggregation` is a rolling window in seconds, from `1800` (30 minutes) to `2592000` (30 days); omit it\nor set it to `0` for no aggregation.\nTrial organizations can't use email address targets: the request returns 400.\nRule names must be unique in the organization (case-insensitive); a duplicate name returns 409.\nAn organization can have at most 1,000 finding-based rules; past that, the request returns 429.",
         "operationId": "CreateVulnerabilityNotificationRule",
         "requestBody": {
           "content": {
@@ -367566,11 +367574,11 @@
     },
     "/api/v2/security/vulnerabilities/notification_rules/{id}": {
       "delete": {
-        "description": "Delete a notification rule for security vulnerabilities.",
+        "description": "Delete a notification rule for security findings.\nGet the rule `id` from `GetVulnerabilityNotificationRules`.\nThis route doesn't check the rule's `trigger_source`, so make sure the `id` belongs to a finding rule.\nTo stop notifications without deleting the rule, set `enabled` to `false` with\n`PatchVulnerabilityNotificationRule` instead.",
         "operationId": "DeleteVulnerabilityNotificationRule",
         "parameters": [
           {
-            "description": "ID of the notification rule.",
+            "description": "ID of the notification rule, as returned in `data[].id` by `GetVulnerabilityNotificationRules`.",
             "in": "path",
             "name": "id",
             "required": true,
@@ -367614,11 +367622,11 @@
         }
       },
       "get": {
-        "description": "Get the details of a notification rule for security vulnerabilities.",
+        "description": "Get the details of a notification rule for security findings.\nGet the rule `id` from `GetVulnerabilityNotificationRules`.\nReturns 404 when the rule's `trigger_source` is `security_signals`; read that rule with\n`GetSignalNotificationRule` instead.",
         "operationId": "GetVulnerabilityNotificationRule",
         "parameters": [
           {
-            "description": "ID of the notification rule.",
+            "description": "ID of the notification rule, as returned in `data[].id` by `GetVulnerabilityNotificationRules`.",
             "in": "path",
             "name": "id",
             "required": true,
@@ -367711,11 +367719,11 @@
         }
       },
       "patch": {
-        "description": "Partially update the notification rule. All fields are optional; if a field is not provided, it is not updated.",
+        "description": "Partially update the notification rule. All fields except `version` are optional; if a field is not provided,\nit is not updated. Give at least one field to change.\nGet the rule `id` from `GetVulnerabilityNotificationRules`, then read the rule with\n`GetVulnerabilityNotificationRule` and send its current `version`. The `version` is incremented each time\nthe rule is modified. A `version` that isn't the current one returns 409: fetch the rule again and retry.\nA missing or `0` `version` is rejected.\nIf you send `selectors`, it must include `trigger_source`, and every entry in `selectors.rule_types` must\nmatch that trigger source (give at least one). For `security_findings`, the rule types are\n`application_code_vulnerability`, `application_library_vulnerability`, `attack_path`,\n`container_image_vulnerability`, `identity_risk`, `misconfiguration`, `api_security`, `host_vulnerability`,\n`iac_misconfiguration`, `sast_vulnerability`, `secret_vulnerability`, `workload_activity`, `sensitive_data`,\nand `serverless_function_code_vulnerability`.\nFor `security_signals`, they are `application_security`, `log_detection`, `workload_security`, and\n`signal_correlation`.\nChanging `trigger_source` moves the rule to the other family's routes, and the change counts toward that\nfamily's limit of 1,000 rules.\n`selectors.severities` accepts `critical`, `high`, `medium`, `low`, and `info`; `unknown` is rejected.\n`selectors.query` is at most 6,000 characters. Finding-based rules can't filter on attributes in the\n`@workflow` or `@_dd` namespaces, on `@status`, or on `@compliance.evaluation`.\nEach entry in `targets` is a handle that starts with `@`, such as an email address\n(`@john.doe@email.com`) or an integration handle (`@slack-<VALUES>`); see `targets`.\nTrial organizations can't use email address targets: the request returns 400.",
         "operationId": "PatchVulnerabilityNotificationRule",
         "parameters": [
           {
-            "description": "ID of the notification rule.",
+            "description": "ID of the notification rule, as returned in `data[].id` by `GetVulnerabilityNotificationRules`.",
             "in": "path",
             "name": "id",
             "required": true,
@@ -370643,7 +370651,7 @@
     },
     "/api/v2/security_monitoring/configuration/notification_rules/send_notification_preview": {
       "post": {
-        "description": "Send a notification preview to test that a notification rule's targets are properly configured.",
+        "description": "Send a notification preview to test that a notification rule's targets are properly configured.\nThe request body has the same shape as the body of `CreateSignalNotificationRule` and `CreateVulnerabilityNotificationRule`.\nThe preview sends test notifications to the targets but doesn't save a notification rule. To save the rule, use\n`CreateSignalNotificationRule` or `CreateVulnerabilityNotificationRule`.\n\nFields to set in `data.attributes`:\n- `selectors.trigger_source`: `security_signals` for a signal-based rule, or `security_findings` for a rule on security findings and vulnerabilities.\n- `selectors.rule_types`: with `security_signals`, any of `application_security`, `log_detection`, `workload_security`\n  and `signal_correlation`. With `security_findings`, any of\n  `application_code_vulnerability`, `application_library_vulnerability`, `attack_path`, `container_image_vulnerability`,\n  `identity_risk`, `misconfiguration`, `api_security`, `host_vulnerability`, `iac_misconfiguration`, `sast_vulnerability`,\n  `secret_vulnerability`, `workload_activity`, `sensitive_data` and `serverless_function_code_vulnerability`.\n  Set at least one rule type. An empty list, or a rule type that doesn't match `selectors.trigger_source`, is rejected with HTTP 400.\n  The preview runs once for each rule type in this list.\n- `selectors.severities`: any of `critical`, `high`, `medium`, `low` and `info`. The value `unknown` is rejected with HTTP 400.\n- `selectors.query`: one or several `key:value` pairs on tags and attributes, for example `env:prod`, up to 6,000 characters.\n- `targets`: a list of 1 to 20 notification handles, each starting with `@` and up to 500 characters. Use `@<EMAIL>` for an email address,\n  `@slack-<CHANNEL>` or `@slack-<ACCOUNT>-<CHANNEL>` for a Slack channel, `@pagerduty-<SERVICE_NAME>` for a PagerDuty service,\n  and `@webhook-<WEBHOOK_NAME>` for a webhook. Other integrations use `@<INTEGRATION_NAME>-<VALUES>`, such as `@teams-` or `@jira-`.\n  Handles that contain parentheses `()` are not supported. In HIPAA-compliant organizations, webhook targets are rejected with a 403.\n  With `security_findings`, `@case-`, `@incident-`, `@jira-` and `@linear-` targets are rejected with HTTP 400.\n- `time_aggregation`: with `security_signals`, leave it out or set it to `0`. With `security_findings`, leave it out, set it to `0`,\n  or set it between 1,800 and 2,592,000 seconds (30 minutes to 30 days). `@workflow-` targets are rejected when it's greater than `0`.\n\nThe integration behind each target (Slack, PagerDuty, and so on) must already be configured in Datadog.\nThe response has one result per rule type. `SUCCESS` means a matching event was found and the test notification was queued.\n`DEFAULT` means no matching event was found and a placeholder test notification was queued instead.\n`ERROR` means the test notification couldn't be built or queued. A queued notification can still fail to reach its target later,\nfor example when the target's integration isn't configured or a target team doesn't exist, and the response doesn't report it.",
         "operationId": "SendSecurityMonitoringNotificationPreview",
         "requestBody": {
           "content": {
