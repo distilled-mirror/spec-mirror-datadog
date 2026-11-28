@@ -185578,6 +185578,9 @@
             "example": "CHANNEL",
             "type": "string"
           },
+          "customizable_content": {
+            "$ref": "#/components/schemas/SendSlackMessageActionCustomizableContent"
+          },
           "type": {
             "$ref": "#/components/schemas/SendSlackMessageActionType"
           },
@@ -185592,6 +185595,32 @@
           "channel",
           "workspace"
         ],
+        "type": "object"
+      },
+      "SendSlackMessageActionCustomizableContent": {
+        "description": "Options that customize the content of the Slack message sent for a Page.",
+        "properties": {
+          "include_description": {
+            "description": "Whether to include the Page description in the Slack message.",
+            "example": true,
+            "type": "boolean"
+          },
+          "include_source": {
+            "description": "Whether to include the source that triggered the Page in the Slack message.",
+            "example": true,
+            "type": "boolean"
+          },
+          "mirror_replies": {
+            "description": "Whether to mirror replies posted in the Slack message thread to the Page timeline.",
+            "example": false,
+            "type": "boolean"
+          },
+          "thread_timeline": {
+            "description": "Whether to post Page timeline updates as replies in the Slack message thread.",
+            "example": false,
+            "type": "boolean"
+          }
+        },
         "type": "object"
       },
       "SendSlackMessageActionType": {
@@ -351971,8 +352000,7 @@
           "permissions": [
             "rum_apps_read"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       },
       "post": {
         "description": "Create a teams ownership mapping for your organization.\nReturns the teams ownership mapping object from the request body when the request is successful.",
@@ -352055,8 +352083,7 @@
           "permissions": [
             "rum_apps_write"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/rum/config/teams-ownership/mappings/operations": {
@@ -352198,8 +352225,7 @@
           "permissions": [
             "rum_apps_write"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/rum/config/teams-ownership/mappings/{id}": {
@@ -352234,8 +352260,7 @@
           "permissions": [
             "rum_apps_write"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       },
       "get": {
         "description": "Get a specific teams ownership mapping from your organization.",
@@ -352295,8 +352320,7 @@
           "permissions": [
             "rum_apps_read"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/rum/config/teams-ownership/rules": {
@@ -352371,8 +352395,7 @@
           "permissions": [
             "rum_apps_read"
           ]
-        },
-        "x-unstable": "**Note**: This endpoint is in Preview and is subject to change.\nIf you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/)."
+        }
       }
     },
     "/api/v2/rum/events": {
